@@ -28,6 +28,7 @@ from app.db.session import AdminSession, RuntimeSession, set_rls_context
 from app.integrations.storage import StorageError
 from app.models import (
     Appointment,
+    AppointmentItem,
     AuthToken,
     AuthTokenType,
     AuthUserType,
@@ -619,7 +620,12 @@ async def delete_service(
     row = await _service_or_404(session, tenant_id, service_id)
     has_history = bool(
         await session.scalar(
-            select(Appointment.id).where(Appointment.service_id == service_id).limit(1)
+            select(AppointmentItem.id)
+            .where(
+                AppointmentItem.tenant_id == tenant_id,
+                AppointmentItem.service_id == service_id,
+            )
+            .limit(1)
         )
     )
     if has_history:

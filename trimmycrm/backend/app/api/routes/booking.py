@@ -23,6 +23,8 @@ from app.core.config import Settings
 from app.core.errors import BadRequestError, ConflictError, NotFoundError
 from app.models import (
     Appointment,
+    AppointmentItem,
+    AppointmentItemAddon,
     AppointmentStatus,
     IdempotencyKey,
     IdempotencyStatus,
@@ -38,6 +40,8 @@ from app.models import (
 )
 from app.schemas import (
     AdminAppointmentCreate,
+    AppointmentItemAddonView,
+    AppointmentItemView,
     AppointmentUpdate,
     AppointmentView,
     BookingCreate,
@@ -53,6 +57,63 @@ from app.services.booking import available_slots, booking_request_hash, create_a
 from app.services.scheduling import parse_timezone
 
 router = APIRouter(tags=["booking"])
+
+
+async def _appointment_item_views(
+    session: AsyncSession, appointment_id: UUID
+) -> list[AppointmentItemView]:
+    items = (
+        await session.scalars(
+            select(AppointmentItem)
+            .where(AppointmentItem.appointment_id == appointment_id)
+            .order_by(AppointmentItem.sort_order, AppointmentItem.created_at)
+        )
+    ).all()
+    if not items:
+        return []
+    addons = (
+        await session.scalars(
+            select(AppointmentItemAddon)
+            .where(AppointmentItemAddon.appointment_item_id.in_([item.id for item in items]))
+            .order_by(AppointmentItemAddon.sort_order, AppointmentItemAddon.created_at)
+        )
+    ).all()
+    addons_by_item: dict[UUID, list[AppointmentItemAddonView]] = {}
+    for addon in addons:
+        addons_by_item.setdefault(addon.appointment_item_id, []).append(
+            AppointmentItemAddonView.model_validate(
+                {
+                    "id": addon.id,
+                    "addon_id": addon.addon_id,
+                    "name": addon.name_snapshot,
+                    "price": addon.price_snapshot,
+                    "duration_min": addon.duration_min_snapshot,
+                }
+            )
+        )
+    return [
+        AppointmentItemView.model_validate(
+            {
+                "id": item.id,
+                "service_id": item.service_id,
+                "variant_id": item.variant_id,
+                "assigned_staff_id": item.assigned_staff_id,
+                "service_name": item.service_name_snapshot,
+                "variant_label": item.variant_label_snapshot,
+                "selected_options": item.selected_options,
+                "unit_price": item.unit_price,
+                "final_price": item.final_price,
+                "duration_min": item.duration_min,
+                "buffer_before_min": item.buffer_before_min,
+                "buffer_after_min": item.buffer_after_min,
+                "currency": item.currency,
+                "sort_order": item.sort_order,
+                "adjustment_reason": item.adjustment_reason,
+                "addons": addons_by_item.get(item.id, []),
+            }
+        )
+        for item in items
+    ]
 
 
 async def _appointment_view(session: AsyncSession, row: Appointment) -> AppointmentView:
@@ -88,6 +149,7 @@ async def _appointment_view(session: AsyncSession, row: Appointment) -> Appointm
             "pet_name": names[1],
             "service_name": names[2],
             "staff_name": names[3],
+            "items": await _appointment_item_views(session, row.id),
         }
     )
 

@@ -23,8 +23,18 @@ for key, value in {
 }.items():
     os.environ[key] = value
 
-from app.models import AppointmentItem, AppointmentItemAddon  # noqa: E402
+from app.models import (  # noqa: E402
+    Appointment,
+    AppointmentItem,
+    AppointmentItemAddon,
+    Pet,
+    Service,
+    Site,
+    Staff,
+    StaffService,
+)
 from app.schemas import AppointmentView  # noqa: E402
+from app.services import booking  # noqa: E402
 from app.services.booking_pricing import (  # noqa: E402
     BookingQuoteError,
     CatalogAddonChoice,
@@ -32,6 +42,7 @@ from app.services.booking_pricing import (  # noqa: E402
     CatalogVariantChoice,
     calculate_appointment_quote,
 )
+from app.services.scheduling import TimeRange  # noqa: E402
 
 TENANT_ID = UUID("11111111-1111-4111-8111-111111111111")
 CLIENT_ID = UUID("22222222-2222-4222-8222-222222222222")
@@ -205,3 +216,87 @@ def test_appointment_view_exposes_snapshots_without_recalculation() -> None:
     assert view.items[0].serviceName == "Стрижка"
     assert view.items[0].unitPrice == Decimal("4750.50")
     assert view.items[0].addons[0].name == "Экспресс-уход"
+
+
+class _CreateSession:
+    def __init__(self, pet: Pet, capability: StaffService, site: Site) -> None:
+        self.scalar_values = [pet, capability]
+        self.site = site
+        self.added: list[object] = []
+
+    async def execute(self, _statement: object, _params: object | None = None) -> None:
+        return None
+
+    async def scalar(self, _statement: object) -> object:
+        return self.scalar_values.pop(0)
+
+    async def get(self, _model: object, _identifier: UUID) -> Site:
+        return self.site
+
+    def add(self, value: object) -> None:
+        self.added.append(value)
+
+    async def flush(self) -> None:
+        for value in self.added:
+            if isinstance(value, Appointment) and value.id is None:
+                value.id = APPOINTMENT_ID
+
+
+@pytest.mark.asyncio
+async def test_new_legacy_booking_persists_an_item_snapshot(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    start = datetime(2026, 8, 3, 9, tzinfo=UTC)
+    end = datetime(2026, 8, 3, 10, tzinfo=UTC)
+    site = Site(id=TENANT_ID, name="CUT/01", slug="cut-01", timezone="Europe/Moscow")
+    service = Service(
+        id=HAIRCUT_ID,
+        tenant_id=TENANT_ID,
+        name="Стрижка",
+        price=Decimal("3000.00"),
+        duration_min=60,
+        buffer_before_min=5,
+        buffer_after_min=15,
+        currency="RUB",
+        is_active=True,
+    )
+    staff = Staff(id=STAFF_ID, tenant_id=TENANT_ID, name="Анна", schedule={}, is_active=True)
+    pet = Pet(
+        id=PET_ID,
+        tenant_id=TENANT_ID,
+        owner_id=CLIENT_ID,
+        name="Legacy",
+    )
+    capability = StaffService(
+        tenant_id=TENANT_ID,
+        staff_id=STAFF_ID,
+        service_id=HAIRCUT_ID,
+        custom_price=Decimal("3200.00"),
+        custom_duration_min=75,
+    )
+    session = _CreateSession(pet, capability, site)
+
+    async def slots(
+        *_args: object, **_kwargs: object
+    ) -> tuple[Site, Service, Staff, list[tuple[TimeRange, bool]]]:
+        return site, service, staff, [(TimeRange(start, end), True)]
+
+    monkeypatch.setattr(booking, "available_slots", slots)
+
+    row = await booking.create_appointment(
+        session,  # type: ignore[arg-type]
+        tenant_id=TENANT_ID,
+        tenant_user_id=CLIENT_ID,
+        pet_id=PET_ID,
+        service_id=HAIRCUT_ID,
+        staff_id=STAFF_ID,
+        start_at=start,
+    )
+
+    item = next(value for value in session.added if isinstance(value, AppointmentItem))
+    assert row.id == APPOINTMENT_ID
+    assert item.appointment_id == APPOINTMENT_ID
+    assert item.service_name_snapshot == "Стрижка"
+    assert item.unit_price == Decimal("3200.00")
+    assert item.duration_min == 75
+    assert item.selected_options == {"source": "legacySingleService"}

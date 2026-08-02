@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.errors import BadRequestError, ConflictError, NotFoundError
 from app.models import (
     Appointment,
+    AppointmentItem,
     AppointmentStatus,
     Pet,
     Promotion,
@@ -190,11 +191,12 @@ async def create_appointment(
             StaffService.service_id == service_id,
         )
     )
-    price = (
+    item_price = (
         capability.custom_price
         if capability and capability.custom_price is not None
         else service.price
     )
+    price = item_price
     if promotion_code:
         price = await apply_promotion(
             session, tenant_id=tenant_id, code=promotion_code, price=price
@@ -212,6 +214,28 @@ async def create_appointment(
         notes=notes,
     )
     session.add(row)
+    await session.flush()
+    duration_min = (
+        capability.custom_duration_min
+        if capability and capability.custom_duration_min is not None
+        else service.duration_min
+    )
+    session.add(
+        AppointmentItem(
+            tenant_id=tenant_id,
+            appointment_id=row.id,
+            service_id=service_id,
+            assigned_staff_id=staff_id,
+            service_name_snapshot=service.name,
+            selected_options={"source": "legacySingleService"},
+            unit_price=item_price,
+            duration_min=duration_min,
+            buffer_before_min=service.buffer_before_min,
+            buffer_after_min=service.buffer_after_min,
+            currency=service.currency,
+            sort_order=0,
+        )
+    )
     await session.flush()
     return row
 
