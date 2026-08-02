@@ -114,6 +114,18 @@ export async function mockDashboardApis(page: Page) {
       clientName: "Анна",
       serviceName: "Комплексный уход",
       staffName: "Мария",
+      items: [{
+        id: "fb2832e5-bcb5-47df-8847-8f51e385a36d",
+        serviceId: "063b61c0-c8fd-4ad5-ab6c-d74873f856a5",
+        serviceName: "Комплексный уход",
+        variantId: null,
+        variantName: null,
+        quantity: 1,
+        unitPrice: "2400.00",
+        durationMin: 90,
+        position: 0,
+        addOns: [],
+      }],
     }]),
   );
   await page.route("**/api/v1/clients**", (route) =>

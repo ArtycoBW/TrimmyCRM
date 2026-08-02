@@ -5,24 +5,24 @@ export type AppointmentStatus = AppointmentView["status"];
 
 export function appointmentServiceLabel(
   appointment: {
-    items: Array<Pick<AppointmentView["items"][number], "serviceName">>;
+    items?: Array<Pick<AppointmentView["items"][number], "serviceName">>;
     serviceName: AppointmentView["serviceName"];
   },
 ) {
-  const names = appointment.items.map((item) => item.serviceName);
+  const names = (appointment.items || []).map((item) => item.serviceName);
   if (names.length) return names.join(" + ");
   return appointment.serviceName || "Услуга";
 }
 
 export function appointmentMatchesService(
   appointment: {
-    items: Array<Pick<AppointmentView["items"][number], "serviceId">>;
+    items?: Array<Pick<AppointmentView["items"][number], "serviceId">>;
     serviceId: AppointmentView["serviceId"];
   },
   serviceId: string,
 ) {
   return appointment.serviceId === serviceId ||
-    appointment.items.some((item) => item.serviceId === serviceId);
+    (appointment.items || []).some((item) => item.serviceId === serviceId);
 }
 
 export const statusTransitions: Record<AppointmentStatus, AppointmentStatus[]> = {

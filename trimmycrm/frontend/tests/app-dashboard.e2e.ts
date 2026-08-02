@@ -36,7 +36,7 @@ test("owner dashboard renders real operational data and stays inside viewport", 
 
   await expect(page.getByRole("heading", { name: /Добрый день, Ольга/i })).toBeVisible();
   await expect(page.locator(".crm-metric")).toHaveCount(4);
-  await expect(page.getByText("Боня", { exact: true })).toBeVisible();
+  await expect(page.getByText("Анна", { exact: true })).toBeVisible();
   await expect(page.getByText("2 400 ₽", { exact: true }).first()).toBeVisible();
   await expect(page.locator(".crm-launch")).toContainText("Подготовим салон к записи");
   await expect(page.getByRole("button", { name: "Уведомления" })).toHaveCount(0);
@@ -154,9 +154,9 @@ test("onboarding creates a site with the current backend payload", async ({ page
   await page.route("**/api/v1/sites", async (route) => {
     const payload = route.request().postDataJSON() as Record<string, unknown>;
     expect(payload).toMatchObject({
-      name: "Хвостики",
+      name: "Срез",
       city: "Казань",
-      slug: "hvostiki",
+      slug: "srez",
       timezone: "Europe/Moscow",
     });
     await route.fulfill({
@@ -164,23 +164,23 @@ test("onboarding creates a site with the current backend payload", async ({ page
       contentType: "application/json",
       body: JSON.stringify({
         ...siteFixture,
-        name: "Хвостики",
+        name: "Срез",
         city: "Казань",
-        slug: "hvostiki",
+        slug: "srez",
       }),
     });
   });
 
   await page.goto("/app/onboarding");
   await expect(page.getByRole("heading", { name: "Как вас представить?" })).toBeVisible();
-  await page.getByLabel("Название салона").fill("Хвостики");
+  await page.getByLabel("Название салона").fill("Срез");
   await page.getByLabel("Город").fill("Казань");
-  await expect(page.getByLabel("Адрес сайта")).toHaveValue("hvostiki");
+  await expect(page.getByLabel("Адрес сайта")).toHaveValue("srez");
   await page.getByLabel("Адрес сайта").press("Tab");
   await expect(page.getByText("Адрес свободен")).toBeVisible();
   await page.getByRole("button", { name: "Создать кабинет →" }).click();
 
   await expect(page).toHaveURL(/\/app$/);
   await expect(page.getByRole("heading", { name: /Добрый день, Ольга/i })).toBeVisible();
-  await expect(page.locator(".crm-salon-card")).toContainText("Хвостики");
+  await expect(page.locator(".crm-salon-card")).toContainText("Срез");
 });

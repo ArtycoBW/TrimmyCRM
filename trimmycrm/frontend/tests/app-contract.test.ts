@@ -141,6 +141,17 @@ describe("owner app contract", () => {
     expect(appointmentMatchesService(appointment, "care")).toBe(false);
   });
 
+  it("supports legacy appointments without item snapshots", () => {
+    const appointment = {
+      serviceId: "haircut",
+      serviceName: "Стрижка",
+    };
+
+    expect(appointmentServiceLabel(appointment)).toBe("Стрижка");
+    expect(appointmentMatchesService(appointment, "haircut")).toBe(true);
+    expect(appointmentMatchesService(appointment, "color")).toBe(false);
+  });
+
   it("validates client forms without inventing required contacts", () => {
     expect(clientFormSchema.safeParse({
       fullName: "Анна Петрова",
