@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1100" role="img" aria-labelledby="title desc">
+  <title id="title">Editorial hair studio</title>
+  <desc id="desc">Abstract black hairstyle, vermillion comb and mint accent on white paper.</desc>
+  <rect width="900" height="1100" fill="#ffffff"/>
+  <path d="M170 930V510c0-223 120-350 280-350s280 127 280 350v420z" fill="#75dfb5" stroke="#000000" stroke-width="18"/>
+  <ellipse cx="450" cy="520" rx="180" ry="230" fill="#ffffff" stroke="#000000" stroke-width="18"/>
+  <path d="M277 470c8-212 105-319 234-282 107 31 151 132 117 301-70-87-116-146-207-147-47 0-93 45-144 128z" fill="#000000"/>
+  <rect x="84" y="120" width="130" height="620" rx="20" fill="#d15022" stroke="#000000" stroke-width="16" transform="rotate(-12 149 430)"/>
+  <g stroke="#000000" stroke-width="12"><path d="M112 208h102M105 258h101M98 308h100M91 358h100M85 408h99"/></g>
+  <circle cx="735" cy="180" r="72" fill="#75dfb5" stroke="#000000" stroke-width="16"/>
+  <text x="450" y="1030" text-anchor="middle" font-family="Arial, sans-serif" font-size="42" font-weight="700" fill="#000000">CUT / COLOR / CARE</text>
+</svg>
+

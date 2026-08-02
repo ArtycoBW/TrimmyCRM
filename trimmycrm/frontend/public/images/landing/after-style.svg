@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 800" role="img" aria-labelledby="title desc">
+  <title id="title">После выбора формы</title>
+  <desc id="desc">Абстрактный силуэт структурированной современной стрижки.</desc>
+  <rect width="1000" height="800" fill="#75dfb5"/>
+  <circle cx="500" cy="350" r="210" fill="#d15022" stroke="#000000" stroke-width="18"/>
+  <ellipse cx="500" cy="360" rx="120" ry="160" fill="#ffffff" stroke="#000000" stroke-width="16"/>
+  <path d="M372 337c20-120 91-176 177-151 73 21 111 81 104 177-81-52-175-61-281-26z" fill="#000000"/>
+  <path d="M338 620c45-78 99-116 162-116s117 38 162 116" fill="none" stroke="#000000" stroke-width="56" stroke-linecap="square"/>
+  <rect x="738" y="80" width="180" height="72" fill="#ffffff" stroke="#000000" stroke-width="12"/>
+  <text x="828" y="130" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" font-weight="700">ПОСЛЕ</text>
+</svg>
+

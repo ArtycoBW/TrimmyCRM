@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 800" role="img" aria-labelledby="title desc">
+  <title id="title">До консультации</title>
+  <desc id="desc">Абстрактный силуэт длинных волос до выбора новой формы.</desc>
+  <rect width="1000" height="800" fill="#ffffff"/>
+  <circle cx="500" cy="350" r="210" fill="#75dfb5" stroke="#000000" stroke-width="18"/>
+  <path d="M270 650c18-283 73-477 230-477s212 194 230 477c-77-84-143-124-230-124S347 566 270 650z" fill="#000000"/>
+  <ellipse cx="500" cy="360" rx="120" ry="160" fill="#ffffff" stroke="#000000" stroke-width="16"/>
+  <path d="M380 333c38-83 90-125 155-125 64 0 112 37 145 111-84-31-184-26-300 14z" fill="#000000"/>
+  <rect x="82" y="80" width="180" height="72" fill="#d15022" stroke="#000000" stroke-width="12"/>
+  <text x="172" y="130" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" font-weight="700">ДО</text>
+</svg>
+

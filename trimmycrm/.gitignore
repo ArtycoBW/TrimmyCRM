@@ -1,0 +1,18 @@
+# Local agent tooling and product source documents must stay outside Git.
+/.agents/
+/skills-lock.json
+/ТЗ_Грумминг_CRM.md
+/Архитектура.svg
+
+# Frontend build output and local configuration.
+/frontend/node_modules/
+/frontend/.next/
+/frontend/out/
+/frontend/coverage/
+/frontend/test-results/
+/frontend/playwright-report/
+/frontend/.env*
+!/frontend/.env.example
+*.tsbuildinfo
+/tmp
+/promo-video

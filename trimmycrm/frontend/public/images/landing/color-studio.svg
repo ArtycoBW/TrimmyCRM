@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1100" role="img" aria-labelledby="title desc">
+  <title id="title">Color studio</title>
+  <desc id="desc">Abstract flowing hairstyle and color swatches.</desc>
+  <rect width="900" height="1100" fill="#d15022"/>
+  <path d="M190 930c45-133 48-257 11-372-46-143 1-329 157-399 147-66 315-6 367 153 33 101 6 190-25 279-42 119-29 226 11 339z" fill="#ffffff" stroke="#000000" stroke-width="20"/>
+  <ellipse cx="454" cy="446" rx="158" ry="204" fill="#75dfb5" stroke="#000000" stroke-width="18"/>
+  <path d="M302 444c-3-181 65-279 187-279 132 0 220 111 191 313-42-72-104-125-190-142-63-12-126 24-188 108z" fill="#000000"/>
+  <path d="M698 138h110v110H698zM698 270h110v110H698zM698 402h110v110H698z" fill="#75dfb5" stroke="#000000" stroke-width="14"/>
+  <text x="450" y="1025" text-anchor="middle" font-family="Arial, sans-serif" font-size="42" font-weight="700" fill="#000000">FORM / TONE / TEXTURE</text>
+</svg>
+

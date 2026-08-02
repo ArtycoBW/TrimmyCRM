@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1100" role="img" aria-labelledby="title desc">
+  <title id="title">Editorial barbershop</title>
+  <desc id="desc">Abstract crop and beard silhouette in the TrimmyCRM palette.</desc>
+  <rect width="900" height="1100" fill="#75dfb5"/>
+  <g stroke="#000000" stroke-width="8" opacity=".22"><path d="M0 140h900M0 280h900M0 420h900M0 560h900M0 700h900M0 840h900M0 980h900M150 0v1100M300 0v1100M450 0v1100M600 0v1100M750 0v1100"/></g>
+  <path d="M245 830V440c0-175 86-280 205-280s205 105 205 280v390z" fill="#ffffff" stroke="#000000" stroke-width="20"/>
+  <path d="M257 392c20-155 98-232 207-232 105 0 177 69 190 209-119-59-259-50-397 23z" fill="#000000"/>
+  <path d="M327 595c50 54 196 54 246 0v132c-33 97-83 151-123 151s-90-54-123-151z" fill="#d15022" stroke="#000000" stroke-width="16"/>
+  <circle cx="90" cy="95" r="62" fill="#d15022" stroke="#000000" stroke-width="16"/>
+  <text x="450" y="1025" text-anchor="middle" font-family="Arial, sans-serif" font-size="44" font-weight="700" fill="#000000">HAIR + BEARD</text>
+</svg>
+

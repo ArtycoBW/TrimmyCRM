@@ -1,0 +1,30 @@
+{
+    admin off
+    email {$ACME_EMAIL}
+
+    on_demand_tls {
+        ask http://api:8000/api/v1/internal/domains/allow?token={$INTERNAL_EDGE_TOKEN}
+    }
+}
+
+# Автоматический резервный режим для установок без автоматизации DNS-проверки.
+# Caddy выпускает отдельный сертификат с проверкой для платформы, каждого салона
+# и проверенного домена клиента. Для крупных установок используйте EDGE_TLS_MODE=wildcard.
+https:// {
+    tls {
+        on_demand
+    }
+
+    encode zstd gzip
+
+    reverse_proxy nginx:8080 {
+        header_up X-Forwarded-Proto https
+        header_up X-Forwarded-Host {host}
+        header_up X-Real-IP {remote_host}
+    }
+
+    log {
+        output stdout
+        format json
+    }
+}

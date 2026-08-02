@@ -1,0 +1,39 @@
+{
+    admin off
+    email {$ACME_EMAIL}
+
+    on_demand_tls {
+        ask http://api:8000/api/v1/internal/domains/allow?token={$INTERNAL_EDGE_TOKEN}
+    }
+}
+
+(trimmycrm_proxy) {
+    encode zstd gzip
+
+    reverse_proxy nginx:8080 {
+        header_up X-Forwarded-Proto https
+        header_up X-Forwarded-Host {host}
+        header_up X-Real-IP {remote_host}
+    }
+
+    log {
+        output stdout
+        format json
+    }
+}
+
+# Основной домен платформы использует один заранее выпущенный сертификат с маской.
+# Подключите сертификат, содержащий PRIMARY_DOMAIN и *.PRIMARY_DOMAIN. Это
+# исключает отдельный ACME-заказ для каждого салона; сертификат обновляет инфраструктура.
+{$PRIMARY_DOMAIN}, *.{$PRIMARY_DOMAIN} {
+    tls {$WILDCARD_CERT_FILE} {$WILDCARD_KEY_FILE}
+    import trimmycrm_proxy
+}
+
+# Для проверенных доменов клиентов сертификаты выпускаются по запросу с проверкой.
+https:// {
+    tls {
+        on_demand
+    }
+    import trimmycrm_proxy
+}

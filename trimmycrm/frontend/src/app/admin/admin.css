@@ -1,0 +1,35 @@
+.admin-workspace { min-width: 0; color: var(--ink); }
+.admin-header h1 { margin: 4px 0 9px; font-family: var(--display); font-size: clamp(36px, 5vw, 64px); line-height: .9; letter-spacing: -.07em; text-transform: uppercase; }
+.admin-header p:last-child { margin: 0; color: var(--muted); font-size: 15px; }
+.admin-tabs { display: flex; gap: 8px; margin: 31px 0 16px; overflow-x: auto; border-bottom: 1px solid rgba(7, 7, 7, .22); }
+.admin-tabs button { flex: 0 0 auto; padding: 12px 15px; border: 1px solid transparent; border-bottom: 0; border-radius: 10px 10px 0 0; background: transparent; color: var(--ink); font: inherit; font-size: 14px; font-weight: 800; cursor: pointer; }
+.admin-tabs button.is-active { border-color: var(--ink); background: var(--white); box-shadow: 3px 0 0 var(--ink); }
+.admin-filters { display: grid; grid-template-columns: minmax(210px, 1.8fr) repeat(3, minmax(145px, 1fr)) auto; gap: 10px; margin: 18px 0; }
+.admin-filters input { min-width: 0; height: 54px; padding: 0 13px; border: 1.5px solid var(--ink); border-radius: 11px; background: var(--white); color: var(--ink); font: inherit; }
+.admin-filters .ui-select-trigger { width: 100%; height: 54px; min-height: 54px; }
+.admin-filters .button { height: 54px; min-height: 54px; padding-inline: 17px; }
+.admin-table-wrap { overflow-x: auto; border: 1.5px solid var(--ink); border-radius: 14px; background: var(--white); box-shadow: 5px 5px 0 rgba(7, 7, 7, .9); }
+.admin-table { width: 100%; min-width: 1030px; border-collapse: collapse; font-size: 13px; }
+.admin-table th { padding: 13px; border-bottom: 1.5px solid var(--ink); background: #ede9ff; text-align: left; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; }
+.admin-table td { padding: 14px 13px; border-bottom: 1px solid rgba(7, 7, 7, .17); vertical-align: top; }
+.admin-table tr:last-child td { border-bottom: 0; }
+.admin-table strong, .admin-table small { display: block; }
+.admin-table small { margin-top: 4px; color: var(--muted); line-height: 1.35; }
+.admin-badge { display: inline-block; width: max-content; padding: 4px 7px; border: 1px solid var(--ink); border-radius: 999px; background: var(--lime); font-size: 10px; font-weight: 800; text-transform: uppercase; }
+.admin-feedback-list { display: grid; gap: 12px; }
+.admin-feedback-list article { padding: 18px; border: 1.5px solid var(--ink); border-radius: 14px; background: var(--white); box-shadow: 4px 4px 0 var(--ink); }
+.admin-feedback-list article.is-read { box-shadow: none; opacity: .72; }
+.admin-feedback-list header, .admin-feedback-list footer { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.admin-feedback-list header strong, .admin-feedback-list header span { display: block; }
+.admin-feedback-list header span, .admin-feedback-list time { margin-top: 4px; color: var(--muted); font-size: 12px; }
+.admin-feedback-list > article > p { margin: 17px 0; white-space: pre-wrap; line-height: 1.55; }
+.admin-feedback-list footer { align-items: center; }
+.admin-feedback-list footer button, .admin-pagination button { border: 1px solid var(--ink); border-radius: 8px; background: var(--white); color: var(--ink); padding: 8px 10px; font: inherit; font-size: 12px; font-weight: 800; cursor: pointer; }
+.admin-feedback-list footer button:disabled, .admin-pagination button:disabled { cursor: not-allowed; opacity: .5; }
+.admin-pagination { display: flex; justify-content: space-between; gap: 15px; align-items: center; margin-top: 23px; color: var(--muted); font-size: 13px; }
+.admin-pagination > div { display: flex; align-items: center; gap: 8px; }
+.admin-empty { padding: 28px; border: 1.5px dashed var(--ink); border-radius: 14px; background: rgba(255, 255, 255, .52); color: var(--muted); text-align: center; }
+.admin-skeleton { display: grid; gap: 10px; }
+.admin-skeleton span { height: 67px; border-radius: 12px; background: linear-gradient(90deg, #e9e3db 20%, #fffef9 50%, #e9e3db 80%); background-size: 200% 100%; animation: admin-shimmer 1.25s infinite; }
+@keyframes admin-shimmer { to { background-position: -200% 0; } }
+@media (max-width: 680px) { .admin-filters { grid-template-columns: 1fr; } .admin-pagination { align-items: flex-start; flex-direction: column; } }

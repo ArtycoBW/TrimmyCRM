@@ -1,0 +1,40 @@
+# Local source archive and read-only analysis copy
+grooming_crm-main.zip
+reference/
+
+# Local agent instructions and internal product planning
+/AGENTS.md
+/README.md
+/agent-briefs/
+/design/
+/docs/
+/.agents/
+/skills-lock.json
+
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+**/secrets/*
+!**/secrets/.gitkeep
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+
+# Node / Next.js / test output
+node_modules/
+.next/
+coverage/
+playwright-report/
+test-results/
+
+# Local data and media
+backups/*
+!backups/.gitkeep
+uploads/
+*.log

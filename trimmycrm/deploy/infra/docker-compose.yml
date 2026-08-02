@@ -1,0 +1,506 @@
+name: ${COMPOSE_PROJECT_NAME:-trimmycrm}
+
+x-backend-image: &backend-image
+  image: trimmycrm/backend:${APP_IMAGE_TAG:-local}
+
+x-frontend-image: &frontend-image
+  image: trimmycrm/frontend:${APP_IMAGE_TAG:-local}
+  pull_policy: never
+
+x-backend-environment: &backend-environment
+  ENVIRONMENT: ${ENVIRONMENT:-production}
+  LOG_LEVEL: ${LOG_LEVEL:-INFO}
+  DATABASE_URL: postgresql+asyncpg://trimmycrm_app:${POSTGRES_APP_PASSWORD:?POSTGRES_APP_PASSWORD is required}@postgres:5432/${POSTGRES_DB:-trimmycrm}
+  REDIS_URL: redis://:${REDIS_PASSWORD:?REDIS_PASSWORD is required}@redis:6379/0
+  CELERY_BROKER_URL: redis://:${REDIS_PASSWORD:?REDIS_PASSWORD is required}@redis:6379/1
+  CELERY_RESULT_BACKEND: redis://:${REDIS_PASSWORD:?REDIS_PASSWORD is required}@redis:6379/2
+  S3_ENDPOINT_URL: ${S3_ENDPOINT_URL:?S3_ENDPOINT_URL is required}
+  S3_ACCESS_KEY: ${S3_ACCESS_KEY:?S3_ACCESS_KEY is required}
+  S3_SECRET_KEY: ${S3_SECRET_KEY:?S3_SECRET_KEY is required}
+  S3_BUCKET: ${S3_BUCKET:?S3_BUCKET is required}
+  S3_REGION: ${S3_REGION:?S3_REGION is required}
+  JWT_PLATFORM_SECRET: ${JWT_PLATFORM_SECRET:?JWT_PLATFORM_SECRET is required}
+  JWT_TENANT_SECRET: ${JWT_TENANT_SECRET:?JWT_TENANT_SECRET is required}
+  AUTH_TOKEN_PEPPER: ${AUTH_TOKEN_PEPPER:?AUTH_TOKEN_PEPPER is required}
+  INTERNAL_EDGE_TOKEN: ${INTERNAL_EDGE_TOKEN:?INTERNAL_EDGE_TOKEN is required}
+  PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:?PUBLIC_BASE_URL is required}
+  PLATFORM_HOSTS: '${PLATFORM_HOSTS:?PLATFORM_HOSTS is required}'
+  TENANT_BASE_DOMAINS: '${TENANT_BASE_DOMAINS:?TENANT_BASE_DOMAINS is required}'
+  ALLOWED_ORIGINS: '${ALLOWED_ORIGINS:?ALLOWED_ORIGINS is required}'
+  CSRF_TRUSTED_ORIGINS: '${CSRF_TRUSTED_ORIGINS:-[]}'
+  TRUSTED_PROXY_NETWORKS: '${TRUSTED_PROXY_NETWORKS:-[]}'
+  REFRESH_COOKIE_SECURE: ${REFRESH_COOKIE_SECURE:-true}
+  CAPTCHA_PROVIDER: ${CAPTCHA_PROVIDER:-yandex}
+  CAPTCHA_SECRET: ${CAPTCHA_SECRET:-}
+  PAYMENT_PROVIDER: ${PAYMENT_PROVIDER:-yookassa}
+  MOCK_PAYMENT_AUTO_SUCCEED: ${MOCK_PAYMENT_AUTO_SUCCEED:-false}
+  YOOKASSA_SHOP_ID: ${YOOKASSA_SHOP_ID:-}
+  YOOKASSA_SECRET_KEY: ${YOOKASSA_SECRET_KEY:-}
+  YOOKASSA_WEBHOOK_SOURCE_NETWORKS: '${YOOKASSA_WEBHOOK_SOURCE_NETWORKS:-[]}'
+  SMTP_HOST: ${SMTP_HOST:-mailpit}
+  SMTP_PORT: ${SMTP_PORT:-1025}
+  SMTP_USERNAME: ${SMTP_USERNAME:-}
+  SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+  SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:-no-reply@example.invalid}
+  SMTP_STARTTLS: ${SMTP_STARTTLS:-false}
+  SMSC_LOGIN: ${SMSC_LOGIN:-}
+  SMSC_PASSWORD: ${SMSC_PASSWORD:-}
+  SMSC_SENDER: ${SMSC_SENDER:-}
+  SMSC_API_URL: ${SMSC_API_URL:-https://smsc.ru/sys/send.php}
+  TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+  TELEGRAM_API_URL: ${TELEGRAM_API_URL:-https://api.telegram.org}
+  SENTRY_DSN: ${SENTRY_DSN:-}
+  OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+  CLAMAV_HOST: ${CLAMAV_HOST:-clamav}
+  CLAMAV_PORT: ${CLAMAV_PORT:-3310}
+  MALWARE_SCAN_FAIL_CLOSED: ${MALWARE_SCAN_FAIL_CLOSED:-true}
+  CELERY_APP: app.tasks.celery_app:celery_app
+
+x-hardened-backend: &hardened-backend
+  read_only: true
+  cap_drop:
+    - ALL
+  security_opt:
+    - no-new-privileges:true
+  tmpfs:
+    - /tmp:rw,noexec,nosuid,size=128m,uid=10001,gid=10001
+  networks:
+    - backend
+    - data
+    - egress
+
+services:
+  postgres:
+    image: postgres:16.4-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-trimmycrm}
+      POSTGRES_USER: ${POSTGRES_ADMIN_USER:-trimmycrm_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_ADMIN_PASSWORD:?POSTGRES_ADMIN_PASSWORD is required}
+      POSTGRES_APP_USER: trimmycrm_app
+      POSTGRES_APP_PASSWORD: ${POSTGRES_APP_PASSWORD:?POSTGRES_APP_PASSWORD is required}
+      POSTGRES_API_ADMIN_USER: trimmycrm_admin_api
+      POSTGRES_API_ADMIN_PASSWORD: ${POSTGRES_API_ADMIN_PASSWORD:?POSTGRES_API_ADMIN_PASSWORD is required}
+      POSTGRES_MAX_CONNECTIONS: ${POSTGRES_MAX_CONNECTIONS:-200}
+    command:
+      - postgres
+      - -c
+      - max_connections=${POSTGRES_MAX_CONNECTIONS:-200}
+      - -c
+      - password_encryption=scram-sha-256
+      - -c
+      - log_min_duration_statement=1000
+      - -c
+      - idle_in_transaction_session_timeout=30000
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    shm_size: 256mb
+    networks:
+      - data
+    security_opt:
+      - no-new-privileges:true
+
+  redis:
+    image: redis:7.4-alpine
+    user: redis
+    restart: unless-stopped
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
+    command:
+      - /bin/sh
+      - -ec
+      - >-
+        exec redis-server
+        --appendonly yes
+        --appendfsync everysec
+        --requirepass "$${REDIS_PASSWORD}"
+        --maxmemory "${REDIS_MAXMEMORY:-256mb}"
+        --maxmemory-policy noeviction
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "REDISCLI_AUTH=\"$${REDIS_PASSWORD}\" redis-cli ping | grep -q PONG"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks:
+      - data
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+  migrate:
+    <<: [*backend-image, *hardened-backend]
+    restart: "no"
+    command: ["migrate"]
+    environment:
+      <<: *backend-environment
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_ADMIN_USER:-trimmycrm_admin}:${POSTGRES_ADMIN_PASSWORD:?POSTGRES_ADMIN_PASSWORD is required}@postgres:5432/${POSTGRES_DB:-trimmycrm}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  db-permissions:
+    image: postgres:16.4-alpine
+    restart: "no"
+    environment:
+      PGHOST: postgres
+      PGPORT: 5432
+      PGDATABASE: ${POSTGRES_DB:-trimmycrm}
+      PGUSER: ${POSTGRES_ADMIN_USER:-trimmycrm_admin}
+      PGPASSWORD: ${POSTGRES_ADMIN_PASSWORD:?POSTGRES_ADMIN_PASSWORD is required}
+      POSTGRES_ADMIN_USER: ${POSTGRES_ADMIN_USER:-trimmycrm_admin}
+      POSTGRES_APP_USER: trimmycrm_app
+      POSTGRES_API_ADMIN_USER: trimmycrm_admin_api
+    entrypoint: ["/bin/sh", "/scripts/grant-runtime.sh"]
+    volumes:
+      - ./postgres/grant-runtime.sh:/scripts/grant-runtime.sh:ro
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    read_only: true
+    networks:
+      - data
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+  api:
+    <<: [*backend-image, *hardened-backend]
+    build:
+      context: ../../backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    command: ["api"]
+    environment:
+      <<: *backend-environment
+      ADMIN_DATABASE_URL: postgresql+asyncpg://trimmycrm_admin_api:${POSTGRES_API_ADMIN_PASSWORD:?POSTGRES_API_ADMIN_PASSWORD is required}@postgres:5432/${POSTGRES_DB:-trimmycrm}
+      API_HOST: 0.0.0.0
+      API_PORT: 8000
+      API_WORKERS: ${API_WORKERS:-2}
+      FORWARDED_ALLOW_IPS: ${FORWARDED_ALLOW_IPS:-10.0.0.0/8,172.16.0.0/12,192.168.0.0/16}
+    expose:
+      - "8000"
+    depends_on:
+      db-permissions:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/ready', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
+  worker:
+    <<: [*backend-image, *hardened-backend]
+    restart: unless-stopped
+    command: ["worker"]
+    environment:
+      <<: *backend-environment
+      ADMIN_DATABASE_URL: postgresql+asyncpg://trimmycrm_admin_api:${POSTGRES_API_ADMIN_PASSWORD:?POSTGRES_API_ADMIN_PASSWORD is required}@postgres:5432/${POSTGRES_DB:-trimmycrm}
+      CELERY_CONCURRENCY: ${CELERY_CONCURRENCY:-2}
+      CELERY_LOG_LEVEL: ${CELERY_LOG_LEVEL:-INFO}
+    depends_on:
+      db-permissions:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A app.tasks.celery_app:celery_app inspect ping --destination worker@$${HOSTNAME} --timeout 5 | grep -q pong"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  beat:
+    <<: [*backend-image, *hardened-backend]
+    restart: unless-stopped
+    command: ["beat"]
+    environment:
+      <<: *backend-environment
+      CELERY_LOG_LEVEL: ${CELERY_LOG_LEVEL:-INFO}
+    depends_on:
+      db-permissions:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "test -f /tmp/celerybeat-schedule || test -f /tmp/celerybeat-schedule.db"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  frontend:
+    <<: *frontend-image
+    build:
+      context: ../../frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE_URL: /api/v1
+        NEXT_PUBLIC_SITE_URL: ${PUBLIC_BASE_URL:?PUBLIC_BASE_URL is required}
+        NEXT_PUBLIC_PLATFORM_HOSTS: ${FRONTEND_PLATFORM_HOSTS:?FRONTEND_PLATFORM_HOSTS is required}
+        NEXT_PUBLIC_TENANT_BASE_DOMAIN: ${FRONTEND_TENANT_BASE_DOMAIN:?FRONTEND_TENANT_BASE_DOMAIN is required}
+        NEXT_PUBLIC_YANDEX_SMARTCAPTCHA_SITE_KEY: ${YANDEX_SMARTCAPTCHA_SITE_KEY:-}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      HOSTNAME: 0.0.0.0
+      PORT: 3000
+      INTERNAL_API_BASE_URL: http://api:8000/api/v1
+      INTERNAL_EDGE_TOKEN: ${INTERNAL_EDGE_TOKEN:?INTERNAL_EDGE_TOKEN is required}
+      REFRESH_CSRF_COOKIE_NAME: ${REFRESH_CSRF_COOKIE_NAME:-trimmycrm_refresh_csrf}
+      NEXT_PUBLIC_API_BASE_URL: /api/v1
+      NEXT_PUBLIC_SITE_URL: ${PUBLIC_BASE_URL:?PUBLIC_BASE_URL is required}
+      NEXT_PUBLIC_PLATFORM_HOSTS: ${FRONTEND_PLATFORM_HOSTS:?FRONTEND_PLATFORM_HOSTS is required}
+      NEXT_PUBLIC_TENANT_BASE_DOMAIN: ${FRONTEND_TENANT_BASE_DOMAIN:?FRONTEND_TENANT_BASE_DOMAIN is required}
+      NEXT_PUBLIC_YANDEX_SMARTCAPTCHA_SITE_KEY: ${YANDEX_SMARTCAPTCHA_SITE_KEY:-}
+    expose:
+      - "3000"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - >-
+          fetch('http://127.0.0.1:3000/').then((response) => {
+            if (!response.ok) process.exit(1)
+          }).catch(() => process.exit(1))
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=32m,uid=1001,gid=1001
+      - /app/.next/cache:rw,noexec,nosuid,size=128m,uid=1001,gid=1001
+    networks:
+      - backend
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+  nginx:
+    image: nginx:1.27-alpine
+    user: "101:101"
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
+    environment:
+      NGINX_ENVSUBST_FILTER: ^(MAILPIT_UI_ENABLED|OPS_UI_ENABLED|API_DOCS_ENABLED)$$
+      MAILPIT_UI_ENABLED: ${MAILPIT_UI_ENABLED:-false}
+      OPS_UI_ENABLED: ${OPS_UI_ENABLED:-false}
+      API_DOCS_ENABLED: ${API_DOCS_ENABLED:-false}
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/templates:/etc/nginx/templates:ro
+      - ./nginx/snippets:/etc/nginx/snippets:ro
+    expose:
+      - "8080"
+    read_only: true
+    tmpfs:
+      - /etc/nginx/conf.d:rw,noexec,nosuid,size=1m,uid=101,gid=101
+      - /var/cache/nginx:rw,noexec,nosuid,size=16m,uid=101,gid=101
+      - /var/run:rw,noexec,nosuid,size=1m,uid=101,gid=101
+      - /tmp:rw,noexec,nosuid,size=16m,uid=101,gid=101
+    networks:
+      - edge
+      - backend
+      - ops
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/healthz | grep -q ok"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+  caddy:
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    depends_on:
+      nginx:
+        condition: service_healthy
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - >-
+        case "$${EDGE_MODE:-dev}" in
+          dev) config=/etc/caddy/Caddyfile.dev ;;
+          production)
+            case "$${EDGE_TLS_MODE:-automatic}" in
+              automatic) config=/etc/caddy/Caddyfile.production-auto ;;
+              wildcard) config=/etc/caddy/Caddyfile.production ;;
+              *) echo "EDGE_TLS_MODE must be automatic or wildcard" >&2; exit 64 ;;
+            esac
+            ;;
+          *) echo "EDGE_MODE must be dev or production" >&2; exit 64 ;;
+        esac;
+        exec caddy run --config "$${config}" --adapter caddyfile
+    environment:
+      EDGE_MODE: ${EDGE_MODE:-dev}
+      EDGE_TLS_MODE: ${EDGE_TLS_MODE:-automatic}
+      ACME_EMAIL: ${ACME_EMAIL:-admin@example.invalid}
+      INTERNAL_EDGE_TOKEN: ${INTERNAL_EDGE_TOKEN:?INTERNAL_EDGE_TOKEN is required}
+      PRIMARY_DOMAIN: ${PRIMARY_DOMAIN:-trimmycrm.example}
+      WILDCARD_CERT_FILE: ${WILDCARD_CERT_FILE:-/run/secrets/trimmycrm/fullchain.pem}
+      WILDCARD_KEY_FILE: ${WILDCARD_KEY_FILE:-/run/secrets/trimmycrm/privkey.pem}
+    ports:
+      - "${EDGE_HTTP_BIND:-0.0.0.0}:${EDGE_HTTP_PORT:-80}:80"
+      - "${EDGE_HTTPS_BIND:-0.0.0.0}:${EDGE_HTTPS_PORT:-443}:443"
+    volumes:
+      - ./caddy/Caddyfile.dev:/etc/caddy/Caddyfile.dev:ro
+      - ./caddy/Caddyfile.production:/etc/caddy/Caddyfile.production:ro
+      - ./caddy/Caddyfile.production-auto:/etc/caddy/Caddyfile.production-auto:ro
+      - ./secrets:/run/secrets/trimmycrm:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=16m
+    networks:
+      - edge
+      - backend
+      - egress
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    security_opt:
+      - no-new-privileges:true
+
+  mailpit:
+    image: axllent/mailpit:v1.27
+    profiles: ["dev"]
+    restart: unless-stopped
+    environment:
+      MP_MAX_MESSAGES: 1000
+      MP_DATABASE: /data/mailpit.db
+      MP_WEBROOT: /_dev/mail/
+    volumes:
+      - mailpit_data:/data
+    expose:
+      - "1025"
+      - "8025"
+    networks:
+      - backend
+      - ops
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+  prometheus:
+    image: prom/prometheus:v3.4.1
+    profiles: ["monitoring"]
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=15d
+      - --web.enable-lifecycle
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    expose:
+      - "9090"
+    read_only: true
+    networks:
+      - backend
+      - ops
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+  grafana:
+    image: grafana/grafana:12.0.2
+    profiles: ["monitoring"]
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD is required for monitoring profile}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_SERVER_ROOT_URL: "%(protocol)s://%(domain)s/_ops/grafana/"
+      GF_SERVER_SERVE_FROM_SUB_PATH: "true"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    expose:
+      - "3000"
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=32m
+    networks:
+      - ops
+    depends_on:
+      - prometheus
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+  clamav:
+    image: clamav/clamav:1.4
+    profiles: ["antivirus"]
+    restart: unless-stopped
+    volumes:
+      - clamav_data:/var/lib/clamav
+    expose:
+      - "3310"
+    networks:
+      - backend
+      - egress
+    healthcheck:
+      test: ["CMD-SHELL", "clamdscan --ping 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 20
+      start_period: 120s
+    security_opt:
+      - no-new-privileges:true
+
+networks:
+  edge:
+    driver: bridge
+    internal: true
+  backend:
+    driver: bridge
+    internal: true
+  data:
+    driver: bridge
+    internal: true
+  egress:
+    driver: bridge
+  ops:
+    driver: bridge
+    internal: true
+
+volumes:
+  postgres_data:
+  redis_data:
+  caddy_data:
+  caddy_config:
+  mailpit_data:
+  prometheus_data:
+  grafana_data:
+  clamav_data:
