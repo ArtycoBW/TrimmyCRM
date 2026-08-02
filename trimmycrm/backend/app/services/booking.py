@@ -17,7 +17,6 @@ from app.models import (
     AppointmentItem,
     AppointmentItemAddon,
     AppointmentStatus,
-    Pet,
     Promotion,
     ScheduleException,
     ScheduleExceptionType,
@@ -27,6 +26,7 @@ from app.models import (
     Site,
     Staff,
     StaffService,
+    TenantUser,
 )
 from app.services.booking_pricing import (
     AppointmentQuote,
@@ -403,7 +403,6 @@ async def create_appointment(
     *,
     tenant_id: uuid.UUID,
     tenant_user_id: uuid.UUID,
-    pet_id: uuid.UUID,
     service_id: uuid.UUID | None = None,
     items: tuple[BookingItemSelection, ...] = (),
     staff_id: uuid.UUID,
@@ -420,16 +419,15 @@ async def create_appointment(
     await session.execute(
         text("SELECT pg_advisory_xact_lock(hashtextextended(:key, 0))"), {"key": lock_key}
     )
-    pet = await session.scalar(
-        select(Pet).where(
-            Pet.tenant_id == tenant_id,
-            Pet.id == pet_id,
-            Pet.owner_id == tenant_user_id,
-            Pet.archived_at.is_(None),
+    client_id = await session.scalar(
+        select(TenantUser.id).where(
+            TenantUser.tenant_id == tenant_id,
+            TenantUser.id == tenant_user_id,
+            TenantUser.anonymized_at.is_(None),
         )
     )
-    if pet is None:
-        raise NotFoundError("Питомец не найден")
+    if client_id is None:
+        raise NotFoundError("Клиент не найден")
     site = await session.get(Site, tenant_id)
     if site is None:
         raise NotFoundError("Салон не найден")
@@ -470,7 +468,6 @@ async def create_appointment(
     row = Appointment(
         tenant_id=tenant_id,
         tenant_user_id=tenant_user_id,
-        pet_id=pet_id,
         service_id=primary_service_id,
         staff_id=staff_id,
         start_at=chosen.starts_at.astimezone(UTC),

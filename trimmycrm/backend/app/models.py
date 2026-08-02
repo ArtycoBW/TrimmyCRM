@@ -1029,12 +1029,6 @@ class Appointment(UUIDPrimaryKeyMixin, TimestampMixin, Base):
             name="fk_appointments_tenant_user",
         ),
         ForeignKeyConstraint(
-            ["tenant_id", "pet_id"],
-            ["pets.tenant_id", "pets.id"],
-            ondelete="RESTRICT",
-            name="fk_appointments_tenant_pet",
-        ),
-        ForeignKeyConstraint(
             ["tenant_id", "service_id"],
             ["services.tenant_id", "services.id"],
             ondelete="RESTRICT",
@@ -1071,7 +1065,6 @@ class Appointment(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         UUID(as_uuid=True), ForeignKey("sites.id", ondelete="CASCADE"), nullable=False
     )
     tenant_user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
-    pet_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
     service_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
     staff_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
     start_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)

@@ -14,7 +14,6 @@ from app.core.errors import ConflictError
 from app.models import (
     AppointmentItem,
     AppointmentItemAddon,
-    Pet,
     PlatformUser,
     Service,
     ServiceAddon,
@@ -40,7 +39,6 @@ async def test_runtime_role_creates_multi_service_snapshots() -> None:
     tenant_id = uuid4()
     owner_id = uuid4()
     client_id = uuid4()
-    pet_id = uuid4()
     staff_id = uuid4()
     haircut_id = uuid4()
     color_id = uuid4()
@@ -97,12 +95,6 @@ async def test_runtime_role_creates_multi_service_snapshots() -> None:
                 await session.flush()
                 session.add_all(
                     [
-                        Pet(
-                            id=pet_id,
-                            tenant_id=tenant_id,
-                            owner_id=client_id,
-                            name="Legacy",
-                        ),
                         Staff(
                             id=staff_id,
                             tenant_id=tenant_id,
@@ -175,7 +167,6 @@ async def test_runtime_role_creates_multi_service_snapshots() -> None:
                     session,
                     tenant_id=tenant_id,
                     tenant_user_id=client_id,
-                    pet_id=pet_id,
                     items=(
                         BookingItemSelection(
                             service_id=haircut_id,
@@ -218,7 +209,6 @@ async def test_runtime_role_creates_multi_service_snapshots() -> None:
                         session,
                         tenant_id=tenant_id,
                         tenant_user_id=client_id,
-                        pet_id=pet_id,
                         items=(
                             BookingItemSelection(
                                 service_id=haircut_id,

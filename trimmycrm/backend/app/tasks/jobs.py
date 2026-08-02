@@ -78,7 +78,6 @@ from app.models import (
     Payment,
     PaymentPurpose,
     PaymentStatus,
-    Pet,
     PetPhoto,
     Plan,
     PlatformUser,
@@ -492,14 +491,12 @@ async def _appointment_content(
 
     site = await session.get(Site, appointment.tenant_id)
     service = await session.get(Service, appointment.service_id)
-    pet = await session.get(Pet, appointment.pet_id)
     staff = await session.get(Staff, appointment.staff_id) if appointment.staff_id else None
     local_start = appointment.start_at.astimezone(_safe_timezone(site.timezone if site else "UTC"))
     details = [
         f"Дата и время: {local_start:%d.%m.%Y %H:%M}",
         f"Салон: {site.name}" if site else "",
         f"Услуга: {service.name}" if service else "",
-        f"Питомец: {pet.name}" if pet else "",
         f"Мастер: {staff.name}" if staff else "",
     ]
     text_body = "Напоминаем о предстоящей записи.\n\n" + "\n".join(item for item in details if item)

@@ -358,7 +358,6 @@ async def _appointment_export_rows(session: AsyncSession, tenant_id: UUID) -> li
                 Appointment.start_at,
                 Appointment.end_at,
                 TenantUser.full_name,
-                Pet.name,
                 Service.name,
                 Staff.name,
                 Appointment.status,
@@ -372,7 +371,6 @@ async def _appointment_export_rows(session: AsyncSession, tenant_id: UUID) -> li
                     TenantUser.id == Appointment.tenant_user_id,
                 ),
             )
-            .join(Pet, and_(Pet.tenant_id == Appointment.tenant_id, Pet.id == Appointment.pet_id))
             .join(
                 Service,
                 and_(
@@ -396,7 +394,6 @@ APPOINTMENT_HEADERS = [
     "start_at",
     "end_at",
     "client",
-    "pet",
     "service",
     "staff",
     "status",

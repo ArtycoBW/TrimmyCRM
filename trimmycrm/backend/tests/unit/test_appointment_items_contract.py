@@ -27,7 +27,6 @@ from app.models import (  # noqa: E402
     Appointment,
     AppointmentItem,
     AppointmentItemAddon,
-    Pet,
     Service,
     ServiceAddon,
     ServiceVariant,
@@ -49,7 +48,6 @@ from app.services.scheduling import TimeRange  # noqa: E402
 
 TENANT_ID = UUID("11111111-1111-4111-8111-111111111111")
 CLIENT_ID = UUID("22222222-2222-4222-8222-222222222222")
-PET_ID = UUID("33333333-3333-4333-8333-333333333333")
 STAFF_ID = UUID("44444444-4444-4444-8444-444444444444")
 APPOINTMENT_ID = UUID("55555555-5555-4555-8555-555555555555")
 HAIRCUT_ID = UUID("66666666-6666-4666-8666-666666666666")
@@ -170,6 +168,16 @@ def test_appointment_items_migration_backfills_and_forces_rls() -> None:
     assert '"fk_appointment_item_addons_tenant_service_addon"' in migration
 
 
+def test_client_appointment_migration_removes_pet_dependency() -> None:
+    migration = (
+        Path(__file__).parents[2] / "alembic" / "versions" / "0012_client_appointments.py"
+    ).read_text(encoding="utf-8")
+
+    assert "fk_appointments_tenant_pet" in migration
+    assert 'op.drop_column("appointments", "pet_id")' in migration
+    assert "pet_id" not in Appointment.__table__.c
+
+
 def test_appointment_view_exposes_snapshots_without_recalculation() -> None:
     now = datetime(2026, 8, 2, 12, tzinfo=UTC)
     view = AppointmentView.model_validate(
@@ -177,7 +185,6 @@ def test_appointment_view_exposes_snapshots_without_recalculation() -> None:
             "id": APPOINTMENT_ID,
             "tenant_id": TENANT_ID,
             "tenant_user_id": CLIENT_ID,
-            "pet_id": PET_ID,
             "service_id": HAIRCUT_ID,
             "staff_id": STAFF_ID,
             "start_at": now,
@@ -232,12 +239,12 @@ class _ScalarRows:
 class _CreateSession:
     def __init__(
         self,
-        pet: Pet,
+        client_id: UUID,
         site: Site,
         *,
         scalar_batches: list[list[object]],
     ) -> None:
-        self.scalar_values = [pet]
+        self.scalar_values = [client_id]
         self.scalar_batches = scalar_batches
         self.site = site
         self.added: list[object] = []
@@ -282,12 +289,6 @@ async def test_new_legacy_booking_persists_an_item_snapshot(
         is_active=True,
     )
     staff = Staff(id=STAFF_ID, tenant_id=TENANT_ID, name="Анна", schedule={}, is_active=True)
-    pet = Pet(
-        id=PET_ID,
-        tenant_id=TENANT_ID,
-        owner_id=CLIENT_ID,
-        name="Legacy",
-    )
     capability = StaffService(
         tenant_id=TENANT_ID,
         staff_id=STAFF_ID,
@@ -296,7 +297,7 @@ async def test_new_legacy_booking_persists_an_item_snapshot(
         custom_duration_min=75,
     )
     session = _CreateSession(
-        pet,
+        CLIENT_ID,
         site,
         scalar_batches=[[service], [capability]],
     )
@@ -312,7 +313,6 @@ async def test_new_legacy_booking_persists_an_item_snapshot(
         session,  # type: ignore[arg-type]
         tenant_id=TENANT_ID,
         tenant_user_id=CLIENT_ID,
-        pet_id=PET_ID,
         service_id=HAIRCUT_ID,
         staff_id=STAFF_ID,
         start_at=start,
@@ -332,7 +332,6 @@ def test_booking_payload_accepts_legacy_or_multi_item_format() -> None:
     legacy = BookingCreate(
         serviceId=HAIRCUT_ID,
         staffId=STAFF_ID,
-        petId=PET_ID,
         startAt=start,
     )
     assert [item.serviceId for item in legacy.normalized_items()] == [HAIRCUT_ID]
@@ -343,7 +342,6 @@ def test_booking_payload_accepts_legacy_or_multi_item_format() -> None:
             {"serviceId": COLOR_ID},
         ],
         staffId=STAFF_ID,
-        petId=PET_ID,
         startAt=start,
     )
     assert [item.serviceId for item in multi.normalized_items()] == [HAIRCUT_ID, COLOR_ID]
@@ -353,7 +351,6 @@ def test_booking_payload_accepts_legacy_or_multi_item_format() -> None:
             serviceId=HAIRCUT_ID,
             items=[{"serviceId": COLOR_ID}],
             staffId=STAFF_ID,
-            petId=PET_ID,
             startAt=start,
         )
 
@@ -419,9 +416,8 @@ async def test_multi_service_booking_resolves_catalog_and_persists_snapshots(
         duration_delta_min=15,
         is_active=True,
     )
-    pet = Pet(id=PET_ID, tenant_id=TENANT_ID, owner_id=CLIENT_ID, name="Legacy")
     session = _CreateSession(
-        pet,
+        CLIENT_ID,
         site,
         scalar_batches=[[haircut, color], capabilities, [variant], [addon]],
     )
@@ -440,7 +436,6 @@ async def test_multi_service_booking_resolves_catalog_and_persists_snapshots(
         session,  # type: ignore[arg-type]
         tenant_id=TENANT_ID,
         tenant_user_id=CLIENT_ID,
-        pet_id=PET_ID,
         items=(
             BookingItemSelection(
                 service_id=HAIRCUT_ID,
@@ -496,7 +491,7 @@ async def test_booking_rejects_variant_from_another_service() -> None:
         is_active=True,
     )
     session = _CreateSession(
-        Pet(id=PET_ID, tenant_id=TENANT_ID, owner_id=CLIENT_ID, name="Legacy"),
+        CLIENT_ID,
         Site(id=TENANT_ID, name="CUT/01", slug="cut-01"),
         scalar_batches=[[haircut], [capability], [wrong_variant]],
     )

@@ -852,7 +852,6 @@ class ClientView(APIModel):
 
 class ClientAppointmentSummary(APIModel):
     id: UUID
-    petId: UUID
     serviceId: UUID
     staffId: UUID | None = None
     startAt: datetime
@@ -860,7 +859,6 @@ class ClientAppointmentSummary(APIModel):
     status: str
     price: Decimal | None = None
     prepaid: bool
-    petName: str | None = None
     serviceName: str | None = None
     staffName: str | None = None
 
@@ -918,7 +916,6 @@ class BookingItemsPayload(APIModel):
 
 class BookingCreate(BookingItemsPayload):
     staffId: UUID
-    petId: UUID
     startAt: datetime
     promotionCode: str | None = Field(default=None, max_length=64)
 
@@ -926,7 +923,6 @@ class BookingCreate(BookingItemsPayload):
 class AdminAppointmentCreate(BookingItemsPayload):
     tenantUserId: UUID
     staffId: UUID | None = None
-    petId: UUID
     startAt: datetime
     notes: str | None = Field(default=None, max_length=5000)
 
@@ -980,7 +976,6 @@ class AppointmentView(APIModel):
     id: UUID
     tenantId: UUID
     tenantUserId: UUID
-    petId: UUID
     serviceId: UUID
     staffId: UUID | None = None
     startAt: datetime
@@ -992,7 +987,6 @@ class AppointmentView(APIModel):
     version: int
     createdAt: datetime
     clientName: str | None = None
-    petName: str | None = None
     serviceName: str | None = None
     staffName: str | None = None
     items: list[AppointmentItemView] = Field(default_factory=list)

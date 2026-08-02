@@ -1205,11 +1205,7 @@ async def get_client(
     ).all()
     appointment_rows = (
         await session.execute(
-            select(Appointment, Pet.name, Service.name, Staff.name)
-            .join(
-                Pet,
-                (Pet.tenant_id == Appointment.tenant_id) & (Pet.id == Appointment.pet_id),
-            )
+            select(Appointment, Service.name, Staff.name)
             .join(
                 Service,
                 (Service.tenant_id == Appointment.tenant_id)
@@ -1230,12 +1226,11 @@ async def get_client(
         ClientAppointmentSummary.model_validate(
             {
                 **appointment.__dict__,
-                "pet_name": pet_name,
                 "service_name": service_name,
                 "staff_name": staff_name,
             }
         )
-        for appointment, pet_name, service_name, staff_name in appointment_rows
+        for appointment, service_name, staff_name in appointment_rows
     ]
     return ClientDetailsView.model_validate(
         {

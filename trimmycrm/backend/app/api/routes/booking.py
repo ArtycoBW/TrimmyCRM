@@ -30,7 +30,6 @@ from app.models import (
     IdempotencyStatus,
     Notification,
     NotificationStatus,
-    Pet,
     PlatformUser,
     Service,
     Site,
@@ -140,9 +139,8 @@ async def _appointment_item_views(
 async def _appointment_view(session: AsyncSession, row: Appointment) -> AppointmentView:
     names = (
         await session.execute(
-            select(TenantUser.full_name, Pet.name, Service.name, Staff.name)
+            select(TenantUser.full_name, Service.name, Staff.name)
             .select_from(Appointment)
-            .join(Pet, and_(Pet.tenant_id == Appointment.tenant_id, Pet.id == Appointment.pet_id))
             .join(
                 Service,
                 and_(
@@ -167,9 +165,8 @@ async def _appointment_view(session: AsyncSession, row: Appointment) -> Appointm
         {
             **row.__dict__,
             "client_name": names[0],
-            "pet_name": names[1],
-            "service_name": names[2],
-            "staff_name": names[3],
+            "service_name": names[1],
+            "staff_name": names[2],
             "items": await _appointment_item_views(session, row.id),
         }
     )
@@ -288,7 +285,6 @@ async def book(
                 session,
                 tenant_id=context.id,
                 tenant_user_id=user.id,
-                pet_id=payload.petId,
                 items=selections,
                 staff_id=payload.staffId,
                 start_at=payload.startAt,
@@ -310,7 +306,6 @@ async def book(
 @router.get("/appointments/mine", response_model=Paginated)
 async def my_appointments(
     pagination: Pagination = Depends(),
-    petId: UUID | None = None,
     status_: AppointmentStatus | None = Query(default=None, alias="status"),
     from_: datetime | None = Query(default=None, alias="from"),
     to: datetime | None = None,
@@ -322,8 +317,6 @@ async def my_appointments(
     if from_ is not None and to is not None and to <= from_:
         raise BadRequestError("Некорректный диапазон", code="invalid_date_range")
     filters: list[Any] = [Appointment.tenant_user_id == user.id]
-    if petId:
-        filters.append(Appointment.pet_id == petId)
     if status_:
         filters.append(Appointment.status == status_)
     if from_:
@@ -495,28 +488,6 @@ async def reschedule_appointment(
     return await _appointment_view(session, row)
 
 
-@router.get("/pets/{pet_id}/appointments", response_model=list[AppointmentView])
-async def pet_appointments(
-    pet_id: UUID,
-    scope: str = Query(default="history", pattern="^(upcoming|history|all)$"),
-    user: TenantUser = Depends(current_tenant_user),
-    session: AsyncSession = Depends(tenant_db, scope="function"),
-) -> list[AppointmentView]:
-    pet = await session.scalar(select(Pet.id).where(Pet.id == pet_id, Pet.owner_id == user.id))
-    if pet is None:
-        raise NotFoundError("Питомец не найден")
-    query = select(Appointment).where(
-        Appointment.pet_id == pet_id, Appointment.tenant_user_id == user.id
-    )
-    now = datetime.now(UTC)
-    if scope == "upcoming":
-        query = query.where(Appointment.start_at >= now)
-    elif scope == "history":
-        query = query.where(Appointment.start_at < now)
-    rows = (await session.scalars(query.order_by(Appointment.start_at.desc()))).all()
-    return [await _appointment_view(session, row) for row in rows]
-
-
 @router.get("/admin/appointments", response_model=list[AppointmentView])
 async def admin_appointments(
     from_: datetime = Query(alias="from"),
@@ -619,7 +590,6 @@ async def admin_create_appointment(
                 session,
                 tenant_id=tenant_id,
                 tenant_user_id=payload.tenantUserId,
-                pet_id=payload.petId,
                 items=selections,
                 staff_id=staff_id,
                 start_at=payload.startAt,
