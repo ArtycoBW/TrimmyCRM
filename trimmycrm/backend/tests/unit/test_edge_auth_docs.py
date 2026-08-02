@@ -142,3 +142,17 @@ def test_nginx_uses_a_separate_limiter_for_safe_public_reads() -> None:
     assert "limit_req zone=booking_limit burst=20 nodelay;" in template
     assert "location @rate_limited" in template
     assert 'add_header Retry-After "1" always;' in template
+
+
+def test_runtime_examples_and_edge_config_use_trimmycrm_domain() -> None:
+    repository_root = Path(__file__).resolve().parents[3]
+    paths = (
+        repository_root / "frontend/.env.example",
+        repository_root / "deploy/infra/.env.example",
+        repository_root / "deploy/infra/nginx/templates/default.conf.template",
+    )
+    content = "\n".join(path.read_text(encoding="utf-8") for path in paths)
+
+    assert "groomcrm" not in content.lower()
+    assert "/pets/" not in content.lower()
+    assert "trimmycrm_refresh_csrf" in content

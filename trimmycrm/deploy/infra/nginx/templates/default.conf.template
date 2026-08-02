@@ -177,7 +177,7 @@ server {
         include /etc/nginx/snippets/api_security_headers.conf;
     }
 
-    location ~ ^/api/v1/(?:media(?:/|$)|pets/[0-9a-fA-F-]+/photos(?:/|$)) {
+    location ~ ^/api/v1/media(?:/|$) {
         client_max_body_size 12m;
         limit_req zone=api_limit burst=60 nodelay;
         limit_conn per_ip 20;
