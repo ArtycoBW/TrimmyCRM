@@ -27,6 +27,7 @@ for key, value in {
 
 from app.api.routes import crm, engagement, sites  # noqa: E402
 from app.models import (  # noqa: E402
+    ClientHairProfile,
     Promotion,
     SalonType,
     ScheduleException,
@@ -37,6 +38,7 @@ from app.models import (  # noqa: E402
     Staff,
 )
 from app.schemas import (  # noqa: E402
+    ClientHairProfileUpdate,
     PromotionUpdate,
     ScheduleExceptionUpdate,
     ServiceUpdate,
@@ -125,6 +127,24 @@ def _staff() -> Staff:
         photo_url=None,
         schedule={},
         is_active=True,
+        created_at=CREATED_AT,
+        updated_at=CREATED_AT,
+    )
+
+
+def _hair_profile() -> ClientHairProfile:
+    return ClientHairProfile(
+        id=ROW_ID,
+        tenant_id=TENANT_ID,
+        client_id=SERVICE_ID,
+        hair_length="medium",
+        density="high",
+        texture="wavy",
+        porosity="unknown",
+        gray_percentage=15,
+        current_color="уровень 6",
+        version=3,
+        updated_by_id=OWNER_ID,
         created_at=CREATED_AT,
         updated_at=CREATED_AT,
     )
@@ -353,5 +373,31 @@ async def test_update_schedule_exception_refreshes_server_timestamp(
     )
 
     assert result.reason == "Обед"
+    assert result.updatedAt == UPDATED_AT
+    assert session.refreshes == 1
+
+
+@pytest.mark.asyncio
+async def test_put_hair_profile_updates_version_and_server_timestamp() -> None:
+    row = _hair_profile()
+    session = _MutationSession(row, [SimpleNamespace(id=SERVICE_ID), row])
+
+    result = await crm.put_client_hair_profile(
+        SERVICE_ID,
+        ClientHairProfileUpdate(
+            expectedVersion=3,
+            hairLength="long",
+            currentColor="уровень 7",
+            beardStyle="короткая геометричная форма",
+        ),
+        owner=SimpleNamespace(id=OWNER_ID),
+        tenant_id=TENANT_ID,
+        session=session,
+    )
+
+    assert result.hairLength == "long"
+    assert result.currentColor == "уровень 7"
+    assert result.beardStyle == "короткая геометричная форма"
+    assert result.version == 4
     assert result.updatedAt == UPDATED_AT
     assert session.refreshes == 1

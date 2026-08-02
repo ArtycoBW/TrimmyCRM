@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.integrations.storage import ObjectStorage
 from app.models import (
     Appointment,
+    ClientHairProfile,
     MediaObject,
     MediaStatus,
     Notification,
@@ -157,6 +158,12 @@ async def anonymize_tenant_user(session: AsyncSession, user: TenantUser) -> None
                 checksum_sha256=None,
             )
         )
+    await session.execute(
+        delete(ClientHairProfile).where(
+            ClientHairProfile.tenant_id == user.tenant_id,
+            ClientHairProfile.client_id == user.id,
+        )
+    )
     await session.execute(
         update(Appointment)
         .where(

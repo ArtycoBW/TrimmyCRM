@@ -31,6 +31,7 @@ from app.models import (
     AuthToken,
     AuthTokenType,
     AuthUserType,
+    ClientHairProfile,
     Pet,
     PlatformRole,
     PlatformUser,
@@ -47,6 +48,8 @@ from app.schemas import (
     ClientAppointmentSummary,
     ClientCreate,
     ClientDetailsView,
+    ClientHairProfileUpdate,
+    ClientHairProfileView,
     ClientUpdate,
     ClientView,
     Message,
@@ -786,6 +789,97 @@ async def get_client(
             "appointment_history": history,
         }
     )
+
+
+@router.get(
+    "/clients/{client_id}/hair-profile",
+    response_model=ClientHairProfileView | None,
+)
+async def get_client_hair_profile(
+    client_id: UUID,
+    _owner: PlatformUser = Depends(require_owner),
+    tenant_id: UUID = Depends(actor_tenant_id),
+    session: AsyncSession = Depends(actor_tenant_db, scope="function"),
+) -> ClientHairProfileView | None:
+    await _client_or_404(session, tenant_id, client_id)
+    row = await session.scalar(
+        select(ClientHairProfile).where(
+            ClientHairProfile.tenant_id == tenant_id,
+            ClientHairProfile.client_id == client_id,
+        )
+    )
+    return ClientHairProfileView.model_validate(row) if row is not None else None
+
+
+@router.put(
+    "/clients/{client_id}/hair-profile",
+    response_model=ClientHairProfileView,
+)
+async def put_client_hair_profile(
+    client_id: UUID,
+    payload: ClientHairProfileUpdate,
+    owner: PlatformUser = Depends(require_owner),
+    tenant_id: UUID = Depends(actor_tenant_id),
+    session: AsyncSession = Depends(actor_tenant_db, scope="function"),
+) -> ClientHairProfileView:
+    await _client_or_404(session, tenant_id, client_id)
+    row = await session.scalar(
+        select(ClientHairProfile)
+        .where(
+            ClientHairProfile.tenant_id == tenant_id,
+            ClientHairProfile.client_id == client_id,
+        )
+        .with_for_update()
+    )
+    expected_version = payload.expectedVersion
+    if row is None:
+        if expected_version not in (None, 0):
+            raise ConflictError(
+                "Профиль волос уже изменён в другой сессии",
+                code="hair_profile_version_conflict",
+            )
+        row = ClientHairProfile(
+            tenant_id=tenant_id,
+            client_id=client_id,
+            version=1,
+            updated_by_id=owner.id,
+        )
+        session.add(row)
+    else:
+        if expected_version is not None and expected_version != row.version:
+            raise ConflictError(
+                "Профиль волос уже изменён в другой сессии",
+                code="hair_profile_version_conflict",
+            )
+        row.version += 1
+        row.updated_by_id = owner.id
+
+    mapping = {
+        "hairLength": "hair_length",
+        "conditionNotes": "condition_notes",
+        "scalpSensitivityNotes": "scalp_sensitivity_notes",
+        "grayPercentage": "gray_percentage",
+        "naturalColor": "natural_color",
+        "currentColor": "current_color",
+        "colorHistory": "color_history",
+        "beardLength": "beard_length",
+        "beardStyle": "beard_style",
+        "moustacheStyle": "moustache_style",
+    }
+    for key, value in payload.model_dump(
+        exclude_unset=True,
+        exclude={"expectedVersion"},
+    ).items():
+        setattr(row, mapping.get(key, key), value)
+    try:
+        await session.flush()
+    except IntegrityError as exc:
+        raise ConflictError(
+            "Профиль волос уже создан в другой сессии",
+            code="hair_profile_version_conflict",
+        ) from exc
+    await session.refresh(row)
+    return ClientHairProfileView.model_validate(row)
 
 
 @router.patch("/clients/{client_id}", response_model=ClientView)

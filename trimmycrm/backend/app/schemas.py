@@ -600,6 +600,48 @@ class ClientUpdate(APIModel):
     status: Literal["crm_only", "pending", "active", "blocked", "anonymized"] | None = None
 
 
+class ClientHairProfileUpdate(APIModel):
+    hairLength: Literal["shaved", "short", "medium", "long", "very_long"] | None = None
+    density: Literal["low", "medium", "high"] | None = None
+    texture: Literal["straight", "wavy", "curly", "coily"] | None = None
+    porosity: Literal["low", "medium", "high", "unknown"] | None = None
+    conditionNotes: str | None = Field(default=None, max_length=3000)
+    scalpSensitivityNotes: str | None = Field(default=None, max_length=3000)
+    grayPercentage: int | None = Field(default=None, ge=0, le=100)
+    naturalColor: str | None = Field(default=None, max_length=160)
+    currentColor: str | None = Field(default=None, max_length=160)
+    colorHistory: str | None = Field(default=None, max_length=5000)
+    beardLength: str | None = Field(default=None, max_length=160)
+    beardStyle: str | None = Field(default=None, max_length=500)
+    moustacheStyle: str | None = Field(default=None, max_length=500)
+    preferences: str | None = Field(default=None, max_length=5000)
+    expectedVersion: int | None = Field(default=None, ge=0)
+
+
+class ClientHairProfileView(APIModel):
+    id: UUID
+    tenantId: UUID
+    clientId: UUID
+    hairLength: str | None = None
+    density: str | None = None
+    texture: str | None = None
+    porosity: str | None = None
+    conditionNotes: str | None = None
+    scalpSensitivityNotes: str | None = None
+    grayPercentage: int | None = None
+    naturalColor: str | None = None
+    currentColor: str | None = None
+    colorHistory: str | None = None
+    beardLength: str | None = None
+    beardStyle: str | None = None
+    moustacheStyle: str | None = None
+    preferences: str | None = None
+    version: int
+    updatedById: UUID | None = None
+    createdAt: datetime
+    updatedAt: datetime
+
+
 class PetCreate(APIModel):
     name: str = Field(min_length=1, max_length=100)
     species: Literal["dog", "cat", "other"] = "dog"

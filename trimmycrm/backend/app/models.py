@@ -661,6 +661,55 @@ class TenantUser(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     anonymized_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
+class ClientHairProfile(UUIDPrimaryKeyMixin, TimestampMixin, Base):
+    """Owner-maintained technical profile; never used for medical conclusions."""
+
+    __tablename__ = "client_hair_profiles"
+    __table_args__ = (
+        UniqueConstraint("tenant_id", "id", name="uq_client_hair_profiles_tenant_id_id"),
+        UniqueConstraint(
+            "tenant_id",
+            "client_id",
+            name="uq_client_hair_profiles_tenant_client",
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "client_id"],
+            ["tenant_users.tenant_id", "tenant_users.id"],
+            ondelete="CASCADE",
+            name="fk_client_hair_profiles_tenant_client",
+        ),
+        CheckConstraint(
+            "gray_percentage IS NULL OR gray_percentage BETWEEN 0 AND 100",
+            name="gray_percentage_range",
+        ),
+        CheckConstraint("version > 0", name="positive_version"),
+        Index("ix_client_hair_profiles_tenant_client", "tenant_id", "client_id"),
+    )
+
+    tenant_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("sites.id", ondelete="CASCADE"), nullable=False
+    )
+    client_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    hair_length: Mapped[str | None] = mapped_column(Text)
+    density: Mapped[str | None] = mapped_column(Text)
+    texture: Mapped[str | None] = mapped_column(Text)
+    porosity: Mapped[str | None] = mapped_column(Text)
+    condition_notes: Mapped[str | None] = mapped_column(Text)
+    scalp_sensitivity_notes: Mapped[str | None] = mapped_column(Text)
+    gray_percentage: Mapped[int | None] = mapped_column(SmallInteger)
+    natural_color: Mapped[str | None] = mapped_column(Text)
+    current_color: Mapped[str | None] = mapped_column(Text)
+    color_history: Mapped[str | None] = mapped_column(Text)
+    beard_length: Mapped[str | None] = mapped_column(Text)
+    beard_style: Mapped[str | None] = mapped_column(Text)
+    moustache_style: Mapped[str | None] = mapped_column(Text)
+    preferences: Mapped[str | None] = mapped_column(Text)
+    version: Mapped[int] = mapped_column(Integer, nullable=False, server_default=sql_text("1"))
+    updated_by_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("platform_users.id", ondelete="SET NULL")
+    )
+
+
 class Pet(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     __tablename__ = "pets"
     __table_args__ = (
@@ -1373,6 +1422,7 @@ __all__ = [
     "AuditLog",
     "AuthToken",
     "CustomLandingOrder",
+    "ClientHairProfile",
     "IdempotencyKey",
     "LoyaltyAccount",
     "LoyaltyTransaction",
