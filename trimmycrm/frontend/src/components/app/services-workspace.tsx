@@ -7,14 +7,19 @@ import { AppSelect } from "@/components/ui/select";
 import { ServiceDrawer } from "@/components/app/service-drawer";
 import { ServiceForm } from "@/components/app/service-form";
 import { apiRequest } from "@/lib/api/client";
-import type { ServiceView, StaffView } from "@/lib/api/types";
-import { formatDuration } from "@/lib/app/catalog";
+import type { ServiceCategoryView, ServiceView, StaffView } from "@/lib/api/types";
+import { formatDuration, formatServicePrice } from "@/lib/app/catalog";
 import { formatMoney } from "@/lib/app/dashboard";
 
 type ServicesState =
   | { status: "loading" }
   | { status: "error"; message: string }
-  | { status: "ready"; services: ServiceView[]; staff: StaffView[] };
+  | {
+      status: "ready";
+      services: ServiceView[];
+      staff: StaffView[];
+      categories: ServiceCategoryView[];
+    };
 
 export function ServicesWorkspace() {
   const [state, setState] = useState<ServicesState>({ status: "loading" });
@@ -32,9 +37,12 @@ export function ServicesWorkspace() {
     Promise.all([
       apiRequest<ServiceView[]>("/services?include_inactive=true&limit=500", { realm: "platform" }),
       apiRequest<StaffView[]>("/staff?include_inactive=true&limit=500", { realm: "platform" }),
+      apiRequest<ServiceCategoryView[]>("/service-categories?include_inactive=true", {
+        realm: "platform",
+      }),
     ])
-      .then(([services, staff]) => {
-        if (active) setState({ status: "ready", services, staff });
+      .then(([services, staff, categories]) => {
+        if (active) setState({ status: "ready", services, staff, categories });
       })
       .catch((reason) => {
         if (active) {
@@ -68,6 +76,12 @@ export function ServicesWorkspace() {
     setSelected(service);
   }
 
+  function addCategoryToState(category: ServiceCategoryView) {
+    setState((current) => current.status === "ready"
+      ? { ...current, categories: [...current.categories, category] }
+      : current);
+  }
+
   async function removeService() {
     if (!selected) return;
     setRemoving(true);
@@ -93,7 +107,7 @@ export function ServicesWorkspace() {
     return state.services.filter((service) => {
       if (status === "active" && !service.isActive) return false;
       if (status === "inactive" && service.isActive) return false;
-      return !query || [service.name, service.category, service.description]
+      return !query || [service.name, service.categoryName, service.category, service.description]
         .some((value) => value?.toLocaleLowerCase("ru").includes(query));
     });
   }, [search, state, status]);
@@ -125,7 +139,6 @@ export function ServicesWorkspace() {
     );
   }
 
-  const categories = Array.from(new Set(state.services.map((service) => service.category).filter(Boolean) as string[])).sort();
   const activeCount = state.services.filter((service) => service.isActive).length;
   const averagePrice = activeCount
     ? state.services.filter((service) => service.isActive).reduce((sum, service) => sum + Number(service.price), 0) / activeCount
@@ -146,7 +159,7 @@ export function ServicesWorkspace() {
 
       <section className="directory-stats" aria-label="Итоги каталога услуг">
         <article><span><AppIcon name="services" /></span><p>Активных услуг</p><strong>{activeCount}</strong></article>
-        <article><span aria-hidden="true">#</span><p>Категорий</p><strong>{categories.length}</strong></article>
+        <article><span aria-hidden="true">#</span><p>Категорий</p><strong>{state.categories.filter((category) => category.isActive).length}</strong></article>
         <article><span aria-hidden="true">₽</span><p>Средний чек</p><strong>{formatMoney(averagePrice)}</strong></article>
       </section>
 
@@ -188,14 +201,14 @@ export function ServicesWorkspace() {
                   onClick={() => setSelected(service)}
                   key={service.id}
                 >
-                  <span className="service-card__category">{service.category || "Без категории"}</span>
+                  <span className="service-card__category">{service.categoryName || service.category || "Без категории"}</span>
                   <span className={"crm-status crm-status--" + (service.isActive ? "lime" : "muted")}>
                     {service.isActive ? "В записи" : "Скрыта"}
                   </span>
                   <h2>{service.name}</h2>
                   <p>{service.description || "Описание ещё не добавлено."}</p>
                   <dl>
-                    <div><dt>Цена</dt><dd>{formatMoney(service.price)}</dd></div>
+                    <div><dt>Цена</dt><dd>{formatServicePrice(service)}</dd></div>
                     <div><dt>Время</dt><dd>{formatDuration(service.durationMin)}</dd></div>
                     <div><dt>Мастера</dt><dd>{assigned || "—"}</dd></div>
                   </dl>
@@ -216,7 +229,8 @@ export function ServicesWorkspace() {
       {editing && selected ? (
         <ServiceForm
           service={selected}
-          categories={categories}
+          categories={state.categories}
+          onCategoryCreated={addCategoryToState}
           onClose={() => setEditing(false)}
           onSaved={(service) => {
             saveInState(service);
@@ -230,6 +244,7 @@ export function ServicesWorkspace() {
           staff={state.staff.filter((member) => member.serviceIds.includes(selected.id))}
           removing={removing}
           onClose={() => setSelected(null)}
+          onChanged={saveInState}
           onEdit={() => setEditing(true)}
           onRemove={() => void removeService()}
         />
@@ -237,7 +252,8 @@ export function ServicesWorkspace() {
 
       {formOpen && (
         <ServiceForm
-          categories={categories}
+          categories={state.categories}
+          onCategoryCreated={addCategoryToState}
           onClose={() => setFormOpen(false)}
           onSaved={(service) => {
             saveInState(service);

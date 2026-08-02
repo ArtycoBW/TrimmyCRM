@@ -1,19 +1,29 @@
 import { z } from "zod";
 
-import type { SiteView } from "@/lib/api/types";
+import type {
+  PublicServiceView,
+  ServiceAudience,
+  ServicePriceType,
+  ServiceView,
+  SiteView,
+} from "@/lib/api/types";
+
+const moneyField = (required: boolean) => z
+  .string()
+  .trim()
+  .refine(
+    (value) => !value && !required || /^\d+(?:[.,]\d{1,2})?$/.test(value)
+      && Number(value.replace(",", ".")) <= 99_999_999.99,
+    "Цена должна быть положительным числом с двумя знаками после запятой",
+  );
 
 export const serviceFormSchema = z.object({
   name: z.string().trim().min(2, "Введите название услуги").max(160, "Не более 160 символов"),
-  category: z.string().trim().max(100, "Не более 100 символов"),
+  categoryId: z.string(),
   description: z.string().trim().max(3000, "Не более 3000 символов"),
-  price: z
-    .string()
-    .trim()
-    .min(1, "Укажите цену")
-    .refine(
-      (value) => /^\d+(?:[.,]\d{1,2})?$/.test(value) && Number(value.replace(",", ".")) <= 99_999_999.99,
-      "Цена должна быть положительным числом с двумя знаками после запятой",
-    ),
+  priceType: z.enum(["fixed", "from", "range", "consultation"]),
+  price: moneyField(true).refine(Boolean, "Укажите цену"),
+  maxPrice: moneyField(false),
   durationMin: z
     .string()
     .trim()
@@ -35,10 +45,105 @@ export const serviceFormSchema = z.object({
       (value) => Number.isInteger(Number(value)) && Number(value) >= 0 && Number(value) <= 240,
       "От 0 до 240 минут",
     ),
+  requiresConsultation: z.boolean(),
+  requiresPatchTest: z.boolean(),
+  allowOnlineBooking: z.boolean(),
+  variantSelectionRequired: z.boolean(),
+  preparationText: z.string().trim().max(3000, "Не более 3000 символов"),
+  aftercareText: z.string().trim().max(3000, "Не более 3000 символов"),
   isActive: z.boolean(),
+}).superRefine((value, context) => {
+  const price = Number(value.price.replace(",", "."));
+  const maxPrice = value.maxPrice ? Number(value.maxPrice.replace(",", ".")) : null;
+  if (value.priceType === "range" && maxPrice === null) {
+    context.addIssue({ code: "custom", path: ["maxPrice"], message: "Укажите верхнюю границу" });
+  }
+  if (maxPrice !== null && maxPrice < price) {
+    context.addIssue({
+      code: "custom",
+      path: ["maxPrice"],
+      message: "Максимальная цена должна быть не ниже базовой",
+    });
+  }
 });
 
 export type ServiceFormValues = z.infer<typeof serviceFormSchema>;
+
+export const servicePriceTypeOptions: Array<{ value: ServicePriceType; label: string }> = [
+  { value: "fixed", label: "Фиксированная" },
+  { value: "from", label: "От указанной суммы" },
+  { value: "range", label: "Диапазон" },
+  { value: "consultation", label: "После консультации" },
+];
+
+export const serviceAudienceOptions: Array<{ value: ServiceAudience; label: string }> = [
+  { value: "all", label: "Для всех" },
+  { value: "women", label: "Женские услуги" },
+  { value: "men", label: "Мужские услуги" },
+  { value: "kids", label: "Детские услуги" },
+];
+
+function moneyValue(value: string) {
+  return Number(value.replace(",", "."));
+}
+
+export function buildServicePayload(values: ServiceFormValues) {
+  return {
+    name: values.name,
+    description: values.description || null,
+    categoryId: values.categoryId === "uncategorized" ? null : values.categoryId || null,
+    price: moneyValue(values.price),
+    maxPrice: values.maxPrice ? moneyValue(values.maxPrice) : null,
+    priceType: values.priceType,
+    currency: "RUB" as const,
+    durationMin: Number(values.durationMin),
+    bufferBeforeMin: Number(values.bufferBeforeMin),
+    bufferAfterMin: Number(values.bufferAfterMin),
+    requiresConsultation: values.requiresConsultation,
+    requiresPatchTest: values.requiresPatchTest,
+    allowOnlineBooking: values.allowOnlineBooking,
+    variantSelectionRequired: values.variantSelectionRequired,
+    preparationText: values.preparationText || null,
+    aftercareText: values.aftercareText || null,
+    isActive: values.isActive,
+  };
+}
+
+export function formatServicePrice(service: Pick<
+  ServiceView | PublicServiceView,
+  "price" | "maxPrice" | "priceType"
+>) {
+  const format = (value: string | number) => new Intl.NumberFormat("ru-RU", {
+    maximumFractionDigits: 0,
+  }).format(Number(value)) + " ₽";
+  if (service.priceType === "consultation") return "После консультации";
+  if (service.priceType === "from") return "от " + format(service.price);
+  if (service.priceType === "range" && service.maxPrice !== null) {
+    return format(service.price) + " — " + format(service.maxPrice);
+  }
+  return format(service.price);
+}
+
+export const catalogOptionSchema = z.object({
+  label: z.string().trim().min(1, "Введите название").max(120, "Не более 120 символов"),
+  priceDelta: moneyField(true).refine(Boolean, "Укажите доплату, можно 0"),
+  durationDeltaMin: z.string().trim().refine(
+    (value) => Number.isInteger(Number(value))
+      && Number(value) >= 0
+      && Number(value) <= 1440
+      && Number(value) % 5 === 0,
+    "От 0 до 1440 минут, шаг 5 минут",
+  ),
+});
+
+export type CatalogOptionValues = z.infer<typeof catalogOptionSchema>;
+
+export function buildCatalogOptionPayload(values: CatalogOptionValues) {
+  return {
+    priceDelta: moneyValue(values.priceDelta),
+    durationDeltaMin: Number(values.durationDeltaMin),
+  };
+}
 
 const optionalStaffEmail = z
   .string()

@@ -28,13 +28,13 @@ test("weekly calendar switches to an agenda without overflow on mobile", async (
     await expect(calendar).toBeVisible();
     await expect(page.locator(".calendar-desktop")).toBeHidden();
     await expect(calendar.getByText("Боня", { exact: true })).toBeVisible();
-    await expect(calendar.getByText(/Комплексный уход/)).toBeVisible();
+    await expect(calendar.getByText(/Стрижка и укладка/)).toBeVisible();
   } else {
     const calendar = page.locator(".calendar-desktop");
     await expect(calendar).toBeVisible();
     await expect(page.locator(".calendar-agenda")).toBeHidden();
     await expect(calendar.getByText("Боня", { exact: true })).toBeVisible();
-    await expect(calendar.getByText("Комплексный уход", { exact: true })).toBeVisible();
+    await expect(calendar.getByText("Стрижка и укладка", { exact: true })).toBeVisible();
   }
 
   const geometry = await page.evaluate(() => ({
@@ -139,7 +139,7 @@ test("appointment status update sends expectedVersion", async ({ page }, testInf
   });
 
   await page.goto("/app/calendar");
-  await page.getByRole("button", { name: /10:00, Боня, Комплексный уход/ }).click();
+  await page.getByRole("button", { name: /10:00, Боня, Стрижка и укладка/ }).click();
   await expect(page.getByRole("dialog", { name: "Боня" })).toBeVisible();
   await page.getByRole("button", { name: "Подтвердить" }).click();
 
@@ -177,7 +177,7 @@ test("manual appointment uses client pets and current admin payload", async ({ p
   await selectOption(page, "Клиент", clientFixture.fullName);
   await expect(page.getByLabel("Питомец")).toBeEnabled();
   await selectOption(page, "Питомец", /Боня/);
-  await selectOption(page, /^Услуга$/, /Комплексный уход/);
+  await selectOption(page, /^Услуга$/, /Стрижка и укладка/);
   await selectOption(page, /^Мастер$/, staffFixture.name);
   await expect(page.locator('input[type="date"]')).toHaveCount(0);
   await page.getByRole("button", { name: "Дата визита" }).click();

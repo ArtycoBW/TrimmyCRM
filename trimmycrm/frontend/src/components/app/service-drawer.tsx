@@ -2,15 +2,16 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { ServiceOptionEditor } from "@/components/app/service-option-editor";
 import type { ServiceView, StaffView } from "@/lib/api/types";
-import { formatDuration, staffInitials } from "@/lib/app/catalog";
-import { formatMoney } from "@/lib/app/dashboard";
+import { formatDuration, formatServicePrice, staffInitials } from "@/lib/app/catalog";
 
 export function ServiceDrawer({
   service,
   staff,
   removing,
   onClose,
+  onChanged,
   onEdit,
   onRemove,
 }: {
@@ -18,6 +19,7 @@ export function ServiceDrawer({
   staff: StaffView[];
   removing: boolean;
   onClose: () => void;
+  onChanged: (service: ServiceView) => void;
   onEdit: () => void;
   onRemove: () => void;
 }) {
@@ -52,9 +54,9 @@ export function ServiceDrawer({
         </header>
 
         <section className="service-drawer__hero">
-          <p>{service.category || "Без категории"}</p>
+          <p>{service.categoryName || service.category || "Без категории"}</p>
           <h2 id="service-title">{service.name}</h2>
-          <strong>{formatMoney(service.price)}</strong>
+          <strong>{formatServicePrice(service)}</strong>
         </section>
 
         <dl className="service-facts">
@@ -67,6 +69,20 @@ export function ServiceDrawer({
           <p className="crm-kicker">Описание для клиента</p>
           <p>{service.description || "Описание пока не добавлено."}</p>
         </section>
+
+        <section className="service-policy-summary" aria-label="Условия записи">
+          <p className="crm-kicker">Условия записи</p>
+          <div>
+            <span>{service.allowOnlineBooking ? "Доступна онлайн" : "Только через администратора"}</span>
+            {service.requiresConsultation && <span>Нужна консультация</span>}
+            {service.requiresPatchTest && <span>Нужен патч-тест</span>}
+            {service.variantSelectionRequired && <span>Вариант обязателен</span>}
+          </div>
+          {service.preparationText && <p><strong>До визита:</strong> {service.preparationText}</p>}
+          {service.aftercareText && <p><strong>После:</strong> {service.aftercareText}</p>}
+        </section>
+
+        <ServiceOptionEditor service={service} onChanged={onChanged} />
 
         <section className="service-team">
           <header><p className="crm-kicker">Выполняют мастера</p><strong>{staff.length}</strong></header>

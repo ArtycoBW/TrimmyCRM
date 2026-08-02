@@ -44,7 +44,7 @@ test("client directory and details stay adaptive", async ({ page }) => {
   const drawer = page.getByRole("dialog", { name: "Анна Петрова" });
   await expect(drawer).toBeVisible();
   await expect(drawer.getByRole("button", { name: /Боня Шпиц/ })).toBeVisible();
-  await expect(drawer.getByText("Комплексный уход", { exact: true })).toBeVisible();
+  await expect(drawer.getByText("Стрижка и укладка", { exact: true })).toBeVisible();
   await expect(drawer.getByText("Волнистые", { exact: true })).toBeVisible();
   await expect(drawer.getByText("Мелирование шесть месяцев назад", { exact: true })).toBeVisible();
   await expectNoRightOverflow(page);
@@ -228,7 +228,10 @@ test("pet creation uses the owner admin endpoint", async ({ page }, testInfo) =>
 
   await page.goto("/app/clients");
   await page.locator(".client-row").first().click();
-  await page.locator(".client-drawer__section").first().getByRole("button", { name: /Добавить/ }).click();
+  await page.locator(".client-drawer__section")
+    .filter({ hasText: "Питомцы" })
+    .getByRole("button", { name: /Добавить/ })
+    .click();
   await page.getByLabel("Кличка").fill("Луна");
   await selectOption(page, "Вид", "Кошка");
   await page.getByLabel("Порода").fill("Британская");

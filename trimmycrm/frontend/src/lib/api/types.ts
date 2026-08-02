@@ -134,14 +134,67 @@ export type PublicSiteSnapshot = {
   publishedAt?: string;
 };
 
+export type ServiceAudience = "women" | "men" | "all" | "kids";
+export type ServicePriceType = "fixed" | "from" | "range" | "consultation";
+
+export type ServiceCategoryView = {
+  id: string;
+  tenantId: string;
+  name: string;
+  slug: string;
+  audience: ServiceAudience;
+  sortOrder: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type PublicServiceVariantView = {
+  id: string;
+  label: string;
+  priceDelta: string | number;
+  durationDeltaMin: number;
+};
+
+export type PublicServiceAddonView = {
+  id: string;
+  name: string;
+  priceDelta: string | number;
+  durationDeltaMin: number;
+};
+
+export type ServiceVariantView = PublicServiceVariantView & {
+  serviceId: string;
+  sortOrder: number;
+  isActive: boolean;
+};
+
+export type ServiceAddonView = PublicServiceAddonView & {
+  serviceId: string;
+  sortOrder: number;
+  isActive: boolean;
+};
+
 export type PublicServiceView = {
   id: string;
   name: string;
   description: string | null;
+  categoryId: string | null;
+  categoryName: string | null;
   price: string | number;
+  maxPrice: string | number | null;
+  priceType: ServicePriceType;
+  currency: "RUB";
   durationMin: number;
   bufferBeforeMin: number;
   bufferAfterMin: number;
+  requiresConsultation: boolean;
+  requiresPatchTest: boolean;
+  variantSelectionRequired: boolean;
+  preparationText: string | null;
+  aftercareText: string | null;
+  variants: PublicServiceVariantView[];
+  addons: PublicServiceAddonView[];
 };
 
 export type PublicStaffView = {
@@ -188,12 +241,26 @@ export type ServiceView = {
   tenantId: string;
   name: string;
   description: string | null;
+  categoryId: string | null;
+  categoryName: string | null;
   price: string | number;
+  maxPrice: string | number | null;
+  priceType: ServicePriceType;
+  currency: "RUB";
   durationMin: number;
   bufferBeforeMin: number;
   bufferAfterMin: number;
   category: string | null;
+  requiresConsultation: boolean;
+  requiresPatchTest: boolean;
+  allowOnlineBooking: boolean;
+  variantSelectionRequired: boolean;
+  preparationText: string | null;
+  aftercareText: string | null;
+  sortOrder: number;
   isActive: boolean;
+  variants: ServiceVariantView[];
+  addons: ServiceAddonView[];
   createdAt: string;
   updatedAt: string;
 };
