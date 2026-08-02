@@ -6,10 +6,9 @@ import {
   hairProfileFixture,
   mockCrmApis,
   secondClientFixture,
-  secondPetFixture,
 } from "./helpers/crm-fixtures";
 import { selectOption } from "./helpers/ui";
-import { clientFixture, petFixture } from "./helpers/schedule-fixtures";
+import { clientFixture } from "./helpers/schedule-fixtures";
 
 async function prepare(page: import("@playwright/test").Page) {
   await mockOwnerProfile(page);
@@ -43,7 +42,6 @@ test("client directory and details stay adaptive", async ({ page }) => {
   await page.locator(".client-row").first().click();
   const drawer = page.getByRole("dialog", { name: "Анна Петрова" });
   await expect(drawer).toBeVisible();
-  await expect(drawer.getByRole("button", { name: /Боня Шпиц/ })).toBeVisible();
   await expect(drawer.getByText("Стрижка и укладка", { exact: true })).toBeVisible();
   await expect(drawer.getByText("Волнистые", { exact: true })).toBeVisible();
   await expect(drawer.getByText("Мелирование шесть месяцев назад", { exact: true })).toBeVisible();
@@ -97,26 +95,7 @@ test("owner can update the technical hair profile", async ({ page }, testInfo) =
   await expect(profile.getByText("Оставить мягкий контур у лица", { exact: true })).toBeVisible();
 });
 
-test("pet directory opens the current owner-visible profile", async ({ page }) => {
-  await prepare(page);
-  await page.goto("/app/pets");
-
-  await expect(page.getByRole("heading", { name: "Питомцы." })).toBeVisible();
-  await expect(page.locator(".pet-card")).toHaveCount(2);
-  await expect(page.getByText("Ириска", { exact: true })).toBeVisible();
-  await expectNoRightOverflow(page);
-
-  await page.locator(".pet-card").first().click();
-  const drawer = page.getByRole("dialog", { name: "Боня" });
-  await expect(drawer).toBeVisible();
-  await expect(drawer.getByText(/владелец · Анна Петрова/)).toBeVisible();
-  await expect(drawer.getByText("Боится громкого фена, лучше сделать короткий перерыв.")).toBeVisible();
-  await expect(drawer.getByRole("button", { name: /Ветеринарный паспорт/ })).toBeVisible();
-  await expect(drawer.getByText(/Изменять медицинские данные/)).toBeVisible();
-  await expectNoRightOverflow(page);
-});
-
-test("editing a client uses PATCH and keeps loaded pets", async ({ page }, testInfo) => {
+test("editing a client uses PATCH and keeps loaded profile", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop-chrome", "One mutation pass is enough");
   await prepare(page);
   await page.route("**/api/v1/clients/" + clientFixture.id, async (route) => {
@@ -138,7 +117,7 @@ test("editing a client uses PATCH and keeps loaded pets", async ({ page }, testI
     await route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ ...clientFixture, fullName: "Анна Смирнова", pets: [] }),
+      body: JSON.stringify({ ...clientFixture, fullName: "Анна Смирнова" }),
     });
   });
 
@@ -150,7 +129,7 @@ test("editing a client uses PATCH and keeps loaded pets", async ({ page }, testI
 
   const drawer = page.getByRole("dialog", { name: "Анна Смирнова" });
   await expect(drawer).toBeVisible();
-  await expect(drawer.getByRole("button", { name: /Боня Шпиц/ })).toBeVisible();
+  await expect(drawer.getByText("Стрижка и укладка", { exact: true })).toBeVisible();
   await expect(page.getByText("Данные клиента сохранены")).toBeVisible();
 });
 
@@ -192,57 +171,4 @@ test("new client uses the current POST payload", async ({ page }, testInfo) => {
 
   await expect(page.getByRole("dialog", { name: "Елена Волкова" })).toBeVisible();
   await expect(page.getByText("Клиент добавлен")).toBeVisible();
-});
-
-test("pet creation uses the owner admin endpoint", async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name !== "desktop-chrome", "One mutation pass is enough");
-  await prepare(page);
-  await page.route("**/api/v1/clients/" + clientFixture.id + "/pets", async (route) => {
-    expect(route.request().method()).toBe("POST");
-    expect(route.request().postDataJSON()).toEqual({
-      name: "Луна",
-      species: "cat",
-      breed: "Британская",
-      birthDate: null,
-      weightKg: 4.5,
-      coatType: null,
-      temperament: null,
-      allergies: "Курица",
-      medicalNotes: null,
-      vaccinatedUntil: null,
-    });
-    await route.fulfill({
-      status: 201,
-      contentType: "application/json",
-      body: JSON.stringify({
-        ...secondPetFixture,
-        id: "617229f5-26c6-432e-a564-04ed3b28566e",
-        ownerId: clientFixture.id,
-        name: "Луна",
-        breed: "Британская",
-        weightKg: "4.50",
-        allergies: "Курица",
-      }),
-    });
-  });
-
-  await page.goto("/app/clients");
-  await page.locator(".client-row").first().click();
-  await page.locator(".client-drawer__section")
-    .filter({ hasText: "Питомцы" })
-    .getByRole("button", { name: /Добавить/ })
-    .click();
-  await page.getByLabel("Кличка").fill("Луна");
-  await selectOption(page, "Вид", "Кошка");
-  await page.getByLabel("Порода").fill("Британская");
-  await page.getByLabel("Вес, кг").fill("4.5");
-  await page.getByLabel("Аллергии").fill("Курица");
-  await page.getByRole("button", { name: "Добавить питомца →" }).click();
-
-  const drawer = page.getByRole("dialog", { name: "Анна Петрова" });
-  await expect(drawer).toBeVisible();
-  await expect(drawer.getByText("Луна", { exact: true })).toBeVisible();
-  await expect(page.getByText("Питомец добавлен")).toBeVisible();
-  await expect(page.locator(".client-pets > button")).toHaveCount(2);
-  expect(petFixture.ownerId).toBe(clientFixture.id);
 });

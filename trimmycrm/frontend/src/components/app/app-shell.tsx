@@ -26,7 +26,6 @@ const navigation: Array<{
   { label: "Календарь", href: "/app/calendar", icon: "calendar", enabled: true },
   { label: "Записи", href: "/app/appointments", icon: "booking", enabled: true },
   { label: "Клиенты", href: "/app/clients", icon: "clients", enabled: true, separator: true },
-  { label: "Питомцы", href: "/app/pets", icon: "pets", enabled: true },
   { label: "Услуги", href: "/app/services", icon: "services", enabled: true },
   { label: "Команда", href: "/app/staff", icon: "staff", enabled: true },
   { label: "Сайт салона", href: "/app/site", icon: "site", enabled: true, separator: true },

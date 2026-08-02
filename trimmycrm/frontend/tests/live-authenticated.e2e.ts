@@ -59,7 +59,6 @@ test.describe("live authenticated production checks", () => {
       "/app/calendar",
       "/app/appointments",
       "/app/clients",
-      "/app/pets",
       "/app/services",
       "/app/staff",
       "/app/site",
@@ -115,17 +114,11 @@ test.describe("live authenticated production checks", () => {
     const booking = page.locator(".client-booking");
     await expect(booking).toBeVisible();
 
-    const addPet = booking.getByRole("button", { name: /добавить питомца/i });
-    if (await addPet.count()) {
-      await expect(addPet).toBeVisible();
-    } else {
-      await expect.poll(() => slotRequests).toBeGreaterThan(0);
-      await expect(page.getByLabel("Питомец")).toBeVisible();
-      await expect(page.getByLabel("Услуга")).toBeVisible();
-      await expect(page.getByLabel("Мастер")).toBeVisible();
-      await expect(page.getByRole("button", { name: "Дата записи" })).toBeVisible();
-      await expect(booking.locator(".client-booking__slots")).toBeVisible();
-    }
+    await expect.poll(() => slotRequests).toBeGreaterThan(0);
+    await expect(page.getByLabel("Услуга")).toBeVisible();
+    await expect(page.getByLabel("Мастер")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Дата записи" })).toBeVisible();
+    await expect(booking.locator(".client-booking__slots")).toBeVisible();
     await context.close();
   });
 });

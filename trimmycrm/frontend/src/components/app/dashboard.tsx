@@ -218,12 +218,12 @@ export function Dashboard() {
                       {formatSalonTime(appointment.startAt, timezone)}
                       <small>{formatSalonTime(appointment.endAt, timezone)}</small>
                     </time>
-                    <span className="crm-appointment__pet" aria-hidden="true">
-                      {(appointment.petName || "П")[0]?.toUpperCase()}
+                    <span className="crm-appointment__client" aria-hidden="true">
+                      {(appointment.clientName || "К")[0]?.toUpperCase()}
                     </span>
                     <div className="crm-appointment__main">
-                      <strong>{appointment.petName || "Питомец"}</strong>
-                      <p>{appointmentServiceLabel(appointment)} · {appointment.clientName || "Клиент"}</p>
+                      <strong>{appointment.clientName || "Клиент"}</strong>
+                      <p>{appointmentServiceLabel(appointment)}</p>
                     </div>
                     <div className="crm-appointment__staff">
                       <small>мастер</small>
@@ -284,7 +284,7 @@ export function Dashboard() {
               </Link>
             </div>
             <div className="crm-site-preview__visual" aria-hidden="true">
-              <span>груминг-салон</span>
+              <span>салон красоты</span>
               <strong>{site.name}</strong>
               <i>бережно.<br />красиво.<br />рядом.</i>
               <b>записаться →</b>

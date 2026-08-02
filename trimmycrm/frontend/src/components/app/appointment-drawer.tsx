@@ -67,10 +67,10 @@ export function AppointmentDrawer({
         </header>
 
         <section className="appointment-drawer__hero">
-          <span aria-hidden="true">{(appointment.petName || "П")[0]?.toUpperCase()}</span>
+          <span aria-hidden="true">{(appointment.clientName || "К")[0]?.toUpperCase()}</span>
           <div>
-            <h2 id="appointment-title">{appointment.petName || "Питомец"}</h2>
-            <p>{appointment.clientName || "Клиент без имени"}</p>
+            <h2 id="appointment-title">{appointment.clientName || "Клиент без имени"}</h2>
+            <p>{appointmentServiceLabel(appointment)}</p>
           </div>
         </section>
 

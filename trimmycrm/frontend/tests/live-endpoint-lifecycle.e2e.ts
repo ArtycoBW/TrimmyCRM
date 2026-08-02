@@ -12,7 +12,6 @@ const tinyPng = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScL9YQAAAABJRU5ErkJggg==",
   "base64",
 );
-const tinyPdf = Buffer.from("%PDF-1.4\n1 0 obj\n<< /Type /Catalog >>\nendobj\ntrailer\n<<>>\n%%EOF\n");
 
 type Json = Record<string, unknown>;
 
@@ -104,7 +103,6 @@ test.describe("live endpoint lifecycle", () => {
     const tenant = await authenticated(tenantBaseUrl!, tenantToken);
     const anonymous = await playwrightRequest.newContext();
     let createdMediaId: string | undefined;
-    let createdPetId: string | undefined;
     let createdAppointmentId: string | undefined;
     let originalDescription: string | null | undefined;
 
@@ -126,7 +124,6 @@ test.describe("live endpoint lifecycle", () => {
         platform.get("/api/v1/services?include_inactive=true"),
         platform.get("/api/v1/staff?include_inactive=true"),
         platform.get("/api/v1/clients?page=1&limit=20"),
-        platform.get("/api/v1/admin/pets?page=1&limit=20"),
         platform.get(`/api/v1/admin/appointments?from=${encodeURIComponent(new Date().toISOString())}&to=${encodeURIComponent(new Date(Date.now() + 30 * 86_400_000).toISOString())}`),
         platform.get(`/api/v1/analytics/overview?from=${encodeURIComponent(new Date(Date.now() - 30 * 86_400_000).toISOString())}&to=${encodeURIComponent(new Date().toISOString())}`),
         platform.get(`/api/v1/analytics/services?from=${encodeURIComponent(new Date(Date.now() - 30 * 86_400_000).toISOString())}&to=${encodeURIComponent(new Date().toISOString())}`),
@@ -154,7 +151,6 @@ test.describe("live endpoint lifecycle", () => {
         anonymous.get(apiUrl(tenantBaseUrl!, "/public/site")),
         anonymous.get(apiUrl(tenantBaseUrl!, "/public/services")),
         anonymous.get(apiUrl(tenantBaseUrl!, "/public/staff")),
-        tenant.get("/api/v1/pets"),
         tenant.get("/api/v1/appointments/mine?page=1&limit=20"),
         tenant.get("/api/v1/notification-preferences"),
       ]);
@@ -209,50 +205,6 @@ test.describe("live endpoint lifecycle", () => {
       });
       await expectStatus(clientUpdated, 200);
 
-      const adminPet = await platform.post(`/api/v1/clients/${clientId}/pets`, {
-        data: { name: `CRM питомец ${runId}`, species: "dog", breed: "test" },
-      });
-      await expectStatus(adminPet, 201);
-      await expectStatus(await platform.get(`/api/v1/admin/pets?page=1&limit=20&search=${encodeURIComponent(runId)}`), 200);
-
-      const ownPet = await tenant.post("/api/v1/pets", {
-        data: { name: `Питомец ${runId}`, species: "cat", breed: "test", weightKg: "4.20" },
-      });
-      await expectStatus(ownPet, 201);
-      const ownPetPayload = await ownPet.json() as { id: string };
-      createdPetId = ownPetPayload.id;
-      await expectStatus(await tenant.get(`/api/v1/pets/${createdPetId}`), 200);
-      const changedPet = await tenant.patch(`/api/v1/pets/${createdPetId}`, {
-        data: { name: `Питомец обновлён ${runId}`, temperament: "спокойный" },
-      });
-      await expectStatus(changedPet, 200);
-
-      const petPhoto = await tenant.post(`/api/v1/pets/${createdPetId}/photos`, {
-        multipart: {
-          file: { name: `${runId}.png`, mimeType: "image/png", buffer: tinyPng },
-          isCover: "true",
-        },
-      });
-      await expectStatus(petPhoto, 201);
-      const petPhotoPayload = await petPhoto.json() as { id: string };
-      await expectStatus(await tenant.get(`/api/v1/pets/${createdPetId}/photos/${petPhotoPayload.id}/content`), 200);
-      await expectStatus(await tenant.delete(`/api/v1/pets/${createdPetId}/photos/${petPhotoPayload.id}`), 204);
-      await expectStatus(await tenant.get(`/api/v1/pets/${createdPetId}/photos/${petPhotoPayload.id}/content`), 404);
-
-      const petDocument = await tenant.post(`/api/v1/pets/${createdPetId}/documents`, {
-        multipart: {
-          file: { name: `${runId}.pdf`, mimeType: "application/pdf", buffer: tinyPdf },
-          type: "passport",
-        },
-      });
-      await expectStatus(petDocument, 201);
-      const petDocumentPayload = await petDocument.json() as { id: string };
-      await expectStatus(await tenant.get(`/api/v1/pets/${createdPetId}/documents/${petDocumentPayload.id}/content`), 200);
-      await expectStatus(await platform.get(`/api/v1/admin/pets/${createdPetId}/documents/${petDocumentPayload.id}/content`), 200);
-      await expectStatus(await tenant.delete(`/api/v1/pets/${createdPetId}/documents/${petDocumentPayload.id}`), 204);
-      await expectStatus(await tenant.get(`/api/v1/pets/${createdPetId}/documents/${petDocumentPayload.id}/content`), 404);
-      await expectStatus(await platform.get(`/api/v1/admin/pets/${createdPetId}/documents/${petDocumentPayload.id}/content`), 404);
-
       const servicesResponse = await anonymous.get(apiUrl(tenantBaseUrl!, "/public/services"));
       const staffResponse = await anonymous.get(apiUrl(tenantBaseUrl!, "/public/staff"));
       await expectStatus(servicesResponse, 200);
@@ -268,10 +220,9 @@ test.describe("live endpoint lifecycle", () => {
       const bookingPayload = {
         serviceId: pair!.serviceId,
         staffId: pair!.staffId,
-        petId: createdPetId,
         startAt: initialSlot.startAt,
       };
-      const idempotencyKey = `groomy-${runId}-booking`;
+      const idempotencyKey = `trimmy-${runId}-booking`;
       const booking = await tenant.post("/api/v1/booking", {
         data: bookingPayload,
         headers: { "Idempotency-Key": idempotencyKey },
@@ -285,8 +236,7 @@ test.describe("live endpoint lifecycle", () => {
       });
       await expectStatus(repeatedBooking, 201);
       expect((await repeatedBooking.json() as { id: string }).id).toBe(createdAppointmentId);
-      await expectStatus(await tenant.get(`/api/v1/appointments/mine?page=1&limit=100&petId=${createdPetId}`), 200);
-      await expectStatus(await tenant.get(`/api/v1/pets/${createdPetId}/appointments?scope=upcoming`), 200);
+      await expectStatus(await tenant.get("/api/v1/appointments/mine?page=1&limit=100"), 200);
       await expectStatus(await platform.get(`/api/v1/admin/appointments?from=${encodeURIComponent(new Date(Date.now() - 86_400_000).toISOString())}&to=${encodeURIComponent(new Date(Date.now() + 90 * 86_400_000).toISOString())}&tenantUserId=${encodeURIComponent((await tenantMe.json() as { id: string }).id)}`), 200);
 
       const rescheduled = await tenant.post(`/api/v1/appointments/${createdAppointmentId}/reschedule`, {
@@ -330,10 +280,6 @@ test.describe("live endpoint lifecycle", () => {
           data: { reason: "Автотест: гарантированная очистка" },
         });
         expect([200, 409]).toContain(cancelled.status());
-      }
-      if (createdPetId) {
-        const archived = await tenant.delete(`/api/v1/pets/${createdPetId}`);
-        expect([200, 404]).toContain(archived.status());
       }
       if (createdMediaId) {
         const deleted = await platform.delete(`/api/v1/media/${createdMediaId}`);

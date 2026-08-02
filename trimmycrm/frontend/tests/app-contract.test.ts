@@ -16,7 +16,6 @@ import {
 import {
   clientFormSchema,
   personInitials,
-  petFormSchema,
 } from "../src/lib/app/crm";
 import { onboardingSchema, slugifySalonName } from "../src/lib/app/onboarding";
 
@@ -157,24 +156,6 @@ describe("owner app contract", () => {
       consent: true,
       status: "active",
     }).success).toBe(false);
-  });
-
-  it("keeps pet weight within the backend-compatible range", () => {
-    const values = {
-      clientId: "client-id",
-      name: "Боня",
-      species: "dog" as const,
-      breed: "",
-      birthDate: "",
-      weightKg: "4.8",
-      coatType: "",
-      temperament: "",
-      allergies: "",
-      medicalNotes: "",
-      vaccinatedUntil: "",
-    };
-    expect(petFormSchema.safeParse(values).success).toBe(true);
-    expect(petFormSchema.safeParse({ ...values, weightKg: "1000" }).success).toBe(false);
   });
 
   it("builds readable initials for client avatars", () => {

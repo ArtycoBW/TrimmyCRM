@@ -198,7 +198,7 @@ export function StaffWorkspace() {
                 >
                   <div className={"staff-card__portrait" + (portraitStyle ? " has-photo" : "")} style={portraitStyle}>
                     {!portraitStyle && <span>{staffInitials(member.name)}</span>}
-                    <i>{member.photoUrl ? "groom team" : "photo soon"}</i>
+                    <i>{member.photoUrl ? "salon team" : "photo soon"}</i>
                   </div>
                   <div className="staff-card__copy">
                     <span className={"crm-status crm-status--" + (member.isActive ? "lime" : "muted")}>

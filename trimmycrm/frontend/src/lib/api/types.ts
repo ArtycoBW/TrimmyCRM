@@ -339,7 +339,6 @@ export type AppointmentView = {
   id: string;
   tenantId: string;
   tenantUserId: string;
-  petId: string;
   serviceId: string;
   staffId: string | null;
   startAt: string;
@@ -351,49 +350,9 @@ export type AppointmentView = {
   version: number;
   createdAt: string;
   clientName: string | null;
-  petName: string | null;
   serviceName: string | null;
   staffName: string | null;
   items: AppointmentItemView[];
-};
-
-export type PhotoView = {
-  id: string;
-  url: string;
-  isCover: boolean;
-  position: number;
-  uploadedAt: string;
-};
-
-export type PetDocumentView = {
-  id: string;
-  type: "passport";
-  filename: string | null;
-  url: string;
-  uploadedAt: string;
-};
-
-export type PetView = {
-  id: string;
-  tenantId: string;
-  ownerId: string;
-  name: string;
-  species: "dog" | "cat" | "other";
-  breed: string | null;
-  birthDate: string | null;
-  weightKg: string | number | null;
-  coatType: string | null;
-  temperament: string | null;
-  allergies: string | null;
-  medicalNotes: string | null;
-  additionalInfo: string | null;
-  vaccinatedUntil: string | null;
-  photos: PhotoView[];
-  documents: PetDocumentView[];
-  ageYears: number | null;
-  vaccinationCurrent: boolean | null;
-  archivedAt: string | null;
-  createdAt: string;
 };
 
 export type ClientView = {
@@ -405,12 +364,10 @@ export type ClientView = {
   emailVerified: boolean;
   status: string;
   createdAt: string;
-  pets: PetView[];
 };
 
 export type ClientAppointmentSummary = {
   id: string;
-  petId: string;
   serviceId: string;
   staffId: string | null;
   startAt: string;
@@ -418,7 +375,6 @@ export type ClientAppointmentSummary = {
   status: string;
   price: string | number | null;
   prepaid: boolean;
-  petName: string | null;
   serviceName: string | null;
   staffName: string | null;
 };

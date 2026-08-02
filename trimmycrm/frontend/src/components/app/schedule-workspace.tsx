@@ -313,7 +313,7 @@ export function ScheduleWorkspace({ mode }: { mode: "calendar" | "list" }) {
       ) : (
         <section className="appointments-table">
           <header>
-            <span>Дата и время</span><span>Клиент и питомец</span><span>Услуга</span><span>Мастер</span><span>Сумма</span><span>Статус</span>
+            <span>Дата и время</span><span>Клиент</span><span>Услуга</span><span>Мастер</span><span>Сумма</span><span>Статус</span>
           </header>
           {filtered.length ? filtered
             .slice()
@@ -326,7 +326,7 @@ export function ScheduleWorkspace({ mode }: { mode: "calendar" | "list" }) {
                     <strong>{dateLabel(salonDayKey(appointment.startAt, timezone), { day: "numeric", month: "short" })}</strong>
                     <span>{formatSalonTime(appointment.startAt, timezone)}</span>
                   </time>
-                  <span><strong>{appointment.petName || "Питомец"}</strong><small>{appointment.clientName || "Клиент"}</small></span>
+                  <span><strong>{appointment.clientName || "Клиент"}</strong></span>
                   <span>{appointmentServiceLabel(appointment)}</span>
                   <span>{appointment.staffName || "Не назначен"}</span>
                   <strong>{formatMoney(appointment.price)}</strong>

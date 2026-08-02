@@ -11,7 +11,7 @@ export default function LoginPage() {
   return (
     <AuthShell
       eyebrow="Порядок начинается здесь"
-      title={<>Больше времени<br />на питомцев<span>.</span></>}
+      title={<>Больше времени<br />на клиентов<span>.</span></>}
       description="Вернитесь к расписанию, клиентам и сайту — всё осталось на своих местах."
     >
       <Suspense fallback={<div className="auth-form-skeleton" aria-label="Загрузка формы" />}>

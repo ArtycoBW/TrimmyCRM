@@ -4,8 +4,6 @@ import { useEffect, useState } from "react";
 
 import { ClientDrawer } from "@/components/app/client-drawer";
 import { ClientForm } from "@/components/app/client-form";
-import { PetDrawer } from "@/components/app/pet-drawer";
-import { PetForm } from "@/components/app/pet-form";
 import { useApp } from "@/components/app/app-provider";
 import { AppIcon } from "@/components/app/app-icon";
 import { apiRequest } from "@/lib/api/client";
@@ -13,7 +11,6 @@ import type {
   ClientDetailsView,
   ClientView,
   Paginated,
-  PetView,
 } from "@/lib/api/types";
 import {
   clientStatuses,
@@ -36,8 +33,6 @@ export function ClientsWorkspace() {
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
-  const [petFormOpen, setPetFormOpen] = useState(false);
-  const [selectedPet, setSelectedPet] = useState<PetView | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
@@ -134,7 +129,7 @@ export function ClientsWorkspace() {
         <div>
           <p className="crm-kicker">Клиентская база</p>
           <h1>Клиенты<span>.</span></h1>
-          <p>Контакты, питомцы и вся история визитов — без разрозненных заметок.</p>
+          <p>Контакты, профиль волос и вся история визитов — без разрозненных заметок.</p>
         </div>
         <button className="button button--ink" type="button" onClick={() => setCreateOpen(true)}>
           <b>+</b> Добавить клиента
@@ -194,7 +189,7 @@ export function ClientsWorkspace() {
             <div className="directory-empty">
               <span aria-hidden="true">⌕</span>
               <h2>{search ? "Ничего не нашли" : "Клиентов пока нет"}</h2>
-              <p>{search ? "Попробуйте другой запрос." : "Добавьте первого клиента — и его питомцы и визиты будут собраны здесь."}</p>
+              <p>{search ? "Попробуйте другой запрос." : "Добавьте первого клиента — его профиль и визиты будут собраны здесь."}</p>
             </div>
           )}
         </div>
@@ -218,9 +213,7 @@ export function ClientsWorkspace() {
         <div className="crm-side-loader" role="status"><span /><p>Открываем карточку…</p></div>
       )}
 
-      {selectedPet ? (
-        <PetDrawer pet={selectedPet} ownerName={details?.fullName} onClose={() => setSelectedPet(null)} />
-      ) : editOpen && details ? (
+      {editOpen && details ? (
         <ClientForm
           client={details}
           onClose={() => setEditOpen(false)}
@@ -230,7 +223,6 @@ export function ClientsWorkspace() {
               ? {
                   ...current,
                   ...client,
-                  pets: current.pets,
                   appointmentHistory: current.appointmentHistory,
                 }
               : current
@@ -239,25 +231,12 @@ export function ClientsWorkspace() {
             notify("Данные клиента сохранены");
           }}
         />
-      ) : petFormOpen && details ? (
-        <PetForm
-          clients={[details]}
-          fixedClientId={details.id}
-          onClose={() => setPetFormOpen(false)}
-          onSaved={(pet) => {
-            setDetails((current) => current ? { ...current, pets: [...current.pets, pet] } : current);
-            setPetFormOpen(false);
-            notify("Питомец добавлен");
-          }}
-        />
       ) : details ? (
         <ClientDrawer
           client={details}
           timezone={site?.timezone || "Europe/Moscow"}
           onClose={() => setDetails(null)}
           onEdit={() => setEditOpen(true)}
-          onAddPet={() => setPetFormOpen(true)}
-          onPetSelect={setSelectedPet}
         />
       ) : null}
 

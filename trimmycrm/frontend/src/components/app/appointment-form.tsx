@@ -7,7 +7,6 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { apiRequest } from "@/lib/api/client";
 import type {
   AppointmentView,
-  ClientDetailsView,
   ClientView,
   Paginated,
   ServiceView,
@@ -64,9 +63,6 @@ export function AppointmentForm({
   const [clientSearch, setClientSearch] = useState("");
   const [clientOptions, setClientOptions] = useState(clients);
   const [clientsSearching, setClientsSearching] = useState(false);
-  const [clientDetails, setClientDetails] = useState<ClientDetailsView | null>(null);
-  const [petsLoading, setPetsLoading] = useState(false);
-  const [petId, setPetId] = useState("");
   const [serviceToAdd, setServiceToAdd] = useState("");
   const [items, setItems] = useState<BookingItemDraft[]>([]);
   const [staffId, setStaffId] = useState("");
@@ -105,26 +101,6 @@ export function AppointmentForm({
     }, 280);
     return () => window.clearTimeout(timer);
   }, [clientSearch]);
-
-  useEffect(() => {
-    if (!clientId) return;
-    let active = true;
-    apiRequest<ClientDetailsView>("/clients/" + clientId, { realm: "platform" })
-      .then((value) => {
-        if (!active) return;
-        setClientDetails(value);
-        setPetId(value.pets[0]?.id || "");
-      })
-      .catch((reason) => {
-        if (active) setFormError(reason instanceof Error ? reason.message : "Не удалось загрузить питомцев");
-      })
-      .finally(() => {
-        if (active) setPetsLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, [clientId]);
 
   const selectedItems = useMemo(() => items.flatMap((item) => {
     const service = services.find((value) => value.id === item.serviceId);
@@ -170,8 +146,8 @@ export function AppointmentForm({
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setFormError(null);
-    if (!clientId || !petId || !items.length || !date || !time) {
-      setFormError("Заполните клиента, профиль, услуги, дату и время");
+    if (!clientId || !items.length || !date || !time) {
+      setFormError("Заполните клиента, услуги, дату и время");
       return;
     }
     const missingVariant = selectedItems.find(
@@ -188,7 +164,6 @@ export function AppointmentForm({
         method: "POST",
         body: JSON.stringify({
           tenantUserId: clientId,
-          petId,
           items: items.map((item) => ({
             serviceId: item.serviceId,
             variantId: item.variantId || null,
@@ -256,9 +231,6 @@ export function AppointmentForm({
                 value={clientId}
                 onValueChange={(value) => {
                   setClientId(value);
-                  setClientDetails(null);
-                  setPetId("");
-                  setPetsLoading(Boolean(value));
                   setFormError(null);
                 }}
                 placeholder={clientsSearching ? "Ищем клиентов…" : "Выберите клиента"}
@@ -266,21 +238,6 @@ export function AppointmentForm({
               />
               {!clientsSearching && !clientOptions.length && (
                 <p className="appointment-form__hint">Клиенты не найдены. Добавьте клиента в CRM.</p>
-              )}
-            </div>
-
-            <div className="crm-field appointment-form__wide">
-              <label htmlFor="appointment-pet">Питомец</label>
-              <AppSelect
-                id="appointment-pet"
-                value={petId}
-                onValueChange={setPetId}
-                disabled={!clientId || petsLoading}
-                placeholder={petsLoading ? "Загружаем питомцев…" : "Выберите питомца"}
-                options={(clientDetails?.pets || []).map((pet) => ({ value: pet.id, label: pet.name + (pet.breed ? " · " + pet.breed : "") }))}
-              />
-              {clientDetails && !clientDetails.pets.length && (
-                <p className="appointment-form__hint appointment-form__hint--error">У клиента пока нет питомцев.</p>
               )}
             </div>
 

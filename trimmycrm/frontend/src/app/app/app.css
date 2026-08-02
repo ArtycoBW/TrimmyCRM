@@ -1435,7 +1435,7 @@
   font-weight: 600;
 }
 
-.crm-appointment__pet {
+.crm-appointment__client {
   display: grid;
   width: 36px;
   height: 36px;
@@ -4197,7 +4197,7 @@ body.schedule-calendar-fullscreen {
   }
 }
 
-/* Clients and pets */
+/* Clients */
 .crm-directory {
   display: flex;
   min-width: 0;
@@ -4605,8 +4605,7 @@ body.schedule-calendar-fullscreen {
 }
 
 .crm-modal > header,
-.client-drawer > header,
-.pet-drawer > header {
+.client-drawer > header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -4623,8 +4622,7 @@ body.schedule-calendar-fullscreen {
 }
 
 .crm-modal > header > button,
-.client-drawer > header > button,
-.pet-drawer > header > button {
+.client-drawer > header > button {
   display: grid;
   width: 38px;
   height: 38px;
@@ -4751,8 +4749,7 @@ body.schedule-calendar-fullscreen {
   font-weight: 750;
 }
 
-.client-drawer,
-.pet-drawer {
+.client-drawer {
   position: relative;
   z-index: 2;
   width: min(100%, 620px);
@@ -4767,8 +4764,7 @@ body.schedule-calendar-fullscreen {
   animation: crm-slide-left 220ms ease-out both;
 }
 
-.client-drawer > header > div,
-.pet-drawer > header > div {
+.client-drawer > header > div {
   display: flex;
   align-items: center;
   gap: 9px;
@@ -4831,8 +4827,7 @@ body.schedule-calendar-fullscreen {
   gap: 17px;
 }
 
-.client-contacts dt,
-.pet-facts dt {
+.client-contacts dt {
   color: var(--muted);
   font-size: 9px;
   font-weight: 800;
@@ -4840,8 +4835,7 @@ body.schedule-calendar-fullscreen {
   text-transform: uppercase;
 }
 
-.client-contacts dd,
-.pet-facts dd {
+.client-contacts dd {
   margin: 5px 0 0;
   overflow-wrap: anywhere;
   font-size: 12px;
@@ -4888,69 +4882,6 @@ body.schedule-calendar-fullscreen {
   color: var(--ink);
   font-size: 10px;
   font-weight: 800;
-}
-
-.client-pets {
-  display: grid;
-  margin-top: 12px;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 9px;
-}
-
-.client-pets > button {
-  display: grid;
-  min-width: 0;
-  min-height: 62px;
-  padding: 9px;
-  border: 1px solid var(--ink);
-  border-radius: 11px;
-  background: var(--peach-light);
-  color: var(--ink);
-  grid-template-columns: 37px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 9px;
-  text-align: left;
-}
-
-.client-pets > button > span {
-  display: grid;
-  width: 36px;
-  height: 36px;
-  place-items: center;
-  border: 1px solid var(--ink);
-  border-radius: 11px 11px 11px 4px;
-  background: var(--lavender);
-  font-family: var(--display);
-  font-size: 13px;
-  font-weight: 850;
-}
-
-.client-pets p {
-  min-width: 0;
-  margin: 0;
-}
-
-.client-pets strong,
-.client-pets small {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.client-pets strong {
-  font-size: 12px;
-}
-
-.client-pets small {
-  margin-top: 3px;
-  color: var(--muted);
-  font-size: 10px;
-}
-
-.client-pets i {
-  font-size: 14px;
-  font-style: normal;
 }
 
 .client-drawer__empty {
@@ -5185,453 +5116,6 @@ body.schedule-calendar-fullscreen {
   font-style: normal;
 }
 
-.pets-loading-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 15px;
-}
-
-.pets-loading-grid > div {
-  min-height: 270px;
-}
-
-.pets-panel {
-  min-height: 420px;
-}
-
-.pets-grid {
-  display: grid;
-  padding: 18px;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 15px;
-}
-
-.pet-card {
-  position: relative;
-  display: flex;
-  min-width: 0;
-  min-height: 292px;
-  padding: 14px;
-  border: 1px solid var(--ink);
-  border-radius: 14px;
-  background: var(--white);
-  color: var(--ink);
-  box-shadow: 2px 2px 0 var(--ink);
-  flex-direction: column;
-  text-align: left;
-  cursor: pointer;
-  overflow: hidden;
-  transition: transform 160ms ease, box-shadow 160ms ease;
-}
-
-.pet-card::before {
-  position: absolute;
-  top: -12px;
-  right: -10px;
-  width: 48px;
-  height: 32px;
-  background: rgba(213, 255, 58, 0.64);
-  content: "";
-  transform: rotate(31deg);
-}
-
-.pet-card--1::before { background: rgba(222, 204, 255, 0.78); }
-.pet-card--2::before { background: rgba(255, 182, 211, 0.7); }
-.pet-card--3::before { background: rgba(255, 193, 144, 0.72); }
-
-.pet-card:hover,
-.pet-card:focus-visible {
-  outline: 0;
-  box-shadow: 5px 6px 0 var(--ink);
-  transform: translate(-2px, -3px);
-}
-
-.pet-card__portrait {
-  position: relative;
-  display: grid;
-  min-height: 112px;
-  place-items: center;
-  border: 1px solid var(--ink);
-  border-radius: 9px;
-  background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.2), transparent 50%),
-    var(--lavender);
-  box-shadow: 0 7px 0 var(--white), 0 8px 0 var(--ink);
-  overflow: hidden;
-  transform: rotate(-1.2deg);
-}
-
-.pet-card--1 .pet-card__portrait {
-  background-color: #ffd0df;
-  transform: rotate(1deg);
-}
-
-.pet-card--2 .pet-card__portrait {
-  background-color: var(--lime);
-  transform: rotate(-0.6deg);
-}
-
-.pet-card--3 .pet-card__portrait {
-  background-color: var(--peach);
-  transform: rotate(1.4deg);
-}
-
-.pet-card__portrait > span {
-  font-family: var(--display);
-  font-size: 50px;
-  font-weight: 900;
-  letter-spacing: -0.08em;
-}
-
-.pet-card__portrait > i {
-  position: absolute;
-  right: 7px;
-  bottom: 7px;
-  padding: 5px 7px;
-  border: 1px solid var(--ink);
-  border-radius: 999px;
-  background: var(--white);
-  font-size: 9px;
-  font-style: normal;
-  font-weight: 850;
-}
-
-.pet-card__copy {
-  min-width: 0;
-  padding: 18px 2px 12px;
-}
-
-.pet-card__copy h2 {
-  margin: 5px 0 0;
-  overflow: hidden;
-  font-family: var(--display);
-  font-size: 24px;
-  line-height: 1;
-  letter-spacing: -0.055em;
-  text-overflow: ellipsis;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.pet-card__copy > span {
-  display: block;
-  margin-top: 5px;
-  overflow: hidden;
-  color: var(--muted);
-  font-size: 10px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.pet-card dl {
-  display: grid;
-  margin: auto 0 0;
-  padding: 11px 0 0;
-  border-top: 1px dashed rgba(7, 7, 7, 0.28);
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 7px;
-}
-
-.pet-card dl div {
-  min-width: 0;
-}
-
-.pet-card dt {
-  color: var(--muted);
-  font-size: 8px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.pet-card dd {
-  margin: 4px 0 0;
-  overflow: hidden;
-  font-size: 10px;
-  font-weight: 800;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.pet-card .has-warning dd {
-  color: #a61f50;
-}
-
-.pet-card__open {
-  align-self: flex-end;
-  margin-top: 12px;
-  font-size: 10px;
-  font-weight: 850;
-}
-
-.pet-species {
-  padding: 5px 8px;
-  border: 1px solid var(--ink);
-  border-radius: 999px;
-  background: var(--lime);
-  font-size: 9px;
-  font-weight: 850;
-}
-
-.pet-drawer {
-  width: min(100%, 520px);
-}
-
-.pet-drawer__hero {
-  display: grid;
-  margin-top: 28px;
-  padding: 22px 0 25px;
-  border-top: 1px solid var(--ink);
-  border-bottom: 1px solid var(--ink);
-  grid-template-columns: 148px minmax(0, 1fr);
-  align-items: center;
-  gap: 23px;
-}
-
-.pet-drawer__portrait {
-  position: relative;
-  display: grid;
-  min-height: 146px;
-  padding: 11px 11px 30px;
-  place-items: center;
-  border: 1px solid var(--ink);
-  background: var(--white);
-  box-shadow: 4px 5px 0 var(--ink);
-  transform: rotate(-2.2deg);
-}
-
-.pet-drawer__portrait::before {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  bottom: 30px;
-  left: 8px;
-  background:
-    radial-gradient(circle at 68% 30%, rgba(255, 255, 255, 0.52), transparent 22%),
-    var(--lavender);
-  content: "";
-}
-
-.pet-drawer__portrait > span {
-  position: relative;
-  z-index: 1;
-  font-family: var(--display);
-  font-size: 62px;
-  font-weight: 900;
-}
-
-.pet-drawer__portrait > i {
-  position: absolute;
-  z-index: 1;
-  right: 10px;
-  bottom: 9px;
-  font-family: var(--hand);
-  font-size: 13px;
-  font-style: normal;
-}
-
-.pet-drawer__hero h2 {
-  margin: 0;
-  font-family: var(--display);
-  font-size: clamp(37px, 5vw, 57px);
-  line-height: 0.88;
-  letter-spacing: -0.07em;
-  text-transform: uppercase;
-  overflow-wrap: anywhere;
-}
-
-.pet-drawer__hero p {
-  margin: 11px 0 0;
-  font-family: var(--hand);
-  font-size: 21px;
-}
-
-.pet-drawer__hero > div:last-child > span {
-  display: block;
-  margin-top: 10px;
-  color: var(--muted);
-  font-size: 10px;
-  font-weight: 750;
-}
-
-.pet-facts {
-  display: grid;
-  margin: 0;
-  padding: 22px 0;
-  border-bottom: 1px solid var(--crm-line);
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 18px 12px;
-}
-
-.pet-facts > div {
-  min-width: 0;
-  padding-left: 9px;
-  border-left: 3px solid var(--lavender);
-}
-
-.pet-facts > div:nth-child(2),
-.pet-facts > div:nth-child(5) {
-  border-left-color: var(--lime);
-}
-
-.pet-facts > div:nth-child(3),
-.pet-facts > div:nth-child(6) {
-  border-left-color: var(--peach);
-}
-
-.pet-facts > .has-warning {
-  border-left-color: var(--magenta);
-}
-
-.pet-facts > .has-warning dd {
-  color: #a61f50;
-}
-
-.pet-notes {
-  display: grid;
-  padding: 22px 0;
-  gap: 10px;
-}
-
-.pet-notes article {
-  padding: 14px 15px;
-  border: 1px solid var(--crm-line);
-  border-radius: 12px;
-  background: var(--peach-light);
-}
-
-.pet-notes article:nth-child(2) {
-  background: rgba(222, 204, 255, 0.24);
-}
-
-.pet-notes article.has-warning {
-  border-color: rgba(166, 31, 80, 0.48);
-  background: rgba(255, 182, 211, 0.18);
-}
-
-.pet-notes article > p:last-child {
-  margin: 7px 0 0;
-  font-size: 11px;
-  line-height: 1.55;
-  white-space: pre-line;
-}
-
-.pet-documents {
-  display: grid;
-  margin: 0 0 18px;
-  gap: 8px;
-}
-
-.pet-documents > button {
-  display: grid;
-  width: 100%;
-  padding: 12px;
-  border: 1px solid var(--crm-line);
-  border-radius: 12px;
-  background: var(--surface);
-  color: var(--ink);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-  grid-template-columns: 38px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 10px;
-}
-
-.pet-documents > button:hover {
-  background: var(--peach-light);
-}
-
-.pet-documents > button:disabled {
-  cursor: wait;
-  opacity: 0.65;
-}
-
-.pet-documents > button > span:first-child {
-  display: grid;
-  width: 38px;
-  height: 38px;
-  place-items: center;
-  border: 1px solid var(--ink);
-  border-radius: 9px;
-  background: var(--lime);
-  font-size: 9px;
-  font-weight: 850;
-}
-
-.pet-documents > button > span:nth-child(2) {
-  display: grid;
-  min-width: 0;
-  gap: 3px;
-}
-
-.pet-documents strong,
-.pet-documents small {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.pet-documents strong {
-  font-size: 11px;
-}
-
-.pet-documents small {
-  color: var(--muted);
-  font-size: 9px;
-}
-
-.pet-documents i {
-  font-size: 9px;
-  font-style: normal;
-  font-weight: 750;
-}
-
-.pet-documents__error {
-  margin: 0;
-  color: #a61f50;
-  font-size: 10px;
-}
-
-.pet-drawer > footer {
-  display: grid;
-  margin-top: 2px;
-  padding: 13px;
-  border: 1px dashed rgba(7, 7, 7, 0.35);
-  border-radius: 12px;
-  background: rgba(213, 255, 58, 0.17);
-  grid-template-columns: 24px 1fr;
-  align-items: start;
-  gap: 10px;
-}
-
-.pet-drawer > footer > span {
-  display: grid;
-  width: 23px;
-  height: 23px;
-  place-items: center;
-  border: 1px solid var(--ink);
-  border-radius: 50%;
-  background: var(--lime);
-  font-family: var(--display);
-  font-size: 11px;
-  font-weight: 850;
-}
-
-.pet-drawer > footer p {
-  margin: 1px 0 0;
-  color: var(--muted);
-  font-size: 10px;
-  line-height: 1.5;
-}
-
-@media (max-width: 1180px) {
-  .pets-grid,
-  .pets-loading-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
 @media (max-width: 940px) {
   .clients-table > header,
   .client-row {
@@ -5643,10 +5127,6 @@ body.schedule-calendar-fullscreen {
     display: none;
   }
 
-  .pets-grid,
-  .pets-loading-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 @media (max-width: 760px) {
@@ -5768,8 +5248,7 @@ body.schedule-calendar-fullscreen {
     grid-column: 1;
   }
 
-  .client-drawer,
-  .pet-drawer {
+  .client-drawer {
     width: 100%;
     min-height: 0;
     max-height: 93svh;
@@ -5799,10 +5278,6 @@ body.schedule-calendar-fullscreen {
     grid-column: 2;
   }
 
-  .client-pets {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
   .client-history article {
     min-height: 64px;
     grid-template-columns: 64px minmax(100px, 1fr) 63px;
@@ -5817,36 +5292,7 @@ body.schedule-calendar-fullscreen {
     text-align: right;
   }
 
-  .pets-grid {
-    padding: 11px;
-    gap: 10px;
-  }
 
-  .pet-card {
-    min-height: 272px;
-    padding: 10px;
-  }
-
-  .pet-card__portrait {
-    min-height: 100px;
-  }
-
-  .pet-drawer__hero {
-    grid-template-columns: 118px minmax(0, 1fr);
-    gap: 17px;
-  }
-
-  .pet-drawer__portrait {
-    min-height: 120px;
-  }
-
-  .pet-drawer__portrait > span {
-    font-size: 49px;
-  }
-
-  .pet-facts {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 @media (max-width: 520px) {
@@ -5882,57 +5328,12 @@ body.schedule-calendar-fullscreen {
     text-align: center;
   }
 
-  .pets-grid,
-  .pets-loading-grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
 
-  .pet-card {
-    min-height: 294px;
-  }
-
-  .pet-card__portrait {
-    min-height: 128px;
-  }
-
-  .pet-drawer__hero {
-    grid-template-columns: 94px minmax(0, 1fr);
-    gap: 13px;
-  }
-
-  .pet-drawer__portrait {
-    min-height: 101px;
-    padding-bottom: 25px;
-  }
-
-  .pet-drawer__portrait::before {
-    bottom: 25px;
-  }
-
-  .pet-drawer__portrait > span {
-    font-size: 40px;
-  }
-
-  .pet-drawer__portrait > i {
-    right: 6px;
-    bottom: 6px;
-    font-size: 12px;
-  }
-
-  .pet-drawer__hero h2 {
-    font-size: clamp(31px, 11vw, 43px);
-  }
-
-  .pet-drawer__hero p {
-    font-size: 17px;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .crm-modal,
-  .client-drawer,
-  .pet-drawer,
-  .pet-card {
+  .client-drawer {
     animation: none;
     transition: none;
   }

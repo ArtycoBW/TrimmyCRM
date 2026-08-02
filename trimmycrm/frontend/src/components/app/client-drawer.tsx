@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { HairProfileForm } from "@/components/app/hair-profile-form";
 import { apiRequest } from "@/lib/api/client";
-import type { ClientDetailsView, ClientHairProfileView, PetView } from "@/lib/api/types";
+import type { ClientDetailsView, ClientHairProfileView } from "@/lib/api/types";
 import {
   appointmentStatuses,
   formatMoney,
@@ -17,7 +17,6 @@ import {
   clientStatuses,
   formatShortDate,
   personInitials,
-  speciesLabels,
 } from "@/lib/app/crm";
 import { hairCharacteristicLabel } from "@/lib/app/hair-profile";
 
@@ -31,15 +30,11 @@ export function ClientDrawer({
   timezone,
   onClose,
   onEdit,
-  onAddPet,
-  onPetSelect,
 }: {
   client: ClientDetailsView;
   timezone: string;
   onClose: () => void;
   onEdit: () => void;
-  onAddPet: () => void;
-  onPetSelect: (pet: PetView) => void;
 }) {
   const closeButton = useRef<HTMLButtonElement>(null);
   const status = clientStatuses[client.status] || clientStatuses.crm_only;
@@ -156,26 +151,6 @@ export function ClientDrawer({
           )}
         </section>
 
-        <section className="client-drawer__section">
-          <header>
-            <div><p className="crm-kicker">Питомцы</p><strong>{client.pets.length}</strong></div>
-            <button type="button" onClick={onAddPet}>+ Добавить</button>
-          </header>
-          {client.pets.length ? (
-            <div className="client-pets">
-              {client.pets.map((pet) => (
-                <button type="button" onClick={() => onPetSelect(pet)} key={pet.id}>
-                  <span aria-hidden="true">{pet.photos[0] ? "●" : pet.name[0]?.toUpperCase()}</span>
-                  <p><strong>{pet.name}</strong><small>{pet.breed || speciesLabels[pet.species]}</small></p>
-                  <i>→</i>
-                </button>
-              ))}
-            </div>
-          ) : (
-            <p className="client-drawer__empty">Добавьте питомца — он появится здесь и в форме записи.</p>
-          )}
-        </section>
-
         <section className="client-drawer__section client-history">
           <header>
             <div><p className="crm-kicker">История визитов</p><strong>{client.appointmentHistory.length}</strong></div>
@@ -192,7 +167,7 @@ export function ClientDrawer({
                       <strong>{formatShortDate(salonDayKey(appointment.startAt, timezone))}</strong>
                       <span>{formatSalonTime(appointment.startAt, timezone)}</span>
                     </time>
-                    <p><strong>{appointment.petName || "Питомец"}</strong><small>{appointment.serviceName || "Услуга"}</small></p>
+                    <p><strong>{appointment.serviceName || "Услуга"}</strong><small>Визит клиента</small></p>
                     <span>{appointment.staffName || "Без мастера"}</span>
                     <b>{formatMoney(appointment.price || 0)}</b>
                     <i className={"crm-status crm-status--" + status.tone}>{status.label}</i>

@@ -84,7 +84,7 @@ export function AccountEntry({ realm }: AccountEntryProps) {
         )}
         <div className="account-entry__next">
           <span>Следующий раздел</span>
-          <strong>{realm === "platform" ? "Настройка салона и CRM-панель" : "Питомцы и онлайн-запись"}</strong>
+          <strong>{realm === "platform" ? "Настройка салона и CRM-панель" : "Онлайн-запись и история визитов"}</strong>
         </div>
       </section>
     </main>

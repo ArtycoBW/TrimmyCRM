@@ -8,12 +8,6 @@ export const clientStatuses: Record<string, { label: string; tone: string }> = {
   anonymized: { label: "Анонимизирован", tone: "muted" },
 };
 
-export const speciesLabels = {
-  dog: "Собака",
-  cat: "Кошка",
-  other: "Другой питомец",
-} as const;
-
 const optionalEmail = z
   .string()
   .trim()
@@ -35,25 +29,6 @@ export const clientFormSchema = z.object({
 });
 
 export type ClientFormValues = z.infer<typeof clientFormSchema>;
-
-export const petFormSchema = z.object({
-  clientId: z.string().min(1, "Выберите владельца"),
-  name: z.string().trim().min(1, "Введите кличку").max(100),
-  species: z.enum(["dog", "cat", "other"]),
-  breed: z.string().trim().max(160),
-  birthDate: z.string(),
-  weightKg: z
-    .string()
-    .trim()
-    .refine((value) => !value || (Number(value) > 0 && Number(value) <= 999), "Вес от 0 до 999 кг"),
-  coatType: z.string().trim().max(160),
-  temperament: z.string().trim().max(1000),
-  allergies: z.string().trim().max(3000),
-  medicalNotes: z.string().trim().max(5000),
-  vaccinatedUntil: z.string(),
-});
-
-export type PetFormValues = z.infer<typeof petFormSchema>;
 
 export function personInitials(value: string | null | undefined) {
   if (!value?.trim()) return "К";

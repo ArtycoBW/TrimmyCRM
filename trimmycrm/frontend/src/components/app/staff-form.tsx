@@ -214,7 +214,7 @@ export function StaffForm({
               <label htmlFor="staff-specialization">Специализация</label>
               <input
                 id="staff-specialization"
-                placeholder="Грумер · тримминг и экспресс-линька"
+                placeholder="Стилист · стрижки и сложное окрашивание"
                 {...register("specialization")}
               />
               {errors.specialization && <p className="crm-field__error">{errors.specialization.message}</p>}

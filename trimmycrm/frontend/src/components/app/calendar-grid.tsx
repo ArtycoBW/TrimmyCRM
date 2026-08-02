@@ -83,7 +83,7 @@ export function CalendarGrid({
                         onClick={() => onSelect(appointment)}
                         aria-label={
                           formatSalonTime(appointment.startAt, timezone) + ", " +
-                          (appointment.petName || "питомец") + ", " +
+                          (appointment.clientName || "клиент") + ", " +
                           serviceLabel
                         }
                         key={appointment.id}
@@ -91,7 +91,7 @@ export function CalendarGrid({
                         data-calendar-lanes={lanes}
                       >
                         <time>{formatSalonTime(appointment.startAt, timezone)}</time>
-                        <strong>{appointment.petName || "Питомец"}</strong>
+                        <strong>{appointment.clientName || "Клиент"}</strong>
                         <span>{serviceLabel}</span>
                         <small>{appointment.staffName || "Без мастера"}</small>
                       </button>
@@ -127,10 +127,10 @@ export function CalendarGrid({
                           {formatSalonTime(appointment.startAt, timezone)}
                           <small>{formatSalonTime(appointment.endAt, timezone)}</small>
                         </time>
-                        <span aria-hidden="true">{(appointment.petName || "П")[0]?.toUpperCase()}</span>
+                        <span aria-hidden="true">{(appointment.clientName || "К")[0]?.toUpperCase()}</span>
                         <p>
-                          <strong>{appointment.petName || "Питомец"}</strong>
-                          <small>{serviceLabel} · {appointment.clientName || "Клиент"}</small>
+                          <strong>{appointment.clientName || "Клиент"}</strong>
+                          <small>{serviceLabel}</small>
                         </p>
                         <em>{formatMoney(appointment.price)}</em>
                         <i className={"crm-status crm-status--" + status.tone}>{status.label}</i>

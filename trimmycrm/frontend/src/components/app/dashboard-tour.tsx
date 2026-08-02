@@ -7,7 +7,7 @@ type TourStep = { target: string; title: string; description: string };
 const desktopSteps: TourStep[] = [
   { target: "#crm-content", title: "Ваш рабочий кабинет", description: "Здесь собраны главные показатели и все рабочие разделы салона." },
   { target: "[data-tour='calendar']", title: "Календарь", description: "Планируйте визиты, переносите записи и держите день под контролем." },
-  { target: "[data-tour='clients']", title: "Клиенты и питомцы", description: "В карточках хранится история визитов, контакты и всё важное о каждом хвостике." },
+  { target: "[data-tour='clients']", title: "Клиенты", description: "В карточках хранится история визитов, контакты и профиль волос или бороды." },
   { target: "[data-tour='site']", title: "Сайт салона", description: "Соберите лендинг, добавьте фотографии и включите онлайн-запись без разработчика." },
   { target: "[data-tour='settings']", title: "Настройки и помощь", description: "Здесь меняются данные салона, а «Инструкция» всегда запускает этот тур заново." },
 ];
@@ -15,7 +15,7 @@ const desktopSteps: TourStep[] = [
 const mobileSteps: TourStep[] = [
   desktopSteps[0],
   { target: "[data-tour='mobile-calendar']", title: "Календарь", description: "Быстрый доступ к расписанию — всегда внизу экрана." },
-  { target: "[data-tour='mobile-clients']", title: "Клиенты", description: "Открывайте карточки клиентов и питомцев в один тап." },
+  { target: "[data-tour='mobile-clients']", title: "Клиенты", description: "Открывайте карточки клиентов и историю визитов в один тап." },
   { target: "[data-tour='mobile-more']", title: "Остальные разделы", description: "В меню находятся сайт салона, аналитика, настройки и инструкция." },
 ];
 

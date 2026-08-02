@@ -3127,7 +3127,7 @@ h2 span {
   .salon-booking { width: calc(100% - 20px); min-height: 560px; padding: 38px 22px; }
 }
 
-/* Tenant client portal: pets, booking and appointment history. */
+/* Tenant client portal: booking and appointment history. */
 .client-portal { min-height: 100svh; padding: 20px max(20px, calc((100vw - 1180px) / 2)) 90px; background: #e8c69f; color: var(--ink); }
 .client-portal__header { display: flex; min-height: 65px; align-items: center; justify-content: space-between; gap: 20px; padding: 8px 12px; border: 1.5px solid var(--ink); border-radius: 17px; background: var(--white); box-shadow: 4px 5px 0 var(--ink); }
 .client-portal__brand { display: flex; min-width: 0; align-items: center; gap: 10px; }
@@ -3258,12 +3258,9 @@ h2 span {
 @media (max-width: 640px) { .route-skeleton { width: calc(100% - 24px); min-height: 60svh; margin-block: 12px; padding: 22px; } .route-skeleton__grid, .route-skeleton--document .route-skeleton__grid { grid-template-columns: 1fr; } .route-skeleton__grid span { min-height: 130px; } }
 .client-list-section > header svg { width: 16px; }
 .client-booking__grid { display: grid; margin-top: 25px; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 17px; }
-.client-booking__grid > label,
-.client-pet-form > label { display: grid; gap: 7px; font-size: 12px; font-weight: 800; }
+.client-booking__grid > label { display: grid; gap: 7px; font-size: 12px; font-weight: 800; }
 .client-booking__grid .ui-select-trigger,
-.client-booking__grid > label > input,
-.client-pet-form .ui-select-trigger,
-.client-pet-form input { min-height: 52px; }
+.client-booking__grid > label > input { min-height: 52px; }
 .client-booking__slots { grid-column: 1 / -1; }
 .client-booking__slots > span { display: block; margin-bottom: 8px; font-size: 12px; font-weight: 800; }
 .client-booking__slots > div { display: flex; flex-wrap: wrap; gap: 7px; }
@@ -3288,24 +3285,6 @@ h2 span {
 .client-appointment-list p { margin: 5px 0 0; color: var(--muted); font-size: 12px; }
 .client-appointment-list time { font-size: 13px; font-weight: 800; }
 .client-appointment-list i { padding: 6px 8px; border: 1px solid var(--ink); border-radius: 999px; background: var(--lime); font-size: 10px; font-style: normal; font-weight: 800; text-transform: uppercase; }
-.client-pet-form { display: grid; margin-top: 20px; padding: 18px; border: 1px solid var(--ink); border-radius: 12px; background: var(--peach-light); grid-template-columns: repeat(6, minmax(0, 1fr)); align-items: end; gap: 13px; }
-.client-pet-form > label { grid-column: span 2; }
-.client-pet-form > .client-pet-form__upload,
-.client-pet-form > .client-pet-form__wide { grid-column: span 3; }
-.client-pet-form > button { grid-column: 1 / -1; width: 100%; }
-.client-pet-grid { display: grid; margin-top: 20px; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 13px; }
-.client-pet-grid > article { display: flex; min-height: 230px; padding: 20px; border: 1px solid var(--ink); border-radius: 13px; background: var(--fog); flex-direction: column; box-shadow: 3px 4px 0 var(--ink); }
-.client-pet-grid > article > span { display: grid; width: 47px; height: 47px; place-items: center; border: 1px solid var(--ink); border-radius: 50%; background: var(--lime); }
-.client-pet-grid > article svg { width: 22px; }
-.client-pet-grid h3 { margin: 28px 0 0; font-family: var(--display); font-size: 25px; text-transform: uppercase; }
-.client-pet-grid p { margin: 7px 0 0; color: var(--muted); }
-.client-pet-grid button { align-self: flex-start; margin-top: auto; padding: 7px 0; border: 0; border-bottom: 1px solid var(--ink); background: transparent; font-weight: 800; cursor: pointer; }
-.client-pet-card__meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 13px; }
-.client-pet-card__meta > span { display: inline-flex; align-items: center; gap: 4px; padding: 5px 7px; border: 1px solid var(--ink); border-radius: 999px; background: var(--white); font-size: 10px; font-weight: 800; }
-.client-pet-card__meta svg { width: 13px; height: 13px; }
-.client-pet-grid .client-pet-card__delete-document { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; color: #9d2020; font-size: 12px; }
-.client-pet-grid .client-pet-card__delete-document svg { width: 14px; height: 14px; }
-.client-pet-grid .client-pet-card__delete-document:disabled { cursor: wait; opacity: .65; }
 .client-portal-state { display: grid; min-height: 100svh; place-content: center; justify-items: center; gap: 15px; padding: 30px; background: #e8c69f; text-align: center; }
 .client-portal-state > i { width: 42px; height: 42px; border: 5px solid rgba(7, 7, 7, 0.15); border-top-color: var(--lime); border-radius: 50%; animation: salon-spin 800ms linear infinite; }
 @keyframes salon-spin { to { transform: rotate(360deg); } }
@@ -3331,21 +3310,6 @@ h2 span {
 .client-booking__submit { min-height: 58px; margin-top: 4px; border-radius: 12px; background: var(--ink); color: var(--white); box-shadow: 4px 4px 0 var(--magenta); }
 .client-booking__submit:hover { background: var(--lime); color: var(--ink); }
 .client-booking__submit:disabled { border-color: rgba(7, 7, 7, 0.25); background: #e4e1dc; color: rgba(7, 7, 7, 0.5); box-shadow: none; transform: none; }
-.client-pet-form { padding: 20px; gap: 12px; }
-.client-pet-form > label { min-width: 0; padding: 12px; border: 1px solid var(--ink); border-radius: 11px; background: var(--white); }
-.client-pet-form > label > span { font-size: 11px; text-transform: uppercase; }
-.client-pet-form .ui-input,
-.client-pet-form .ui-select-trigger { min-width: 0; border-color: var(--ink); border-radius: 9px; }
-.client-pet-form textarea { width: 100%; min-height: 105px; padding: 11px 12px; border: 1px solid var(--ink); border-radius: 9px; outline: 0; background: var(--white); color: var(--ink); font: inherit; font-size: 13px; line-height: 1.45; resize: vertical; }
-.client-pet-form textarea:focus { box-shadow: 0 0 0 3px var(--lime); }
-.client-pet-form__upload > span { display: flex; align-items: center; gap: 6px; }
-.client-pet-form__upload > span svg { width: 16px; height: 16px; }
-.client-pet-form__upload input[type="file"] { width: 100%; min-height: 46px; padding: 5px; border: 1px dashed rgba(7, 7, 7, 0.48); border-radius: 9px; background: var(--fog); color: var(--muted); font-size: 11px; cursor: pointer; }
-.client-pet-form__upload input[type="file"]::file-selector-button { min-height: 34px; margin-right: 9px; padding: 6px 10px; border: 1px solid var(--ink); border-radius: 7px; background: var(--white); color: var(--ink); font: inherit; font-size: 11px; font-weight: 800; cursor: pointer; }
-.client-pet-form__upload small { min-height: 15px; overflow: hidden; color: var(--muted); font-size: 10px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
-.client-pet-form__privacy { grid-column: 1 / -1; margin: 0; color: var(--muted); font-size: 11px; line-height: 1.45; }
-.client-pet-form > button { min-height: 55px; border-radius: 11px; background: var(--ink); color: var(--white); }
-
 @media (max-width: 760px) {
   .client-portal { padding: 10px 10px 60px; }
   .client-portal__header { min-height: 58px; border-radius: 13px; box-shadow: 3px 3px 0 var(--ink); }
@@ -3359,18 +3323,11 @@ h2 span {
   .client-list-section { padding: 18px 14px; border-radius: 13px; box-shadow: 3px 3px 0 var(--ink); }
   .client-booking > header,
   .client-list-section > header { align-items: flex-start; flex-direction: column; }
-  .client-booking__grid,
-  .client-pet-form,
-  .client-pet-grid { grid-template-columns: 1fr; }
-  .client-pet-form > label,
-  .client-pet-form > .client-pet-form__upload,
-  .client-pet-form > .client-pet-form__wide,
-  .client-pet-form__privacy { grid-column: auto; }
+  .client-booking__grid { grid-template-columns: 1fr; }
   .client-booking__field,
   .client-booking__slots { padding: 12px; }
   .client-booking__field .ui-select-trigger,
   .client-booking__field .ui-input { min-height: 54px; }
-  .client-pet-form > button { grid-column: auto; }
   .client-appointment-list > article { grid-template-columns: 38px minmax(0, 1fr) auto; gap: 10px; }
   .client-appointment-list time { grid-column: 2; }
   .client-appointment-list i { grid-column: 3; grid-row: 1 / span 2; }
@@ -3553,4 +3510,3 @@ h2 span {
   .landing-contact__copy > p:not(.eyebrow) { font-size: 15px; }
   .landing-chat { right: 14px; bottom: 14px; }
   .landing-chat__trigger { min-height: 48px; }
-}

@@ -5,7 +5,6 @@ export type AppIconName =
   | "calendar"
   | "booking"
   | "clients"
-  | "pets"
   | "services"
   | "staff"
   | "site"
@@ -23,7 +22,6 @@ const paths: Record<AppIconName, React.ReactNode> = {
   calendar: <><rect x="3" y="5" width="18" height="16" rx="3" /><path d="M8 3v4M16 3v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01" /></>,
   booking: <><path d="M6 3h12v18H6zM9 7h6M9 11h6M9 15h3" /><path d="m15 17 1.5 1.5L20 15" /></>,
   clients: <><circle cx="9" cy="8" r="3" /><path d="M3.5 20v-1.5A4.5 4.5 0 0 1 8 14h2a4.5 4.5 0 0 1 4.5 4.5V20M16 5a3 3 0 0 1 0 6M17 14a4 4 0 0 1 3.5 4v2" /></>,
-  pets: <><circle cx="8" cy="7" r="2" /><circle cx="16" cy="7" r="2" /><circle cx="5" cy="12" r="2" /><circle cx="19" cy="12" r="2" /><path d="M8 18c0-3 1.8-5 4-5s4 2 4 5c0 2-1.5 3-4 3s-4-1-4-3Z" /></>,
   services: <><circle cx="6" cy="7" r="3" /><circle cx="6" cy="17" r="3" /><path d="m8.5 8.5 10 8M8.5 15.5l10-8" /></>,
   staff: <><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /><path d="m17 4 1-2M7 4 6 2" /></>,
   site: <><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M3 9h18M7 6.5h.01M10 6.5h.01M7 13h4v4H7M14 13h3M14 16h3" /></>,

@@ -15,7 +15,7 @@ export default async function ResetPasswordPage({
     <AuthShell
       eyebrow="Почти вернулись"
       title={<>Новый ключ<br />от кабинета<span>.</span></>}
-      description="Надёжный пароль защищает расписание, клиентов и данные питомцев."
+      description="Надёжный пароль защищает расписание, клиентов и историю визитов."
     >
       <ResetPasswordForm token={token} />
     </AuthShell>

@@ -215,7 +215,7 @@ test("heading font selector opens above the full-screen builder", async ({ page 
   await expect(fontMenu.getByRole("option", { name: /Unbounded/ })).toBeVisible();
 });
 
-test("site builder uploads a pet photo with a caption into the gallery", async ({ page }, testInfo) => {
+test("site builder uploads a work photo with a caption into the gallery", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop-chrome", "One upload contract pass is enough");
   await prepareOwner(page);
   let savedItems: Array<Record<string, unknown>> = [];
@@ -246,17 +246,17 @@ test("site builder uploads a pet photo with a caption into the gallery", async (
   }));
 
   await page.goto("/app/site");
-  await page.locator('input[type="file"][multiple]').setInputFiles({ name: "pet.jpg", mimeType: "image/jpeg", buffer: Buffer.from([255, 216, 255, 217]) });
+  await page.locator('input[type="file"][multiple]').setInputFiles({ name: "haircut.jpg", mimeType: "image/jpeg", buffer: Buffer.from([255, 216, 255, 217]) });
   await expect(page.getByText("Фотография добавлена в черновик")).toBeVisible();
-  await page.getByLabel("Подпись к фотографии 1").fill("Мия после груминга");
-  await expect(page.locator(".visual-builder__preview")).toContainText("Мия после груминга");
+  await page.getByLabel("Подпись к фотографии 1").fill("Текстурная стрижка");
+  await expect(page.locator(".visual-builder__preview")).toContainText("Текстурная стрижка");
   await page.getByRole("button", { name: "Сохранить", exact: true }).click();
   await expect(page.getByText("Черновик сохранён")).toBeVisible();
   expect(savedItems).toEqual([
     expect.objectContaining({
       id: "2c5257bf-d8fd-44fb-a9f8-d37e1d3386bd",
       src: "/api/v1/public/media/2c5257bf-d8fd-44fb-a9f8-d37e1d3386bd",
-      caption: "Мия после груминга",
+      caption: "Текстурная стрижка",
     }),
   ]);
 });

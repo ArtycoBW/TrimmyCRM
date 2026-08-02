@@ -699,7 +699,7 @@ export function SiteWorkspace() {
                 {["hero", "about", "gallery"].includes(selected.type) && (
                   <div className="visual-builder__media">
                     <div className="visual-builder__media-heading">
-                      <div><strong>{selected.type === "gallery" ? "Фото питомцев и работ" : selected.type === "hero" ? "Фото питомцев на первом экране" : "Фотография раздела"}</strong><span>JPEG, PNG или WebP · до 10 МБ</span></div>
+                      <div><strong>{selected.type === "gallery" ? "Фото интерьера и работ" : selected.type === "hero" ? "Фото работ на первом экране" : "Фотография раздела"}</strong><span>JPEG, PNG или WebP · до 10 МБ</span></div>
                       <label className="visual-builder__upload">{uploading ? <LoaderCircle className="is-spinning" aria-hidden="true" /> : <ImagePlus aria-hidden="true" />}{uploading ? "Загружаем…" : "Добавить"}<input type="file" accept="image/jpeg,image/png,image/webp" multiple={selected.type === "gallery" || selected.type === "hero"} disabled={uploading} onChange={(event) => { void uploadImages(event.target.files); event.target.value = ""; }} /></label>
                     </div>
                     {selected.type === "gallery" ? (
@@ -713,13 +713,13 @@ export function SiteWorkspace() {
                       galleryItems(selected, "images").length ? <ul className="visual-builder__gallery-list">{galleryItems(selected, "images").map((item, index) => <li key={item.id}>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={previewMediaUrl(item.src)} alt="" />
-                        <Input aria-label={`Подпись к фото питомца ${index + 1}`} placeholder="Например: Боня после груминга" value={item.caption} onChange={(event) => updateHeroImage(index, { caption: event.target.value })} />
-                        <button type="button" aria-label={`Убрать фото питомца ${index + 1}`} onClick={() => removeHeroImage(index)}><X aria-hidden="true" /></button>
+                        <Input aria-label={`Подпись к фото работы ${index + 1}`} placeholder="Например: пикси с текстурной укладкой" value={item.caption} onChange={(event) => updateHeroImage(index, { caption: event.target.value })} />
+                        <button type="button" aria-label={`Убрать фото работы ${index + 1}`} onClick={() => removeHeroImage(index)}><X aria-hidden="true" /></button>
                       </li>)}</ul> : typeof selected.config.image === "string" ? <div className="visual-builder__single-image">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={selected.config.image} alt="Предпросмотр загруженной фотографии" />
                         <button type="button" onClick={() => updateConfig("image", null)}><X aria-hidden="true" /> Убрать</button>
-                      </div> : <p className="visual-builder__media-empty"><strong>Добавьте до трёх фото питомцев.</strong><br />Они соберутся в живой фотоколлаж на первом экране.</p>
+                      </div> : <p className="visual-builder__media-empty"><strong>Добавьте до трёх фото работ.</strong><br />Они соберутся в живой фотоколлаж на первом экране.</p>
                     ) : typeof selected.config.image === "string" ? <div className="visual-builder__single-image">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={selected.config.image} alt="Предпросмотр загруженной фотографии" />

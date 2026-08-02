@@ -5,7 +5,6 @@ import {
   clientFixture,
   colorServiceFixture,
   mockScheduleApis,
-  petFixture,
   scheduleAppointment,
   serviceFixture,
   staffFixture,
@@ -28,13 +27,13 @@ test("weekly calendar switches to an agenda without overflow on mobile", async (
     const calendar = page.locator(".calendar-agenda");
     await expect(calendar).toBeVisible();
     await expect(page.locator(".calendar-desktop")).toBeHidden();
-    await expect(calendar.getByText("Боня", { exact: true })).toBeVisible();
+    await expect(calendar.getByText("Анна Петрова", { exact: true })).toBeVisible();
     await expect(calendar.getByText(/Стрижка и укладка/)).toBeVisible();
   } else {
     const calendar = page.locator(".calendar-desktop");
     await expect(calendar).toBeVisible();
     await expect(page.locator(".calendar-agenda")).toBeHidden();
-    await expect(calendar.getByText("Боня", { exact: true })).toBeVisible();
+    await expect(calendar.getByText("Анна Петрова", { exact: true })).toBeVisible();
     await expect(calendar.getByText("Стрижка и укладка", { exact: true })).toBeVisible();
   }
 
@@ -62,7 +61,7 @@ test("overlapping visits are laid out side by side instead of covering each othe
   const overlaps = ["first", "second", "third"].map((suffix, index) => ({
     ...scheduleAppointment,
     id: `overlap-${suffix}`,
-    petName: `Питомец ${index + 1}`,
+    clientName: `Клиент ${index + 1}`,
     staffId: `staff-${index}`,
   }));
   await page.route("**/api/v1/admin/appointments**", (route) => route.fulfill({
@@ -140,8 +139,8 @@ test("appointment status update sends expectedVersion", async ({ page }, testInf
   });
 
   await page.goto("/app/calendar");
-  await page.getByRole("button", { name: /10:00, Боня, Стрижка и укладка/ }).click();
-  await expect(page.getByRole("dialog", { name: "Боня" })).toBeVisible();
+  await page.getByRole("button", { name: /10:00, Анна Петрова, Стрижка и укладка/ }).click();
+  await expect(page.getByRole("dialog", { name: "Анна Петрова" })).toBeVisible();
   await page.getByRole("button", { name: "Подтвердить" }).click();
 
   await expect(page.locator(".appointment-drawer .crm-status")).toHaveText("Подтверждена");
@@ -155,7 +154,6 @@ test("manual appointment sends multiple catalog items with options", async ({ pa
     const payload = route.request().postDataJSON() as Record<string, unknown>;
     expect(payload).toMatchObject({
       tenantUserId: clientFixture.id,
-      petId: petFixture.id,
       items: [
         {
           serviceId: serviceFixture.id,
@@ -186,8 +184,6 @@ test("manual appointment sends multiple catalog items with options", async ({ pa
   await page.goto("/app/calendar");
   await page.getByRole("button", { name: "Новая запись" }).click();
   await selectOption(page, "Клиент", clientFixture.fullName);
-  await expect(page.getByLabel("Питомец")).toBeEnabled();
-  await selectOption(page, "Питомец", /Боня/);
   await selectOption(page, "Услуги визита", /Стрижка и укладка/);
   await page.getByRole("button", { name: "Добавить услугу" }).click();
   await selectOption(page, /Вариант обязательно/, /Длинные волосы/);
@@ -211,7 +207,7 @@ test("manual appointment sends multiple catalog items with options", async ({ pa
   await page.getByRole("button", { name: "Добавить запись →" }).click();
 
   await expect(page.getByText("Новая запись добавлена")).toBeVisible();
-  await expect(page.getByRole("dialog", { name: "Боня" })).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "Анна Петрова" })).toBeVisible();
 });
 
 test("appointments list opens the same detail drawer", async ({ page }, testInfo) => {
@@ -222,6 +218,6 @@ test("appointments list opens the same detail drawer", async ({ page }, testInfo
   await expect(page.getByRole("heading", { name: "Все записи." })).toBeVisible();
   await expect(page.locator(".appointments-row")).toHaveCount(1);
   await page.locator(".appointments-row").click();
-  await expect(page.getByRole("dialog", { name: "Боня" })).toBeVisible();
-  await expect(page.getByText("Не стричь хвост коротко")).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "Анна Петрова" })).toBeVisible();
+  await expect(page.getByText("Сохранить длину у лица")).toBeVisible();
 });

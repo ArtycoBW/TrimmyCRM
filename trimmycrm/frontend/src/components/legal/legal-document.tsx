@@ -62,7 +62,7 @@ export function LegalOperator() {
   );
 }
 function withCurrentBrand(value: ReactNode): ReactNode {
-  if (typeof value === "string") return value.replaceAll("TrimmyCRM", "TrimmyCRM").replaceAll("Groom CRM", "TrimmyCRM");
+  if (typeof value === "string") return value;
   if (Array.isArray(value)) return Children.map(value, withCurrentBrand);
   if (isValidElement<{ children?: ReactNode }>(value)) {
     return cloneElement(value, undefined, withCurrentBrand(value.props.children));

@@ -24,38 +24,6 @@ export const clientFixture = {
   emailVerified: true,
   status: "active",
   createdAt: new Date().toISOString(),
-  pets: [],
-};
-
-export const petFixture = {
-  id: "68d8df57-cda3-4fd0-9b35-b651f279b2dc",
-  tenantId: siteFixture.id,
-  ownerId: clientFixture.id,
-  name: "Боня",
-  species: "dog",
-  breed: "Шпиц",
-  birthDate: null,
-  weightKg: "4.80",
-  coatType: null,
-  temperament: null,
-  allergies: null,
-  medicalNotes: null,
-  additionalInfo: "Боится громкого фена, лучше сделать короткий перерыв.",
-  vaccinatedUntil: null,
-  photos: [],
-  documents: [
-    {
-      id: "c0fe0873-7026-42fc-b597-51da49cd5420",
-      type: "passport",
-      filename: "vet-passport.pdf",
-      url: "/api/v1/pets/68d8df57-cda3-4fd0-9b35-b651f279b2dc/documents/c0fe0873-7026-42fc-b597-51da49cd5420/content",
-      uploadedAt: new Date().toISOString(),
-    },
-  ],
-  ageYears: 3,
-  vaccinationCurrent: null,
-  archivedAt: null,
-  createdAt: new Date().toISOString(),
 };
 
 export const serviceFixture = {
@@ -135,7 +103,6 @@ export const scheduleAppointment = {
   id: "16c82824-367b-4b95-a98b-82bcaf00a3c1",
   tenantId: siteFixture.id,
   tenantUserId: clientFixture.id,
-  petId: petFixture.id,
   serviceId: serviceFixture.id,
   staffId: staffFixture.id,
   startAt: zonedDateTimeToIso(today, "10:00", timezone),
@@ -143,11 +110,10 @@ export const scheduleAppointment = {
   status: "new",
   price: "3800.00",
   prepaid: false,
-  notes: "Не стричь хвост коротко",
+  notes: "Сохранить длину у лица",
   version: 1,
   createdAt: new Date().toISOString(),
   clientName: clientFixture.fullName,
-  petName: petFixture.name,
   serviceName: serviceFixture.name,
   staffName: staffFixture.name,
   items: [{
@@ -188,7 +154,7 @@ export async function mockScheduleApis(page: Page) {
     json(route, { items: [clientFixture], total: 1, page: 1, limit: 100 }),
   );
   await page.route("**/api/v1/clients/" + clientFixture.id, (route) =>
-    json(route, { ...clientFixture, pets: [petFixture], appointmentHistory: [] }),
+    json(route, { ...clientFixture, appointmentHistory: [] }),
   );
   await page.route("**/api/v1/services", (route) =>
     json(route, [serviceFixture, colorServiceFixture]),
