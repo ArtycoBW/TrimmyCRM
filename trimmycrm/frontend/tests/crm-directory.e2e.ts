@@ -3,6 +3,7 @@ import { expect, test } from "@playwright/test";
 import { mockExistingSite, mockOwnerProfile } from "./helpers/app-fixtures";
 import {
   clientDetailsFixture,
+  hairProfileFixture,
   mockCrmApis,
   secondClientFixture,
   secondPetFixture,
@@ -44,7 +45,56 @@ test("client directory and details stay adaptive", async ({ page }) => {
   await expect(drawer).toBeVisible();
   await expect(drawer.getByRole("button", { name: /Боня Шпиц/ })).toBeVisible();
   await expect(drawer.getByText("Комплексный уход", { exact: true })).toBeVisible();
+  await expect(drawer.getByText("Волнистые", { exact: true })).toBeVisible();
+  await expect(drawer.getByText("Мелирование шесть месяцев назад", { exact: true })).toBeVisible();
   await expectNoRightOverflow(page);
+});
+
+test("owner can update the technical hair profile", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop-chrome", "One mutation pass is enough");
+  await prepare(page);
+  let submitted: Record<string, unknown> | null = null;
+  await page.route("**/api/v1/clients/" + clientFixture.id + "/hair-profile", async (route) => {
+    if (route.request().method() === "GET") {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(hairProfileFixture),
+      });
+      return;
+    }
+    submitted = route.request().postDataJSON();
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        ...hairProfileFixture,
+        ...submitted,
+        version: 4,
+        updatedAt: "2026-07-16T08:00:00Z",
+      }),
+    });
+  });
+
+  await page.goto("/app/clients");
+  await page.locator(".client-row").first().click();
+  const profile = page.locator(".client-hair-profile");
+  await expect(profile.getByText("Мелирование шесть месяцев назад", { exact: true })).toBeVisible();
+  await profile.getByRole("button", { name: "Изменить" }).click();
+    await selectOption(page, /^Длина$/, /^Длинные$/);
+  await profile.getByLabel("Текущий цвет").fill("уровень 8");
+  await profile.getByLabel("Пожелания клиента").fill("Оставить мягкий контур у лица");
+  await profile.getByRole("button", { name: "Сохранить профиль" }).click();
+
+  await expect.poll(() => submitted).not.toBeNull();
+  expect(submitted).toMatchObject({
+    hairLength: "long",
+    currentColor: "уровень 8",
+    preferences: "Оставить мягкий контур у лица",
+    expectedVersion: 3,
+  });
+  await expect(profile.getByText("Длинные", { exact: true })).toBeVisible();
+  await expect(profile.getByText("Оставить мягкий контур у лица", { exact: true })).toBeVisible();
 });
 
 test("pet directory opens the current owner-visible profile", async ({ page }) => {

@@ -4768,6 +4768,178 @@ body.schedule-calendar-fullscreen {
   text-align: center;
 }
 
+.client-hair-profile__error {
+  margin-top: var(--spacing-20);
+  padding: var(--spacing-20);
+  border: 1px solid var(--color-vermillion);
+  background: var(--color-paper-white);
+}
+
+.client-hair-profile__error p {
+  margin: 0;
+  font-size: 13px;
+}
+
+.client-hair-profile__error button {
+  margin-top: 10px;
+  padding: 0 0 3px;
+  border: 0;
+  border-bottom: 1px solid var(--color-pure-black);
+  background: transparent;
+  color: var(--color-pure-black);
+  font-weight: 800;
+}
+
+.client-hair-profile__summary {
+  display: grid;
+  gap: var(--spacing-20);
+  margin-top: var(--spacing-20);
+}
+
+.client-hair-profile__summary dl {
+  display: grid;
+  margin: 0;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--spacing-5);
+}
+
+.client-hair-profile__summary dl > div {
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--color-pure-black);
+  background: var(--color-paper-white);
+}
+
+.client-hair-profile__summary dt {
+  font-size: var(--text-caption);
+  font-weight: 800;
+  line-height: var(--leading-caption);
+  text-transform: uppercase;
+}
+
+.client-hair-profile__summary dd {
+  margin: var(--spacing-5) 0 0;
+  font-size: 13px;
+  font-weight: 750;
+  overflow-wrap: anywhere;
+}
+
+.client-hair-profile__summary > p {
+  display: grid;
+  gap: var(--spacing-5);
+  margin: 0;
+  padding-left: 12px;
+  border-left: 4px solid var(--color-acid-mint);
+  font-size: 13px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.client-hair-profile__summary > p strong {
+  font-size: var(--text-caption);
+  line-height: var(--leading-caption);
+  text-transform: uppercase;
+}
+
+.hair-profile-form {
+  margin-top: var(--spacing-20);
+}
+
+.hair-profile-form fieldset {
+  display: grid;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  gap: var(--spacing-20);
+}
+
+.hair-profile-form__notice {
+  margin: 0;
+  padding: 12px;
+  border: 1px solid var(--color-pure-black);
+  background: var(--color-acid-mint);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.hair-profile-form__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.hair-profile-form label {
+  display: grid;
+  min-width: 0;
+  gap: var(--spacing-5);
+}
+
+.hair-profile-form label > span {
+  font-size: var(--text-caption);
+  font-weight: 800;
+  line-height: var(--leading-caption);
+  text-transform: uppercase;
+}
+
+.hair-profile-form input,
+.hair-profile-form textarea,
+.hair-profile-form .ui-select-trigger {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 9px 10px;
+  border: 1px solid var(--color-pure-black);
+  border-radius: 0;
+  outline: 0;
+  background: var(--color-paper-white);
+  color: var(--color-pure-black);
+  font: inherit;
+  font-size: 13px;
+}
+
+.hair-profile-form textarea {
+  min-height: 90px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.hair-profile-form input:focus-visible,
+.hair-profile-form textarea:focus-visible,
+.hair-profile-form .ui-select-trigger:focus-visible {
+  outline: 3px solid var(--color-vermillion);
+  outline-offset: 2px;
+}
+
+.hair-profile-form label > small,
+.hair-profile-form__error {
+  margin: 0;
+  color: var(--color-vermillion);
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.hair-profile-form__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.hair-profile-form__actions > button:first-child {
+  padding: 10px 12px;
+  border: 1px solid var(--color-pure-black);
+  background: var(--color-paper-white);
+  color: var(--color-pure-black);
+  font-weight: 800;
+}
+
+@media (max-width: 560px) {
+  .client-hair-profile__summary dl,
+  .hair-profile-form__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .client-history > div {
   margin-top: 12px;
 }

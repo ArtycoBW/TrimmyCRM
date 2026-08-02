@@ -69,6 +69,30 @@ export const clientDetailsFixture = {
   }],
 };
 
+export const hairProfileFixture = {
+  id: "79a3a127-61b0-42da-8710-6f874c3dc937",
+  tenantId: siteFixture.id,
+  clientId: clientFixture.id,
+  hairLength: "medium" as const,
+  density: "high" as const,
+  texture: "wavy" as const,
+  porosity: "unknown" as const,
+  conditionNotes: "Осветлённые концы",
+  scalpSensitivityNotes: null,
+  grayPercentage: 15,
+  naturalColor: "уровень 6",
+  currentColor: "уровень 7",
+  colorHistory: "Мелирование шесть месяцев назад",
+  beardLength: null,
+  beardStyle: null,
+  moustacheStyle: null,
+  preferences: "Сохранять длину ниже плеч",
+  version: 3,
+  updatedById: "0f4d5f69-b8ad-4ca3-b3cb-663b22f424f1",
+  createdAt: "2026-07-11T08:00:00Z",
+  updatedAt: "2026-07-15T08:00:00Z",
+};
+
 export async function mockCrmApis(page: Page) {
   await page.route("**/api/v1/admin/pets**", async (route) => {
     const url = new URL(route.request().url());
@@ -85,6 +109,23 @@ export async function mockCrmApis(page: Page) {
     const request = route.request();
     const url = new URL(request.url());
     const method = request.method();
+
+    if (url.pathname.endsWith("/clients/" + clientFixture.id + "/hair-profile")) {
+      if (method === "GET") {
+        await json(route, hairProfileFixture);
+        return;
+      }
+      if (method === "PUT") {
+        const payload = request.postDataJSON();
+        await json(route, {
+          ...hairProfileFixture,
+          ...payload,
+          version: hairProfileFixture.version + 1,
+          updatedAt: "2026-07-16T08:00:00Z",
+        });
+        return;
+      }
+    }
 
     if (method === "GET" && url.pathname.endsWith("/clients/" + clientFixture.id)) {
       await json(route, clientDetailsFixture);

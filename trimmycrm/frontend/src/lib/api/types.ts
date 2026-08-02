@@ -331,3 +331,32 @@ export type ClientAppointmentSummary = {
 export type ClientDetailsView = ClientView & {
   appointmentHistory: ClientAppointmentSummary[];
 };
+
+export type HairLength = "shaved" | "short" | "medium" | "long" | "very_long";
+export type HairDensity = "low" | "medium" | "high";
+export type HairTexture = "straight" | "wavy" | "curly" | "coily";
+export type HairPorosity = "low" | "medium" | "high" | "unknown";
+
+export type ClientHairProfileView = {
+  id: string;
+  tenantId: string;
+  clientId: string;
+  hairLength: HairLength | null;
+  density: HairDensity | null;
+  texture: HairTexture | null;
+  porosity: HairPorosity | null;
+  conditionNotes: string | null;
+  scalpSensitivityNotes: string | null;
+  grayPercentage: number | null;
+  naturalColor: string | null;
+  currentColor: string | null;
+  colorHistory: string | null;
+  beardLength: string | null;
+  beardStyle: string | null;
+  moustacheStyle: string | null;
+  preferences: string | null;
+  version: number;
+  updatedById: string | null;
+  createdAt: string;
+  updatedAt: string;
+};

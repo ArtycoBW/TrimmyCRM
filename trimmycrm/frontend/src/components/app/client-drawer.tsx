@@ -2,9 +2,11 @@
 
 import type { Route } from "next";
 import Link from "next/link";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
-import type { ClientDetailsView, PetView } from "@/lib/api/types";
+import { HairProfileForm } from "@/components/app/hair-profile-form";
+import { apiRequest } from "@/lib/api/client";
+import type { ClientDetailsView, ClientHairProfileView, PetView } from "@/lib/api/types";
 import {
   appointmentStatuses,
   formatMoney,
@@ -17,6 +19,12 @@ import {
   personInitials,
   speciesLabels,
 } from "@/lib/app/crm";
+import { hairCharacteristicLabel } from "@/lib/app/hair-profile";
+
+type HairProfileState =
+  | { status: "loading" }
+  | { status: "error"; message: string }
+  | { status: "ready"; value: ClientHairProfileView | null };
 
 export function ClientDrawer({
   client,
@@ -35,6 +43,9 @@ export function ClientDrawer({
 }) {
   const closeButton = useRef<HTMLButtonElement>(null);
   const status = clientStatuses[client.status] || clientStatuses.crm_only;
+  const [hairProfile, setHairProfile] = useState<HairProfileState>({ status: "loading" });
+  const [hairProfileEditing, setHairProfileEditing] = useState(false);
+  const [hairProfileRequestKey, setHairProfileRequestKey] = useState(0);
 
   useEffect(() => {
     closeButton.current?.focus();
@@ -48,6 +59,25 @@ export function ClientDrawer({
       window.removeEventListener("keydown", onKeyDown);
     };
   }, [onClose]);
+
+  useEffect(() => {
+    let active = true;
+    apiRequest<ClientHairProfileView | null>(`/clients/${client.id}/hair-profile`, {
+      realm: "platform",
+    })
+      .then((value) => {
+        if (active) setHairProfile({ status: "ready", value });
+      })
+      .catch((reason) => {
+        if (active) {
+          setHairProfile({
+            status: "error",
+            message: reason instanceof Error ? reason.message : "Не удалось загрузить профиль",
+          });
+        }
+      });
+    return () => { active = false; };
+  }, [client.id, hairProfileRequestKey]);
 
   return (
     <div className="appointment-dialog">
@@ -76,6 +106,55 @@ export function ClientDrawer({
           <div><dt>Email подтверждён</dt><dd>{client.emailVerified ? "Да" : "Нет"}</dd></div>
           <div><dt>Всего визитов</dt><dd>{client.appointmentHistory.length}</dd></div>
         </dl>
+
+        <section className="client-drawer__section client-hair-profile">
+          <header>
+            <div><p className="crm-kicker">Профиль волос</p></div>
+            {hairProfile.status === "ready" && !hairProfileEditing && (
+              <button type="button" onClick={() => setHairProfileEditing(true)}>
+                {hairProfile.value ? "Изменить" : "+ Добавить"}
+              </button>
+            )}
+          </header>
+          {hairProfile.status === "loading" ? (
+            <p className="client-drawer__empty" role="status">Загружаем технический профиль…</p>
+          ) : hairProfile.status === "error" ? (
+            <div className="client-hair-profile__error">
+              <p>{hairProfile.message}</p>
+              <button type="button" onClick={() => {
+                setHairProfile({ status: "loading" });
+                setHairProfileRequestKey((value) => value + 1);
+              }}>Повторить</button>
+            </div>
+          ) : hairProfileEditing ? (
+            <HairProfileForm
+              clientId={client.id}
+              profile={hairProfile.value}
+              onCancel={() => setHairProfileEditing(false)}
+              onSaved={(value) => {
+                setHairProfile({ status: "ready", value });
+                setHairProfileEditing(false);
+              }}
+            />
+          ) : hairProfile.value ? (
+            <div className="client-hair-profile__summary">
+              <dl>
+                <div><dt>Длина</dt><dd>{hairCharacteristicLabel(hairProfile.value.hairLength)}</dd></div>
+                <div><dt>Густота</dt><dd>{hairCharacteristicLabel(hairProfile.value.density)}</dd></div>
+                <div><dt>Текстура</dt><dd>{hairCharacteristicLabel(hairProfile.value.texture)}</dd></div>
+                <div><dt>Пористость</dt><dd>{hairCharacteristicLabel(hairProfile.value.porosity)}</dd></div>
+                <div><dt>Текущий цвет</dt><dd>{hairProfile.value.currentColor || "Не указан"}</dd></div>
+                <div><dt>Седина</dt><dd>{hairProfile.value.grayPercentage == null ? "Не указана" : `${hairProfile.value.grayPercentage}%`}</dd></div>
+              </dl>
+              {hairProfile.value.conditionNotes && <p><strong>Состояние</strong><span>{hairProfile.value.conditionNotes}</span></p>}
+              {hairProfile.value.colorHistory && <p><strong>История окрашивания</strong><span>{hairProfile.value.colorHistory}</span></p>}
+              {(hairProfile.value.beardLength || hairProfile.value.beardStyle) && <p><strong>Борода</strong><span>{[hairProfile.value.beardLength, hairProfile.value.beardStyle].filter(Boolean).join(" · ")}</span></p>}
+              {hairProfile.value.preferences && <p><strong>Пожелания</strong><span>{hairProfile.value.preferences}</span></p>}
+            </div>
+          ) : (
+            <p className="client-drawer__empty">Добавьте технические параметры, чтобы следующий визит продолжил историю клиента.</p>
+          )}
+        </section>
 
         <section className="client-drawer__section">
           <header>
