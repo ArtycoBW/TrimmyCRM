@@ -53,10 +53,31 @@ from app.schemas import (
     SlotsResponse,
     SlotView,
 )
-from app.services.booking import available_slots, booking_request_hash, create_appointment
+from app.services.booking import (
+    appointment_slot_requirements,
+    available_slots,
+    booking_request_hash,
+    create_appointment,
+    ensure_staff_can_perform,
+    resolve_booking_quote,
+)
+from app.services.booking_pricing import BookingItemSelection
 from app.services.scheduling import parse_timezone
 
 router = APIRouter(tags=["booking"])
+
+
+def _booking_selections(
+    payload: BookingCreate | AdminAppointmentCreate,
+) -> tuple[BookingItemSelection, ...]:
+    return tuple(
+        BookingItemSelection(
+            service_id=item.serviceId,
+            variant_id=item.variantId,
+            addon_ids=tuple(item.addonIds),
+        )
+        for item in payload.normalized_items()
+    )
 
 
 async def _appointment_item_views(
@@ -246,7 +267,12 @@ async def book(
     context: TenantContext = Depends(tenant_context),
     session: AsyncSession = Depends(tenant_db, scope="function"),
 ) -> AppointmentView:
-    request_hash = booking_request_hash(payload.model_dump(mode="json"))
+    selections = _booking_selections(payload)
+    request_payload = payload.model_dump(mode="json")
+    if payload.serviceId is not None:
+        # Keep hashes of the legacy single-service contract stable during rollout.
+        request_payload.pop("items", None)
+    request_hash = booking_request_hash(request_payload)
     idem, cached = await _idempotency_start(
         session,
         tenant_id=context.id,
@@ -263,10 +289,11 @@ async def book(
                 tenant_id=context.id,
                 tenant_user_id=user.id,
                 pet_id=payload.petId,
-                service_id=payload.serviceId,
+                items=selections,
                 staff_id=payload.staffId,
                 start_at=payload.startAt,
                 promotion_code=payload.promotionCode,
+                require_online_booking=True,
             )
     except IntegrityError as exc:
         if idem is not None:
@@ -405,14 +432,28 @@ async def reschedule_appointment(
     local_day = payload.startAt.astimezone(
         parse_timezone(getattr(site, "timezone", "Europe/Moscow"))
     ).date()
+    requirements = await appointment_slot_requirements(
+        session,
+        tenant_id=context.id,
+        appointment_id=row.id,
+    )
+    await ensure_staff_can_perform(
+        session,
+        tenant_id=context.id,
+        staff_id=new_staff,
+        service_ids=requirements.service_ids,
+    )
     _site, _service, _staff, candidate_slots = await available_slots(
         session,
         tenant_id=context.id,
-        service_id=row.service_id,
+        service_id=requirements.service_ids[0],
         staff_id=new_staff,
         day=local_day,
         include_unavailable=True,
         exclude_appointment_id=row.id,
+        duration_min_override=requirements.duration_min,
+        buffer_before_min_override=requirements.buffer_before_min,
+        buffer_after_min_override=requirements.buffer_after_min,
     )
     normalized_start = payload.startAt.astimezone(UTC)
     chosen = next(
@@ -429,6 +470,14 @@ async def reschedule_appointment(
     row.start_at = chosen.starts_at.astimezone(UTC)
     row.end_at = chosen.ends_at.astimezone(UTC)
     row.version += 1
+    await session.execute(
+        update(AppointmentItem)
+        .where(
+            AppointmentItem.tenant_id == context.id,
+            AppointmentItem.appointment_id == row.id,
+        )
+        .values(assigned_staff_id=new_staff)
+    )
     await session.execute(
         update(Notification)
         .where(
@@ -514,6 +563,8 @@ async def admin_create_appointment(
 ) -> AppointmentView:
     if payload.startAt.tzinfo is None:
         raise BadRequestError("startAt должен содержать timezone", code="timezone_required")
+    selections = _booking_selections(payload)
+    service_ids = [item.service_id for item in selections]
     staff_id = payload.staffId
     if staff_id is None:
         site = await session.get(Site, tenant_id)
@@ -524,20 +575,33 @@ async def admin_create_appointment(
         ).date()
         staff_ids = list(
             await session.scalars(
-                select(StaffService.staff_id).where(
+                select(StaffService.staff_id)
+                .where(
                     StaffService.tenant_id == tenant_id,
-                    StaffService.service_id == payload.serviceId,
+                    StaffService.service_id.in_(service_ids),
                 )
+                .group_by(StaffService.staff_id)
+                .having(func.count(StaffService.service_id) == len(service_ids))
             )
         )
         for candidate in staff_ids:
             try:
+                quote = await resolve_booking_quote(
+                    session,
+                    tenant_id=tenant_id,
+                    staff_id=candidate,
+                    items=selections,
+                    require_online_booking=False,
+                )
                 _site, _service, _staff, candidate_slots = await available_slots(
                     session,
                     tenant_id=tenant_id,
-                    service_id=payload.serviceId,
+                    service_id=service_ids[0],
                     staff_id=candidate,
                     day=local_day,
+                    duration_min_override=quote.duration_min,
+                    buffer_before_min_override=quote.buffer_before_min,
+                    buffer_after_min_override=quote.buffer_after_min,
                 )
                 if any(
                     slot.starts_at == payload.startAt and available
@@ -556,7 +620,7 @@ async def admin_create_appointment(
                 tenant_id=tenant_id,
                 tenant_user_id=payload.tenantUserId,
                 pet_id=payload.petId,
-                service_id=payload.serviceId,
+                items=selections,
                 staff_id=staff_id,
                 start_at=payload.startAt,
                 notes=payload.notes,
@@ -635,14 +699,28 @@ async def admin_update_appointment(
         local_day = new_start.astimezone(
             parse_timezone(getattr(site, "timezone", "Europe/Moscow"))
         ).date()
+        requirements = await appointment_slot_requirements(
+            session,
+            tenant_id=tenant_id,
+            appointment_id=row.id,
+        )
+        await ensure_staff_can_perform(
+            session,
+            tenant_id=tenant_id,
+            staff_id=new_staff,
+            service_ids=requirements.service_ids,
+        )
         _site, _service, _staff, candidate_slots = await available_slots(
             session,
             tenant_id=tenant_id,
-            service_id=row.service_id,
+            service_id=requirements.service_ids[0],
             staff_id=new_staff,
             day=local_day,
             include_unavailable=True,
             exclude_appointment_id=row.id,
+            duration_min_override=requirements.duration_min,
+            buffer_before_min_override=requirements.buffer_before_min,
+            buffer_after_min_override=requirements.buffer_after_min,
         )
         normalized_start = new_start.astimezone(UTC)
         chosen = next(
@@ -658,6 +736,14 @@ async def admin_update_appointment(
         row.start_at = chosen.starts_at.astimezone(UTC)
         row.end_at = chosen.ends_at.astimezone(UTC)
         row.staff_id = new_staff
+        await session.execute(
+            update(AppointmentItem)
+            .where(
+                AppointmentItem.tenant_id == tenant_id,
+                AppointmentItem.appointment_id == row.id,
+            )
+            .values(assigned_staff_id=new_staff)
+        )
         await session.execute(
             update(Notification)
             .where(

@@ -52,6 +52,9 @@ packages = ["app"]
 asyncio_mode = "auto"
 testpaths = ["tests"]
 addopts = "-q --strict-markers --disable-warnings"
+markers = [
+  "integration: requires explicitly configured external services",
+]
 
 [tool.ruff]
 target-version = "py312"

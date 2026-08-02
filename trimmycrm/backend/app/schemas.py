@@ -882,17 +882,49 @@ class SlotsResponse(APIModel):
     slots: list[SlotView]
 
 
-class BookingCreate(APIModel):
+class BookingItemInput(APIModel):
     serviceId: UUID
+    variantId: UUID | None = None
+    addonIds: list[UUID] = Field(default_factory=list, max_length=20)
+
+    @field_validator("addonIds")
+    @classmethod
+    def unique_addons(cls, value: list[UUID]) -> list[UUID]:
+        if len(set(value)) != len(value):
+            raise ValueError("Дополнение не должно повторяться в позиции")
+        return value
+
+
+class BookingItemsPayload(APIModel):
+    serviceId: UUID | None = None
+    items: list[BookingItemInput] = Field(default_factory=list, max_length=10)
+
+    @model_validator(mode="after")
+    def exactly_one_booking_format(self) -> BookingItemsPayload:
+        if (self.serviceId is None) == (not self.items):
+            raise ValueError("Передайте serviceId или непустой items, но не оба поля")
+        service_ids = [item.serviceId for item in self.items]
+        if len(set(service_ids)) != len(service_ids):
+            raise ValueError("Одна услуга не должна повторяться в записи")
+        return self
+
+    def normalized_items(self) -> list[BookingItemInput]:
+        if self.items:
+            return self.items
+        if self.serviceId is None:  # pragma: no cover - protected by model validation
+            raise ValueError("Не выбрана услуга")
+        return [BookingItemInput(serviceId=self.serviceId)]
+
+
+class BookingCreate(BookingItemsPayload):
     staffId: UUID
     petId: UUID
     startAt: datetime
     promotionCode: str | None = Field(default=None, max_length=64)
 
 
-class AdminAppointmentCreate(APIModel):
+class AdminAppointmentCreate(BookingItemsPayload):
     tenantUserId: UUID
-    serviceId: UUID
     staffId: UUID | None = None
     petId: UUID
     startAt: datetime

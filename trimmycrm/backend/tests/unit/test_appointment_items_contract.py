@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import os
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from pathlib import Path
 from uuid import UUID
@@ -29,13 +29,16 @@ from app.models import (  # noqa: E402
     AppointmentItemAddon,
     Pet,
     Service,
+    ServiceAddon,
+    ServiceVariant,
     Site,
     Staff,
     StaffService,
 )
-from app.schemas import AppointmentView  # noqa: E402
+from app.schemas import AppointmentView, BookingCreate  # noqa: E402
 from app.services import booking  # noqa: E402
 from app.services.booking_pricing import (  # noqa: E402
+    BookingItemSelection,
     BookingQuoteError,
     CatalogAddonChoice,
     CatalogBookingItem,
@@ -218,9 +221,24 @@ def test_appointment_view_exposes_snapshots_without_recalculation() -> None:
     assert view.items[0].addons[0].name == "Экспресс-уход"
 
 
+class _ScalarRows:
+    def __init__(self, values: list[object]) -> None:
+        self.values = values
+
+    def all(self) -> list[object]:
+        return self.values
+
+
 class _CreateSession:
-    def __init__(self, pet: Pet, capability: StaffService, site: Site) -> None:
-        self.scalar_values = [pet, capability]
+    def __init__(
+        self,
+        pet: Pet,
+        site: Site,
+        *,
+        scalar_batches: list[list[object]],
+    ) -> None:
+        self.scalar_values = [pet]
+        self.scalar_batches = scalar_batches
         self.site = site
         self.added: list[object] = []
 
@@ -229,6 +247,9 @@ class _CreateSession:
 
     async def scalar(self, _statement: object) -> object:
         return self.scalar_values.pop(0)
+
+    async def scalars(self, _statement: object) -> _ScalarRows:
+        return _ScalarRows(self.scalar_batches.pop(0))
 
     async def get(self, _model: object, _identifier: UUID) -> Site:
         return self.site
@@ -274,7 +295,11 @@ async def test_new_legacy_booking_persists_an_item_snapshot(
         custom_price=Decimal("3200.00"),
         custom_duration_min=75,
     )
-    session = _CreateSession(pet, capability, site)
+    session = _CreateSession(
+        pet,
+        site,
+        scalar_batches=[[service], [capability]],
+    )
 
     async def slots(
         *_args: object, **_kwargs: object
@@ -299,4 +324,190 @@ async def test_new_legacy_booking_persists_an_item_snapshot(
     assert item.service_name_snapshot == "Стрижка"
     assert item.unit_price == Decimal("3200.00")
     assert item.duration_min == 75
-    assert item.selected_options == {"source": "legacySingleService"}
+    assert item.selected_options == {"source": "catalogSelection"}
+
+
+def test_booking_payload_accepts_legacy_or_multi_item_format() -> None:
+    start = datetime(2026, 8, 3, 9, tzinfo=UTC)
+    legacy = BookingCreate(
+        serviceId=HAIRCUT_ID,
+        staffId=STAFF_ID,
+        petId=PET_ID,
+        startAt=start,
+    )
+    assert [item.serviceId for item in legacy.normalized_items()] == [HAIRCUT_ID]
+
+    multi = BookingCreate(
+        items=[
+            {"serviceId": HAIRCUT_ID, "variantId": VARIANT_ID, "addonIds": [ADDON_ID]},
+            {"serviceId": COLOR_ID},
+        ],
+        staffId=STAFF_ID,
+        petId=PET_ID,
+        startAt=start,
+    )
+    assert [item.serviceId for item in multi.normalized_items()] == [HAIRCUT_ID, COLOR_ID]
+
+    with pytest.raises(ValueError, match="serviceId или непустой items"):
+        BookingCreate(
+            serviceId=HAIRCUT_ID,
+            items=[{"serviceId": COLOR_ID}],
+            staffId=STAFF_ID,
+            petId=PET_ID,
+            startAt=start,
+        )
+
+
+@pytest.mark.asyncio
+async def test_multi_service_booking_resolves_catalog_and_persists_snapshots(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    start = datetime(2026, 8, 3, 9, tzinfo=UTC)
+    end = start + timedelta(minutes=195)
+    site = Site(id=TENANT_ID, name="CUT/01", slug="cut-01", timezone="Europe/Moscow")
+    haircut = Service(
+        id=HAIRCUT_ID,
+        tenant_id=TENANT_ID,
+        name="Стрижка",
+        price=Decimal("3000.00"),
+        duration_min=60,
+        buffer_before_min=5,
+        buffer_after_min=0,
+        currency="RUB",
+        is_active=True,
+    )
+    color = Service(
+        id=COLOR_ID,
+        tenant_id=TENANT_ID,
+        name="Тонирование",
+        price=Decimal("4500.00"),
+        duration_min=90,
+        buffer_before_min=0,
+        buffer_after_min=20,
+        currency="RUB",
+        is_active=True,
+    )
+    capabilities = [
+        StaffService(
+            tenant_id=TENANT_ID,
+            staff_id=STAFF_ID,
+            service_id=HAIRCUT_ID,
+            custom_price=Decimal("3000.00"),
+            custom_duration_min=60,
+        ),
+        StaffService(
+            tenant_id=TENANT_ID,
+            staff_id=STAFF_ID,
+            service_id=COLOR_ID,
+        ),
+    ]
+    variant = ServiceVariant(
+        id=VARIANT_ID,
+        tenant_id=TENANT_ID,
+        service_id=HAIRCUT_ID,
+        label="Длинные волосы",
+        price_delta=Decimal("1000.00"),
+        duration_delta_min=30,
+        is_active=True,
+    )
+    addon = ServiceAddon(
+        id=ADDON_ID,
+        tenant_id=TENANT_ID,
+        service_id=HAIRCUT_ID,
+        name="Экспресс-уход",
+        price_delta=Decimal("750.50"),
+        duration_delta_min=15,
+        is_active=True,
+    )
+    pet = Pet(id=PET_ID, tenant_id=TENANT_ID, owner_id=CLIENT_ID, name="Legacy")
+    session = _CreateSession(
+        pet,
+        site,
+        scalar_batches=[[haircut, color], capabilities, [variant], [addon]],
+    )
+    slot_arguments: dict[str, object] = {}
+
+    async def slots(
+        *_args: object, **kwargs: object
+    ) -> tuple[Site, Service, Staff, list[tuple[TimeRange, bool]]]:
+        slot_arguments.update(kwargs)
+        staff = Staff(id=STAFF_ID, tenant_id=TENANT_ID, name="Анна", schedule={}, is_active=True)
+        return site, haircut, staff, [(TimeRange(start, end), True)]
+
+    monkeypatch.setattr(booking, "available_slots", slots)
+
+    row = await booking.create_appointment(
+        session,  # type: ignore[arg-type]
+        tenant_id=TENANT_ID,
+        tenant_user_id=CLIENT_ID,
+        pet_id=PET_ID,
+        items=(
+            BookingItemSelection(
+                service_id=HAIRCUT_ID,
+                variant_id=VARIANT_ID,
+                addon_ids=(ADDON_ID,),
+            ),
+            BookingItemSelection(service_id=COLOR_ID),
+        ),
+        staff_id=STAFF_ID,
+        start_at=start,
+    )
+
+    item_rows = [value for value in session.added if isinstance(value, AppointmentItem)]
+    addon_rows = [value for value in session.added if isinstance(value, AppointmentItemAddon)]
+    assert row.service_id == HAIRCUT_ID
+    assert row.price == Decimal("9250.50")
+    assert row.end_at == end
+    assert slot_arguments["duration_min_override"] == 195
+    assert slot_arguments["buffer_before_min_override"] == 5
+    assert slot_arguments["buffer_after_min_override"] == 20
+    assert [item.service_name_snapshot for item in item_rows] == ["Стрижка", "Тонирование"]
+    assert item_rows[0].variant_label_snapshot == "Длинные волосы"
+    assert item_rows[0].unit_price == Decimal("4750.50")
+    assert addon_rows[0].name_snapshot == "Экспресс-уход"
+    assert addon_rows[0].appointment_item_id == item_rows[0].id
+
+
+@pytest.mark.asyncio
+async def test_booking_rejects_variant_from_another_service() -> None:
+    haircut = Service(
+        id=HAIRCUT_ID,
+        tenant_id=TENANT_ID,
+        name="Стрижка",
+        price=Decimal("3000.00"),
+        duration_min=60,
+        buffer_before_min=0,
+        buffer_after_min=0,
+        currency="RUB",
+        is_active=True,
+    )
+    capability = StaffService(
+        tenant_id=TENANT_ID,
+        staff_id=STAFF_ID,
+        service_id=HAIRCUT_ID,
+    )
+    wrong_variant = ServiceVariant(
+        id=VARIANT_ID,
+        tenant_id=TENANT_ID,
+        service_id=COLOR_ID,
+        label="Чужой вариант",
+        price_delta=Decimal("100.00"),
+        duration_delta_min=5,
+        is_active=True,
+    )
+    session = _CreateSession(
+        Pet(id=PET_ID, tenant_id=TENANT_ID, owner_id=CLIENT_ID, name="Legacy"),
+        Site(id=TENANT_ID, name="CUT/01", slug="cut-01"),
+        scalar_batches=[[haircut], [capability], [wrong_variant]],
+    )
+
+    with pytest.raises(Exception) as captured:
+        await booking.resolve_booking_quote(
+            session,  # type: ignore[arg-type]
+            tenant_id=TENANT_ID,
+            staff_id=STAFF_ID,
+            items=(BookingItemSelection(service_id=HAIRCUT_ID, variant_id=VARIANT_ID),),
+            require_online_booking=False,
+        )
+
+    assert getattr(captured.value, "code", None) == "invalid_service_variant"

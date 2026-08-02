@@ -12,6 +12,13 @@ class BookingQuoteError(ValueError):
 
 
 @dataclass(frozen=True, slots=True)
+class BookingItemSelection:
+    service_id: UUID
+    variant_id: UUID | None = None
+    addon_ids: tuple[UUID, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
 class CatalogAddonChoice:
     id: UUID
     name: str
