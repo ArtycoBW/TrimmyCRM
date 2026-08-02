@@ -917,6 +917,33 @@ class CancelRequest(APIModel):
     reason: str | None = Field(default=None, max_length=500)
 
 
+class AppointmentItemAddonView(APIModel):
+    id: UUID
+    addonId: UUID
+    name: str
+    price: Decimal
+    durationMin: int
+
+
+class AppointmentItemView(APIModel):
+    id: UUID
+    serviceId: UUID
+    variantId: UUID | None = None
+    assignedStaffId: UUID | None = None
+    serviceName: str
+    variantLabel: str | None = None
+    selectedOptions: dict[str, Any] = Field(default_factory=dict)
+    unitPrice: Decimal
+    finalPrice: Decimal | None = None
+    durationMin: int
+    bufferBeforeMin: int
+    bufferAfterMin: int
+    currency: Literal["RUB"]
+    sortOrder: int
+    adjustmentReason: str | None = None
+    addons: list[AppointmentItemAddonView] = Field(default_factory=list)
+
+
 class AppointmentView(APIModel):
     id: UUID
     tenantId: UUID
@@ -936,6 +963,7 @@ class AppointmentView(APIModel):
     petName: str | None = None
     serviceName: str | None = None
     staffName: str | None = None
+    items: list[AppointmentItemView] = Field(default_factory=list)
 
 
 class ReviewCreate(APIModel):

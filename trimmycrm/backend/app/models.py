@@ -606,6 +606,9 @@ class ServiceVariant(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     __table_args__ = (
         UniqueConstraint("tenant_id", "id", name="uq_service_variants_tenant_id_id"),
         UniqueConstraint(
+            "tenant_id", "service_id", "id", name="uq_service_variants_tenant_service_id"
+        ),
+        UniqueConstraint(
             "tenant_id", "service_id", "label", name="uq_service_variants_service_label"
         ),
         ForeignKeyConstraint(
@@ -641,6 +644,9 @@ class ServiceAddon(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     __tablename__ = "service_addons"
     __table_args__ = (
         UniqueConstraint("tenant_id", "id", name="uq_service_addons_tenant_id_id"),
+        UniqueConstraint(
+            "tenant_id", "service_id", "id", name="uq_service_addons_tenant_service_id"
+        ),
         UniqueConstraint("tenant_id", "service_id", "name", name="uq_service_addons_service_name"),
         ForeignKeyConstraint(
             ["tenant_id", "service_id"],
@@ -1081,6 +1087,131 @@ class Appointment(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     canceled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     cancellation_reason: Mapped[str | None] = mapped_column(Text)
     version: Mapped[int] = mapped_column(Integer, nullable=False, server_default=sql_text("1"))
+
+
+class AppointmentItem(UUIDPrimaryKeyMixin, Base):
+    __tablename__ = "appointment_items"
+    __table_args__ = (
+        UniqueConstraint("tenant_id", "id", name="uq_appointment_items_tenant_id_id"),
+        UniqueConstraint(
+            "tenant_id",
+            "service_id",
+            "id",
+            name="uq_appointment_items_tenant_service_id",
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "appointment_id"],
+            ["appointments.tenant_id", "appointments.id"],
+            ondelete="CASCADE",
+            name="fk_appointment_items_tenant_appointment",
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "service_id"],
+            ["services.tenant_id", "services.id"],
+            ondelete="RESTRICT",
+            name="fk_appointment_items_tenant_service",
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "service_id", "variant_id"],
+            [
+                "service_variants.tenant_id",
+                "service_variants.service_id",
+                "service_variants.id",
+            ],
+            ondelete="RESTRICT",
+            name="fk_appointment_items_tenant_service_variant",
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "assigned_staff_id"],
+            ["staff.tenant_id", "staff.id"],
+            ondelete="RESTRICT",
+            name="fk_appointment_items_tenant_staff",
+        ),
+        CheckConstraint("unit_price >= 0", name="nonnegative_unit_price"),
+        CheckConstraint("final_price IS NULL OR final_price >= 0", name="nonnegative_final_price"),
+        CheckConstraint("duration_min > 0", name="positive_duration"),
+        CheckConstraint("buffer_before_min >= 0", name="nonnegative_buffer_before"),
+        CheckConstraint("buffer_after_min >= 0", name="nonnegative_buffer_after"),
+        CheckConstraint("sort_order >= 0", name="nonnegative_sort_order"),
+        CheckConstraint("char_length(currency) = 3", name="currency_code_length"),
+        Index("ix_appointment_items_tenant_appointment", "tenant_id", "appointment_id"),
+        Index("ix_appointment_items_tenant_service", "tenant_id", "service_id"),
+    )
+
+    tenant_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("sites.id", ondelete="CASCADE"), nullable=False
+    )
+    appointment_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    service_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    variant_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
+    assigned_staff_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
+    service_name_snapshot: Mapped[str] = mapped_column(Text, nullable=False)
+    variant_label_snapshot: Mapped[str | None] = mapped_column(Text)
+    selected_options: Mapped[dict[str, Any]] = mapped_column(
+        JSONB, nullable=False, server_default=sql_text("'{}'::jsonb")
+    )
+    unit_price: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
+    duration_min: Mapped[int] = mapped_column(Integer, nullable=False)
+    buffer_before_min: Mapped[int] = mapped_column(
+        Integer, nullable=False, server_default=sql_text("0")
+    )
+    buffer_after_min: Mapped[int] = mapped_column(
+        Integer, nullable=False, server_default=sql_text("0")
+    )
+    currency: Mapped[str] = mapped_column(Text, nullable=False, server_default=sql_text("'RUB'"))
+    sort_order: Mapped[int] = mapped_column(Integer, nullable=False, server_default=sql_text("0"))
+    final_price: Mapped[Decimal | None] = mapped_column(Numeric(12, 2))
+    adjustment_reason: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+
+class AppointmentItemAddon(UUIDPrimaryKeyMixin, Base):
+    __tablename__ = "appointment_item_addons"
+    __table_args__ = (
+        UniqueConstraint("tenant_id", "id", name="uq_appointment_item_addons_tenant_id_id"),
+        UniqueConstraint(
+            "tenant_id",
+            "appointment_item_id",
+            "addon_id",
+            name="uq_appointment_item_addons_item_addon",
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "service_id", "appointment_item_id"],
+            [
+                "appointment_items.tenant_id",
+                "appointment_items.service_id",
+                "appointment_items.id",
+            ],
+            ondelete="CASCADE",
+            name="fk_appointment_item_addons_tenant_item",
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "service_id", "addon_id"],
+            ["service_addons.tenant_id", "service_addons.service_id", "service_addons.id"],
+            ondelete="RESTRICT",
+            name="fk_appointment_item_addons_tenant_service_addon",
+        ),
+        CheckConstraint("price_snapshot >= 0", name="nonnegative_price_snapshot"),
+        CheckConstraint("duration_min_snapshot >= 0", name="nonnegative_duration_snapshot"),
+        CheckConstraint("sort_order >= 0", name="nonnegative_sort_order"),
+        Index("ix_appointment_item_addons_tenant_item", "tenant_id", "appointment_item_id"),
+    )
+
+    tenant_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("sites.id", ondelete="CASCADE"), nullable=False
+    )
+    appointment_item_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    service_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    addon_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    name_snapshot: Mapped[str] = mapped_column(Text, nullable=False)
+    price_snapshot: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
+    duration_min_snapshot: Mapped[int] = mapped_column(Integer, nullable=False)
+    sort_order: Mapped[int] = mapped_column(Integer, nullable=False, server_default=sql_text("0"))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
 
 
 class Review(UUIDPrimaryKeyMixin, TimestampMixin, Base):
