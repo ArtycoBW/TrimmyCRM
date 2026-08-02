@@ -2846,6 +2846,9 @@ h2 span {
 .salon-site__brand strong { overflow: hidden; font-family: var(--display); font-size: 16px; letter-spacing: -0.04em; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
 .salon-site__header nav { display: flex; align-items: center; gap: 24px; font-size: 13px; font-weight: 750; }
 .salon-site__header nav a:hover { text-decoration: underline; text-underline-offset: 4px; }
+.salon-site__header-actions { display: flex; align-items: center; gap: 8px; }
+.salon-site__header-tryon { display: inline-flex; min-height: 46px; padding: 0 16px; align-items: center; justify-content: center; border: 1.5px solid var(--salon-ink); border-radius: 999px; background: var(--salon-paper); color: var(--salon-ink); font-size: 13px; font-weight: 850; }
+.salon-site__header-tryon:hover { background: var(--salon-accent); }
 .salon-site__header-cta,
 .salon-site__button { display: inline-flex; min-height: 48px; width: fit-content; align-items: center; justify-content: center; padding: 0 20px; border: 1.5px solid var(--salon-ink); border-radius: 999px; background: var(--salon-accent); color: var(--salon-ink); font-weight: 850; box-shadow: 3px 3px 0 var(--salon-ink); }
 .salon-site__header-cta { min-height: 46px; font-size: 14px; }
@@ -2975,7 +2978,9 @@ h2 span {
   .salon-site__header { top: 8px; min-height: 58px; margin-top: 8px; padding: 7px; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
   .salon-site__header nav { display: none; }
   .salon-site__brand strong { font-size: 14px; }
-  .salon-site__header-cta { min-height: 40px; padding-inline: 13px; }
+  .salon-site__header-actions { gap: 5px; }
+  .salon-site__header-tryon,
+  .salon-site__header-cta { min-height: 40px; padding-inline: 10px; font-size: 11px; }
   .salon-hero { min-height: 610px; padding: 105px 3vw 75px; }
   .salon-hero--with-image { display: flex; padding-inline: 0; text-align: left; }
   .salon-hero--with-image .salon-hero__copy { align-items: flex-start; }

@@ -706,7 +706,7 @@ export function SiteWorkspace() {
                       galleryItems(selected).length ? <ul className="visual-builder__gallery-list">{galleryItems(selected).map((item, index) => <li key={item.id}>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={previewMediaUrl(item.src)} alt="" />
-                        <Input aria-label={`Подпись к фотографии ${index + 1}`} placeholder="Например: Мия после экспресс-линьки" value={item.caption} onChange={(event) => updateGalleryItem(index, { caption: event.target.value })} />
+                        <Input aria-label={`Подпись к фотографии ${index + 1}`} placeholder="Например: текстурная стрижка, вид сзади" value={item.caption} onChange={(event) => updateGalleryItem(index, { caption: event.target.value })} />
                         <button type="button" aria-label={`Убрать фотографию ${index + 1}`} onClick={() => removeGalleryItem(index)}><X aria-hidden="true" /></button>
                       </li>)}</ul> : <p className="visual-builder__media-empty">Добавьте фотографии и подписи — они сразу появятся в макете.</p>
                     ) : selected.type === "hero" ? (

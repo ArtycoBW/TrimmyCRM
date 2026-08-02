@@ -54,7 +54,7 @@ test("site builder saves an edited draft using the current API contract", async 
   await page.route("**/api/v1/sites/mine/blocks", async (route) => {
     if (route.request().method() === "GET") {
       await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify([
-        { id: "block-hero", type: "hero", position: 0, config: { title: "Лапки и ножницы" }, enabled: true },
+        { id: "block-hero", type: "hero", position: 0, config: { title: "Форма и цвет" }, enabled: true },
       ]) });
       return;
     }
@@ -77,7 +77,7 @@ test("site builder saves an edited draft using the current API contract", async 
     contentType: "application/json",
     body: JSON.stringify({
       previewToken: "preview-token-abcdefghijklmnopqrstuvwxyz",
-      previewUrl: "http://localhost:3000/preview?token=preview-token-abcdefghijklmnopqrstuvwxyz",
+      previewUrl: `${new URL(process.env.E2E_BASE_URL || `http://localhost:${process.env.E2E_PORT || "3000"}`).origin}/preview?token=preview-token-abcdefghijklmnopqrstuvwxyz`,
       expiresAt: "2026-07-17T23:00:00Z",
     }),
   }));
@@ -107,7 +107,7 @@ test("site builder reorders blocks with drag and drop", async ({ page }, testInf
   let savedTypes: string[] = [];
   await page.route("**/api/v1/sites/mine/blocks", async (route) => {
     const initial = [
-      { id: "block-hero", type: "hero", position: 0, config: { title: "Лапки и ножницы" }, enabled: true },
+      { id: "block-hero", type: "hero", position: 0, config: { title: "Форма и цвет" }, enabled: true },
       { id: "block-services", type: "services", position: 1, config: { title: "Услуги" }, enabled: true },
     ];
     if (route.request().method() === "GET") {
@@ -157,7 +157,7 @@ test("site builder opens a full-size canvas and supports Windows keyboard shortc
     status: 200,
     contentType: "application/json",
     body: JSON.stringify([
-      { id: "block-hero", type: "hero", position: 0, config: { title: "Лапки и ножницы" }, enabled: true },
+      { id: "block-hero", type: "hero", position: 0, config: { title: "Форма и цвет" }, enabled: true },
       { id: "block-services", type: "services", position: 1, config: { title: "Услуги и цены" }, enabled: true },
     ]),
   }));
@@ -193,7 +193,7 @@ test("heading font selector opens above the full-screen builder", async ({ page 
     status: 200,
     contentType: "application/json",
     body: JSON.stringify([
-      { id: "block-hero", type: "hero", position: 0, config: { title: "Лапки и ножницы" }, enabled: true },
+      { id: "block-hero", type: "hero", position: 0, config: { title: "Форма и цвет" }, enabled: true },
     ]),
   }));
   await page.route("**/api/v1/sites/mine/block-catalog", (route) => route.fulfill({
@@ -282,13 +282,13 @@ test("site builder edits FAQ content directly beside the live preview", async ({
   const repeat = page.locator(".visual-builder__repeat");
   await repeat.getByRole("button", { name: "Добавить" }).click();
   const item = repeat.locator("article").first();
-  await item.getByLabel("Вопрос").fill("Можно ли привести кошку?");
-  await item.getByLabel("Ответ").fill("Да, мы работаем и с кошками.");
-  await expect(page.locator(".visual-builder__preview")).toContainText("Можно ли привести кошку?");
+  await item.getByLabel("Вопрос").fill("Можно ли обсудить цвет до записи?");
+  await item.getByLabel("Ответ").fill("Да, добавьте консультацию к выбранной услуге.");
+  await expect(page.locator(".visual-builder__preview")).toContainText("Можно ли обсудить цвет до записи?");
   await page.getByRole("button", { name: "Сохранить", exact: true }).click();
   await expect(page.getByText("Черновик сохранён")).toBeVisible();
 
-  expect(savedItems).toEqual([{ question: "Можно ли привести кошку?", answer: "Да, мы работаем и с кошками." }]);
+  expect(savedItems).toEqual([{ question: "Можно ли обсудить цвет до записи?", answer: "Да, добавьте консультацию к выбранной услуге." }]);
 });
 
 test("analytics and settings use the production API payloads", async ({ page }, testInfo) => {
@@ -416,7 +416,7 @@ test("new owner workspaces fit the mobile viewport", async ({ page }, testInfo) 
   await prepareOwner(page);
   await page.route("**/api/v1/sites/mine/blocks", (route) => route.fulfill({
     status: 200, contentType: "application/json", body: JSON.stringify([
-      { id: "block-hero", type: "hero", position: 0, config: { title: "Лапки и ножницы" }, enabled: true },
+      { id: "block-hero", type: "hero", position: 0, config: { title: "Форма и цвет" }, enabled: true },
     ]),
   }));
   await page.route("**/api/v1/sites/mine/block-catalog", (route) => route.fulfill({

@@ -77,7 +77,7 @@ export function AccountEntry({ realm }: AccountEntryProps) {
       </header>
       <section className="account-entry__welcome">
         <p className="eyebrow">Авторизация пройдена</p>
-        <h1>{realm === "platform" ? "Добро пожаловать в TrimmyCRM" : "Ваши хвосты — здесь"}</h1>
+        <h1>{realm === "platform" ? "Добро пожаловать в TrimmyCRM" : "Ваш салон — здесь"}</h1>
         <p>{user.email}</p>
         {subscription && (
           <span className="account-entry__plan">Тариф: {subscription.plan.name} · {subscription.status}</span>

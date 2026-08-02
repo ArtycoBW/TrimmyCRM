@@ -1,6 +1,7 @@
 import { expect, test, type Page, type Route } from "@playwright/test";
 
-const tenantOrigin = "http://forma.trimmycrm.localhost:3000";
+const testBaseUrl = new URL(process.env.E2E_BASE_URL || `http://localhost:${process.env.E2E_PORT || "3000"}`);
+const tenantOrigin = `${testBaseUrl.protocol}//forma.trimmycrm.localhost${testBaseUrl.port ? `:${testBaseUrl.port}` : ""}`;
 const serviceId = "063b61c0-c8fd-4ad5-ab6c-d74873f856a5";
 const staffId = "e43f7318-1438-48fe-a7e5-9a14c87ee233";
 const tenantId = "19c2e868-6a3d-4ee3-9a9e-f5cc61a843f4";
@@ -72,7 +73,7 @@ async function mockPublicSite(page: Page) {
   await page.route("**/api/v1/public/reviews", (route) => json(route, [{
     id: "28b7526f-004a-4e2f-97ef-b73256cda9ee",
     rating: 5,
-    text: "Мия спокойна, а стрижка получилась отличной.",
+    text: "Анна довольна, а стрижка получилась отличной.",
     authorName: "Клиент",
     createdAt: "2026-07-17T12:00:00Z",
   }]));
@@ -90,7 +91,7 @@ test("tenant root and preview render salon data instead of the platform landing"
   await expect(page.getByText("Комплексный уход")).toBeVisible();
   await expect(page.getByText("Петровка, 12").first()).toBeVisible();
   await expect(page.getByText("Текстурная стрижка")).toBeVisible();
-  await expect(page.getByText("Мия спокойна, а стрижка получилась отличной.")).toBeVisible();
+  await expect(page.getByText("Анна довольна, а стрижка получилась отличной.")).toBeVisible();
   await expect(page.getByText("Онлайн-запись на сайте салона")).toBeVisible();
   await expect(page.getByText("TrimmyCRM")).toHaveCount(0);
   expect(await page.evaluate(() => getComputedStyle(document.body).cursor)).toBe("auto");
@@ -145,7 +146,7 @@ test("tenant login and client portal use the salon identity and Russian appointm
       version: 1,
       createdAt: "2026-07-17T12:00:00Z",
       clientName: "Анна Петрова",
-      serviceName: "Стрижка когтей и гигиена",
+      serviceName: "Стрижка и укладка",
       staffName: "Алексей Воронов",
     }],
     total: 1,

@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "templates": [
+    {
+      "id": "women-blunt-bob-01",
+      "label": "Графичный боб",
+      "audience": ["women", "all"],
+      "asset": "/hairstyles/women/blunt-bob-01.png",
+      "preview": "/hairstyles/women/blunt-bob-01.png",
+      "anchor": { "x": 0.5, "y": 0.38, "width": 0.64 },
+      "author": "TrimmyCRM prototype team",
+      "rightsBasis": "original-ai-assisted-prototype",
+      "rightsDocument": "PROTOTYPE-PENDING-LEGAL-2026-001",
+      "sha256": "74379ae37c51db9275fba5cafa776239764735a8967cfc46acb51e0bf676b419",
+      "productionApproved": false
+    },
+    {
+      "id": "barber-textured-crop-01",
+      "label": "Текстурный кроп",
+      "audience": ["men", "all"],
+      "asset": "/hairstyles/barber/textured-crop-01.png",
+      "preview": "/hairstyles/barber/textured-crop-01.png",
+      "anchor": { "x": 0.5, "y": 0.25, "width": 0.6 },
+      "author": "TrimmyCRM prototype team",
+      "rightsBasis": "original-ai-assisted-prototype",
+      "rightsDocument": "PROTOTYPE-PENDING-LEGAL-2026-002",
+      "sha256": "0189d35375a39e6f7a6d31d02b8315ee24509fd559b763766090e7d4e9920914",
+      "productionApproved": false
+    }
+  ]
+}

@@ -1,7 +1,9 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const baseURL = process.env.E2E_BASE_URL || "http://localhost:3000";
+const e2ePort = process.env.E2E_PORT || "3000";
+const baseURL = process.env.E2E_BASE_URL || `http://localhost:${e2ePort}`;
 const usesExternalTarget = Boolean(process.env.E2E_BASE_URL);
+const serverScript = process.env.E2E_SERVER_MODE === "production" ? "start" : "dev";
 
 export default defineConfig({
   testDir: "./tests",
@@ -32,9 +34,10 @@ export default defineConfig({
     },
   ],
   webServer: usesExternalTarget ? undefined : {
-    command: "npm run dev -- --port 3000",
-    url: "http://localhost:3000",
+    command: `npm run ${serverScript} -- --port ${e2ePort}`,
+    url: baseURL,
     reuseExistingServer: true,
     timeout: 120_000,
+    env: { ...process.env, LOCAL_TRYON_ENABLED: process.env.LOCAL_TRYON_ENABLED || "false" },
   },
 });

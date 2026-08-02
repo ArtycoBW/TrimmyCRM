@@ -23,6 +23,7 @@ type SalonSiteCanvasProps = {
   editor?: boolean;
   includeDisabled?: boolean;
   renderBlock?: (block: SiteBlockView, content: ReactNode) => ReactNode;
+  tryOnEnabled?: boolean;
 };
 
 type GalleryItem = { id: string; src: string; caption: string };
@@ -400,7 +401,7 @@ function SiteBlock({
   );
 }
 
-export function SalonSiteCanvas({ snapshot, services = [], staff = [], reviews = [], embedded = false, editor = false, includeDisabled = false, renderBlock }: SalonSiteCanvasProps) {
+export function SalonSiteCanvas({ snapshot, services = [], staff = [], reviews = [], embedded = false, editor = false, includeDisabled = false, renderBlock, tryOnEnabled = false }: SalonSiteCanvasProps) {
   const blocks = useMemo(
     () => [...snapshot.blocks].filter((block) => includeDisabled || block.enabled).sort((left, right) => left.position - right.position),
     [includeDisabled, snapshot.blocks],
@@ -420,7 +421,11 @@ export function SalonSiteCanvas({ snapshot, services = [], staff = [], reviews =
           {navigation.map((block) => <a href={`#${sectionId(block.type)}`} key={block.id}>{sectionLabels[block.type]}</a>)}
           <Link href="/client">Мой кабинет</Link>
         </nav>
-        <Link className="salon-site__header-cta" href={bookingHref()}>Записаться</Link>
+        <div className="salon-site__header-actions">
+          {/* Full navigation is intentional: the dedicated route must receive its own strict CSP. */}
+          {tryOnEnabled && <a className="salon-site__header-tryon" href="/try-on">Примерка</a>}
+          <Link className="salon-site__header-cta" href={bookingHref()}>Записаться</Link>
+        </div>
       </header>
       <div className="salon-site__ticker" aria-hidden="true"><div><span>{tickerFocus}</span><i>✦</i><span>Онлайн-запись</span><i>✦</i><span>Портфолио мастеров</span><i>✦</i><span>{snapshot.city || "Рядом с вами"}</span><i>✦</i></div></div>
       <main id="top">
@@ -437,7 +442,7 @@ export function SalonSiteCanvas({ snapshot, services = [], staff = [], reviews =
   );
 }
 
-export function PublicSalonSite({ previewToken }: { previewToken?: string }) {
+export function PublicSalonSite({ previewToken, tryOnEnabled = false }: { previewToken?: string; tryOnEnabled?: boolean }) {
   const [snapshot, setSnapshot] = useState<PublicSiteSnapshot | null>(null);
   const [services, setServices] = useState<PublicServiceView[]>([]);
   const [staff, setStaff] = useState<PublicStaffView[]>([]);
@@ -468,5 +473,5 @@ export function PublicSalonSite({ previewToken }: { previewToken?: string }) {
 
   if (error) return <main className="salon-site-state"><span>404</span><h1>Сайт пока недоступен</h1><p>{error}</p></main>;
   if (!snapshot) return <main className="salon-site-state" aria-busy="true"><i /><p>Открываем сайт салона…</p></main>;
-  return <SalonSiteCanvas snapshot={snapshot} services={services} staff={staff} reviews={reviews} />;
+  return <SalonSiteCanvas snapshot={snapshot} services={services} staff={staff} reviews={reviews} tryOnEnabled={tryOnEnabled} />;
 }

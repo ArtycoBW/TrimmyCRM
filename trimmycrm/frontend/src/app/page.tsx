@@ -35,7 +35,9 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function HomePage() {
   const requestHeaders = await headers();
   const host = requestHost(requestHeaders.get("x-forwarded-host") || requestHeaders.get("host"));
-  if (realmForHostname(requestHostname(host)) === "tenant") return <PublicSalonSite />;
+  if (realmForHostname(requestHostname(host)) === "tenant") {
+    return <PublicSalonSite tryOnEnabled={process.env.LOCAL_TRYON_ENABLED === "true"} />;
+  }
   const organization = {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",

@@ -76,11 +76,11 @@ def test_tenant_auth_email_uses_salon_display_name() -> None:
         "client@example.com",
         "raw-token",
         "lapki.trimmycrm.ru",
-        "Лапки и ножницы",
+        "Форма",
     )
 
-    assert message.from_name == "Лапки и ножницы"
-    assert message.subject == "Подтвердите email в Лапки и ножницы"
+    assert message.from_name == "Форма"
+    assert message.subject == "Подтвердите email в Форма"
 
 
 @pytest.mark.parametrize(

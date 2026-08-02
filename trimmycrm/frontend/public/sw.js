@@ -1,4 +1,4 @@
-const CACHE = "trimmycrm-shell-v2";
+const CACHE = "trimmycrm-shell-v3";
 const OFFLINE = "/offline.html";
 
 self.addEventListener("install", (event) => {
@@ -15,6 +15,7 @@ self.addEventListener("fetch", (event) => {
   const { request } = event;
   const url = new URL(request.url);
   if (request.method !== "GET" || url.origin !== self.location.origin || url.pathname.startsWith("/api/")) return;
+  if (url.pathname === "/try-on" || url.pathname.startsWith("/hairstyles/")) return;
   if (request.mode === "navigate") {
     event.respondWith(fetch(request).catch(() => caches.match(OFFLINE)));
     return;

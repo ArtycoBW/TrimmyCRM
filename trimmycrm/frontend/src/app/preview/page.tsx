@@ -13,5 +13,5 @@ export default async function PreviewPage({
   searchParams: Promise<{ token?: string }>;
 }) {
   const { token } = await searchParams;
-  return <PublicSalonSite previewToken={token} />;
+  return <PublicSalonSite previewToken={token} tryOnEnabled={process.env.LOCAL_TRYON_ENABLED === "true"} />;
 }

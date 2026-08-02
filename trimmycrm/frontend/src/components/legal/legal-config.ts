@@ -7,5 +7,5 @@ export const legalConfig = {
     "Администратор информационного ресурса TrimmyCRM",
   operatorAddress:
     process.env.NEXT_PUBLIC_LEGAL_OPERATOR_ADDRESS?.trim() || "Российская Федерация",
-  effectiveDate: "29 июля 2026 года",
+  effectiveDate: "2 августа 2026 года",
 };

@@ -303,7 +303,7 @@ export function LandingPage() {
         <div className="page-container site-footer__bottom">
           <span>© 2026 TrimmyCRM</span>
           <div><a href="/privacy">Политика обработки данных</a><a href="/terms">Условия сервиса</a></div>
-          <span>Сделано с заботой о хвостах</span>
+          <span>Сделано с вниманием к деталям</span>
         </div>
       </footer>
       <LandingChat />
