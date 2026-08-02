@@ -39,6 +39,10 @@ from app.models import (
     ScheduleException,
     ScheduleExceptionType,
     Service,
+    ServiceAddon,
+    ServiceCategory,
+    ServicePriceType,
+    ServiceVariant,
     Staff,
     StaffService,
     TenantUser,
@@ -63,8 +67,17 @@ from app.schemas import (
     ScheduleExceptionCreate,
     ScheduleExceptionUpdate,
     ScheduleExceptionView,
+    ServiceAddonCreate,
+    ServiceAddonUpdate,
+    ServiceAddonView,
+    ServiceCategoryCreate,
+    ServiceCategoryUpdate,
+    ServiceCategoryView,
     ServiceCreate,
     ServiceUpdate,
+    ServiceVariantCreate,
+    ServiceVariantUpdate,
+    ServiceVariantView,
     ServiceView,
     StaffCreate,
     StaffUpdate,
@@ -97,6 +110,217 @@ async def _service_or_404(session: AsyncSession, tenant_id: UUID, service_id: UU
     return value
 
 
+async def _category_or_404(
+    session: AsyncSession, tenant_id: UUID, category_id: UUID
+) -> ServiceCategory:
+    value = await session.scalar(
+        select(ServiceCategory).where(
+            ServiceCategory.tenant_id == tenant_id,
+            ServiceCategory.id == category_id,
+        )
+    )
+    if value is None:
+        raise NotFoundError("Категория услуг не найдена")
+    return value
+
+
+def _service_payload_mapping() -> dict[str, str]:
+    return {
+        "categoryId": "category_id",
+        "maxPrice": "max_price",
+        "priceType": "price_type",
+        "durationMin": "duration_min",
+        "bufferBeforeMin": "buffer_before_min",
+        "bufferAfterMin": "buffer_after_min",
+        "requiresConsultation": "requires_consultation",
+        "requiresPatchTest": "requires_patch_test",
+        "allowOnlineBooking": "allow_online_booking",
+        "variantSelectionRequired": "variant_selection_required",
+        "preparationText": "preparation_text",
+        "aftercareText": "aftercare_text",
+        "sortOrder": "sort_order",
+        "isActive": "is_active",
+    }
+
+
+def _validate_service_pricing(row: Service) -> None:
+    if row.price_type is ServicePriceType.range and row.max_price is None:
+        raise BadRequestError(
+            "Для диапазона цены укажите максимальную цену",
+            code="service_max_price_required",
+        )
+    if row.max_price is not None and row.max_price < row.price:
+        raise BadRequestError(
+            "Максимальная цена не может быть ниже базовой",
+            code="invalid_service_price_range",
+        )
+
+
+async def _service_views(
+    session: AsyncSession,
+    rows: list[Service],
+    *,
+    public: bool = False,
+) -> list[ServiceView] | list[PublicServiceView]:
+    if not rows:
+        return []
+    tenant_id = rows[0].tenant_id
+    service_ids = [row.id for row in rows]
+    category_ids = {row.category_id for row in rows if row.category_id is not None}
+
+    variant_query = select(ServiceVariant).where(
+        ServiceVariant.tenant_id == tenant_id,
+        ServiceVariant.service_id.in_(service_ids),
+    )
+    addon_query = select(ServiceAddon).where(
+        ServiceAddon.tenant_id == tenant_id,
+        ServiceAddon.service_id.in_(service_ids),
+    )
+    if public:
+        variant_query = variant_query.where(ServiceVariant.is_active.is_(True))
+        addon_query = addon_query.where(ServiceAddon.is_active.is_(True))
+    variants = (
+        await session.scalars(
+            variant_query.order_by(ServiceVariant.sort_order, ServiceVariant.label)
+        )
+    ).all()
+    addons = (
+        await session.scalars(addon_query.order_by(ServiceAddon.sort_order, ServiceAddon.name))
+    ).all()
+    category_names: dict[UUID, str] = {}
+    if category_ids:
+        categories = (
+            await session.scalars(
+                select(ServiceCategory).where(
+                    ServiceCategory.tenant_id == tenant_id,
+                    ServiceCategory.id.in_(category_ids),
+                )
+            )
+        ).all()
+        category_names = {category.id: category.name for category in categories}
+
+    variants_by_service: dict[UUID, list[ServiceVariant]] = {}
+    for variant in variants:
+        variants_by_service.setdefault(variant.service_id, []).append(variant)
+    addons_by_service: dict[UUID, list[ServiceAddon]] = {}
+    for addon in addons:
+        addons_by_service.setdefault(addon.service_id, []).append(addon)
+
+    payloads = [
+        {
+            **row.__dict__,
+            "category_name": (
+                category_names.get(row.category_id) if row.category_id is not None else None
+            )
+            or row.category,
+            "variants": variants_by_service.get(row.id, []),
+            "addons": addons_by_service.get(row.id, []),
+        }
+        for row in rows
+    ]
+    if public:
+        return [PublicServiceView.model_validate(payload) for payload in payloads]
+    return [ServiceView.model_validate(payload) for payload in payloads]
+
+
+async def _service_view(session: AsyncSession, row: Service) -> ServiceView:
+    values = await _service_views(session, [row])
+    return values[0]  # type: ignore[return-value]
+
+
+@router.get("/service-categories", response_model=list[ServiceCategoryView])
+async def list_service_categories(
+    include_inactive: bool = False,
+    _actor: PlatformUser = Depends(require_crm_actor),
+    tenant_id: UUID = Depends(actor_tenant_id),
+    session: AsyncSession = Depends(actor_tenant_db, scope="function"),
+) -> list[ServiceCategoryView]:
+    query = select(ServiceCategory).where(ServiceCategory.tenant_id == tenant_id)
+    if not include_inactive:
+        query = query.where(ServiceCategory.is_active.is_(True))
+    rows = (
+        await session.scalars(
+            query.order_by(ServiceCategory.sort_order, ServiceCategory.name).limit(200)
+        )
+    ).all()
+    return [ServiceCategoryView.model_validate(row) for row in rows]
+
+
+@router.post(
+    "/service-categories",
+    response_model=ServiceCategoryView,
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_service_category(
+    payload: ServiceCategoryCreate,
+    _owner: PlatformUser = Depends(require_owner),
+    tenant_id: UUID = Depends(actor_tenant_id),
+    session: AsyncSession = Depends(actor_tenant_db, scope="function"),
+) -> ServiceCategoryView:
+    row = ServiceCategory(
+        tenant_id=tenant_id,
+        name=payload.name,
+        slug=payload.slug,
+        audience=payload.audience,
+        sort_order=payload.sortOrder,
+        is_active=payload.isActive,
+    )
+    try:
+        async with session.begin_nested():
+            session.add(row)
+            await session.flush()
+    except IntegrityError as exc:
+        raise ConflictError(
+            "Категория с таким идентификатором уже существует",
+            code="service_category_slug_conflict",
+        ) from exc
+    return ServiceCategoryView.model_validate(row)
+
+
+@router.patch("/service-categories/{category_id}", response_model=ServiceCategoryView)
+async def update_service_category(
+    category_id: UUID,
+    payload: ServiceCategoryUpdate,
+    _owner: PlatformUser = Depends(require_owner),
+    tenant_id: UUID = Depends(actor_tenant_id),
+    session: AsyncSession = Depends(actor_tenant_db, scope="function"),
+) -> ServiceCategoryView:
+    row = await _category_or_404(session, tenant_id, category_id)
+    _apply(row, payload, {"sortOrder": "sort_order", "isActive": "is_active"})
+    try:
+        async with session.begin_nested():
+            await session.flush()
+    except IntegrityError as exc:
+        raise ConflictError(
+            "Категория с таким идентификатором уже существует",
+            code="service_category_slug_conflict",
+        ) from exc
+    await session.refresh(row)
+    return ServiceCategoryView.model_validate(row)
+
+
+@router.delete("/service-categories/{category_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_service_category(
+    category_id: UUID,
+    _owner: PlatformUser = Depends(require_owner),
+    tenant_id: UUID = Depends(actor_tenant_id),
+    session: AsyncSession = Depends(actor_tenant_db, scope="function"),
+) -> Response:
+    row = await _category_or_404(session, tenant_id, category_id)
+    has_services = bool(
+        await session.scalar(
+            select(Service.id)
+            .where(Service.tenant_id == tenant_id, Service.category_id == category_id)
+            .limit(1)
+        )
+    )
+    if has_services:
+        row.is_active = False
+    else:
+        await session.delete(row)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
 @router.get("/services", response_model=list[ServiceView])
 async def list_services(
     include_inactive: bool = False,
@@ -109,9 +333,12 @@ async def list_services(
     if not include_inactive:
         query = query.where(Service.is_active.is_(True))
     rows = (
-        await session.scalars(query.order_by(Service.category, Service.name).limit(limit))
+        await session.scalars(
+            query.order_by(Service.sort_order, Service.category, Service.name).limit(limit)
+        )
     ).all()
-    return [ServiceView.model_validate(row) for row in rows]
+    values = await _service_views(session, list(rows))
+    return values  # type: ignore[return-value]
 
 
 @router.post("/services", response_model=ServiceView, status_code=status.HTTP_201_CREATED)
@@ -121,20 +348,37 @@ async def create_service(
     tenant_id: UUID = Depends(actor_tenant_id),
     session: AsyncSession = Depends(actor_tenant_db, scope="function"),
 ) -> ServiceView:
+    category = (
+        await _category_or_404(session, tenant_id, payload.categoryId)
+        if payload.categoryId is not None
+        else None
+    )
     row = Service(
         tenant_id=tenant_id,
         name=payload.name,
         description=payload.description,
+        category_id=payload.categoryId,
         price=payload.price,
+        max_price=payload.maxPrice,
+        price_type=payload.priceType,
+        currency=payload.currency,
         duration_min=payload.durationMin,
         buffer_before_min=payload.bufferBeforeMin,
         buffer_after_min=payload.bufferAfterMin,
-        category=payload.category,
+        category=category.name if category is not None else payload.category,
+        requires_consultation=payload.requiresConsultation,
+        requires_patch_test=payload.requiresPatchTest,
+        allow_online_booking=payload.allowOnlineBooking,
+        variant_selection_required=payload.variantSelectionRequired,
+        preparation_text=payload.preparationText,
+        aftercare_text=payload.aftercareText,
+        sort_order=payload.sortOrder,
         is_active=payload.isActive,
     )
+    _validate_service_pricing(row)
     session.add(row)
     await session.flush()
-    return ServiceView.model_validate(row)
+    return await _service_view(session, row)
 
 
 @router.get("/services/{service_id}", response_model=ServiceView)
@@ -144,7 +388,7 @@ async def get_service(
     tenant_id: UUID = Depends(actor_tenant_id),
     session: AsyncSession = Depends(actor_tenant_db, scope="function"),
 ) -> ServiceView:
-    return ServiceView.model_validate(await _service_or_404(session, tenant_id, service_id))
+    return await _service_view(session, await _service_or_404(session, tenant_id, service_id))
 
 
 @router.patch("/services/{service_id}", response_model=ServiceView)
@@ -156,19 +400,213 @@ async def update_service(
     session: AsyncSession = Depends(actor_tenant_db, scope="function"),
 ) -> ServiceView:
     row = await _service_or_404(session, tenant_id, service_id)
+    values = payload.model_dump(exclude_unset=True)
+    category: ServiceCategory | None = None
+    if "categoryId" in values and values["categoryId"] is not None:
+        category = await _category_or_404(session, tenant_id, values["categoryId"])
+    _apply(row, payload, _service_payload_mapping())
+    if "categoryId" in values:
+        row.category = category.name if category is not None else None
+    _validate_service_pricing(row)
+    await session.flush()
+    await session.refresh(row)
+    return await _service_view(session, row)
+
+
+async def _variant_or_404(
+    session: AsyncSession,
+    tenant_id: UUID,
+    service_id: UUID,
+    variant_id: UUID,
+) -> ServiceVariant:
+    row = await session.scalar(
+        select(ServiceVariant).where(
+            ServiceVariant.tenant_id == tenant_id,
+            ServiceVariant.service_id == service_id,
+            ServiceVariant.id == variant_id,
+        )
+    )
+    if row is None:
+        raise NotFoundError("Вариант услуги не найден")
+    return row
+
+
+async def _addon_or_404(
+    session: AsyncSession,
+    tenant_id: UUID,
+    service_id: UUID,
+    addon_id: UUID,
+) -> ServiceAddon:
+    row = await session.scalar(
+        select(ServiceAddon).where(
+            ServiceAddon.tenant_id == tenant_id,
+            ServiceAddon.service_id == service_id,
+            ServiceAddon.id == addon_id,
+        )
+    )
+    if row is None:
+        raise NotFoundError("Дополнение к услуге не найдено")
+    return row
+
+
+@router.post(
+    "/services/{service_id}/variants",
+    response_model=ServiceVariantView,
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_service_variant(
+    service_id: UUID,
+    payload: ServiceVariantCreate,
+    _owner: PlatformUser = Depends(require_owner),
+    tenant_id: UUID = Depends(actor_tenant_id),
+    session: AsyncSession = Depends(actor_tenant_db, scope="function"),
+) -> ServiceVariantView:
+    await _service_or_404(session, tenant_id, service_id)
+    row = ServiceVariant(
+        tenant_id=tenant_id,
+        service_id=service_id,
+        label=payload.label,
+        price_delta=payload.priceDelta,
+        duration_delta_min=payload.durationDeltaMin,
+        sort_order=payload.sortOrder,
+        is_active=payload.isActive,
+    )
+    try:
+        async with session.begin_nested():
+            session.add(row)
+            await session.flush()
+    except IntegrityError as exc:
+        raise ConflictError(
+            "Вариант с таким названием уже существует",
+            code="service_variant_label_conflict",
+        ) from exc
+    return ServiceVariantView.model_validate(row)
+
+
+@router.patch("/services/{service_id}/variants/{variant_id}", response_model=ServiceVariantView)
+async def update_service_variant(
+    service_id: UUID,
+    variant_id: UUID,
+    payload: ServiceVariantUpdate,
+    _owner: PlatformUser = Depends(require_owner),
+    tenant_id: UUID = Depends(actor_tenant_id),
+    session: AsyncSession = Depends(actor_tenant_db, scope="function"),
+) -> ServiceVariantView:
+    row = await _variant_or_404(session, tenant_id, service_id, variant_id)
     _apply(
         row,
         payload,
         {
-            "durationMin": "duration_min",
-            "bufferBeforeMin": "buffer_before_min",
-            "bufferAfterMin": "buffer_after_min",
+            "priceDelta": "price_delta",
+            "durationDeltaMin": "duration_delta_min",
+            "sortOrder": "sort_order",
             "isActive": "is_active",
         },
     )
-    await session.flush()
+    try:
+        async with session.begin_nested():
+            await session.flush()
+    except IntegrityError as exc:
+        raise ConflictError(
+            "Вариант с таким названием уже существует",
+            code="service_variant_label_conflict",
+        ) from exc
     await session.refresh(row)
-    return ServiceView.model_validate(row)
+    return ServiceVariantView.model_validate(row)
+
+
+@router.delete(
+    "/services/{service_id}/variants/{variant_id}", status_code=status.HTTP_204_NO_CONTENT
+)
+async def delete_service_variant(
+    service_id: UUID,
+    variant_id: UUID,
+    _owner: PlatformUser = Depends(require_owner),
+    tenant_id: UUID = Depends(actor_tenant_id),
+    session: AsyncSession = Depends(actor_tenant_db, scope="function"),
+) -> Response:
+    row = await _variant_or_404(session, tenant_id, service_id, variant_id)
+    row.is_active = False
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post(
+    "/services/{service_id}/addons",
+    response_model=ServiceAddonView,
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_service_addon(
+    service_id: UUID,
+    payload: ServiceAddonCreate,
+    _owner: PlatformUser = Depends(require_owner),
+    tenant_id: UUID = Depends(actor_tenant_id),
+    session: AsyncSession = Depends(actor_tenant_db, scope="function"),
+) -> ServiceAddonView:
+    await _service_or_404(session, tenant_id, service_id)
+    row = ServiceAddon(
+        tenant_id=tenant_id,
+        service_id=service_id,
+        name=payload.name,
+        price_delta=payload.priceDelta,
+        duration_delta_min=payload.durationDeltaMin,
+        sort_order=payload.sortOrder,
+        is_active=payload.isActive,
+    )
+    try:
+        async with session.begin_nested():
+            session.add(row)
+            await session.flush()
+    except IntegrityError as exc:
+        raise ConflictError(
+            "Дополнение с таким названием уже существует",
+            code="service_addon_name_conflict",
+        ) from exc
+    return ServiceAddonView.model_validate(row)
+
+
+@router.patch("/services/{service_id}/addons/{addon_id}", response_model=ServiceAddonView)
+async def update_service_addon(
+    service_id: UUID,
+    addon_id: UUID,
+    payload: ServiceAddonUpdate,
+    _owner: PlatformUser = Depends(require_owner),
+    tenant_id: UUID = Depends(actor_tenant_id),
+    session: AsyncSession = Depends(actor_tenant_db, scope="function"),
+) -> ServiceAddonView:
+    row = await _addon_or_404(session, tenant_id, service_id, addon_id)
+    _apply(
+        row,
+        payload,
+        {
+            "priceDelta": "price_delta",
+            "durationDeltaMin": "duration_delta_min",
+            "sortOrder": "sort_order",
+            "isActive": "is_active",
+        },
+    )
+    try:
+        async with session.begin_nested():
+            await session.flush()
+    except IntegrityError as exc:
+        raise ConflictError(
+            "Дополнение с таким названием уже существует",
+            code="service_addon_name_conflict",
+        ) from exc
+    await session.refresh(row)
+    return ServiceAddonView.model_validate(row)
+
+
+@router.delete("/services/{service_id}/addons/{addon_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_service_addon(
+    service_id: UUID,
+    addon_id: UUID,
+    _owner: PlatformUser = Depends(require_owner),
+    tenant_id: UUID = Depends(actor_tenant_id),
+    session: AsyncSession = Depends(actor_tenant_db, scope="function"),
+) -> Response:
+    row = await _addon_or_404(session, tenant_id, service_id, addon_id)
+    row.is_active = False
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.delete("/services/{service_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -200,12 +638,23 @@ async def public_services(
     rows = (
         await session.scalars(
             select(Service)
-            .where(Service.tenant_id == context.id, Service.is_active.is_(True))
-            .order_by(Service.category, Service.name)
+            .outerjoin(
+                ServiceCategory,
+                (ServiceCategory.tenant_id == Service.tenant_id)
+                & (ServiceCategory.id == Service.category_id),
+            )
+            .where(
+                Service.tenant_id == context.id,
+                Service.is_active.is_(True),
+                Service.allow_online_booking.is_(True),
+                or_(Service.category_id.is_(None), ServiceCategory.is_active.is_(True)),
+            )
+            .order_by(Service.sort_order, Service.category, Service.name)
             .limit(limit)
         )
     ).all()
-    return [PublicServiceView.model_validate(row) for row in rows]
+    values = await _service_views(session, list(rows), public=True)
+    return values  # type: ignore[return-value]
 
 
 async def _staff_view(session: AsyncSession, row: Staff) -> StaffView:

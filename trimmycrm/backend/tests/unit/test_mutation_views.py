@@ -33,6 +33,7 @@ from app.models import (  # noqa: E402
     ScheduleException,
     ScheduleExceptionType,
     Service,
+    ServicePriceType,
     Site,
     SiteStatus,
     Staff,
@@ -42,6 +43,7 @@ from app.schemas import (  # noqa: E402
     PromotionUpdate,
     ScheduleExceptionUpdate,
     ServiceUpdate,
+    ServiceView,
     SiteUpdate,
     StaffUpdate,
 )
@@ -106,11 +108,22 @@ def _service() -> Service:
         tenant_id=TENANT_ID,
         name="Груминг",
         description=None,
+        category_id=None,
         price=Decimal("1500.00"),
+        max_price=None,
+        price_type=ServicePriceType.fixed,
+        currency="RUB",
         duration_min=60,
         buffer_before_min=0,
         buffer_after_min=0,
         category=None,
+        requires_consultation=False,
+        requires_patch_test=False,
+        allow_online_booking=True,
+        variant_selection_required=False,
+        preparation_text=None,
+        aftercare_text=None,
+        sort_order=0,
         is_active=True,
         created_at=CREATED_AT,
         updated_at=CREATED_AT,
@@ -193,17 +206,23 @@ async def test_update_service_refreshes_server_timestamp(
     async def service_or_404(_session: Any, _tenant_id: UUID, _service_id: UUID) -> Service:
         return row
 
+    async def service_view(_session: Any, service: Service) -> ServiceView:
+        return ServiceView.model_validate(
+            {**service.__dict__, "category_name": None, "variants": [], "addons": []}
+        )
+
     monkeypatch.setattr(crm, "_service_or_404", service_or_404)
+    monkeypatch.setattr(crm, "_service_view", service_view)
 
     result = await crm.update_service(
         ROW_ID,
-        ServiceUpdate(name="Комплексный груминг"),
+        ServiceUpdate(name="Стрижка и укладка"),
         _owner=None,
         tenant_id=TENANT_ID,
         session=session,
     )
 
-    assert result.name == "Комплексный груминг"
+    assert result.name == "Стрижка и укладка"
     assert result.updatedAt == UPDATED_AT
     assert session.refreshes == 1
 

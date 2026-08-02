@@ -29,7 +29,7 @@ for key, value in {
 from app.api.deps import TenantContext  # noqa: E402
 from app.api.routes import crm, engagement  # noqa: E402
 from app.core.errors import ForbiddenError  # noqa: E402
-from app.models import Promotion, Review, ReviewStatus  # noqa: E402
+from app.models import Promotion, Review, ReviewStatus, ServicePriceType  # noqa: E402
 from app.schemas import (  # noqa: E402
     ClientDetailsView,
     ClientView,
@@ -66,16 +66,21 @@ def test_public_service_projection_drops_tenant_and_lifecycle_fields() -> None:
         {
             "id": PUBLIC_ID,
             "tenant_id": TENANT_ID,
-            "name": "Комплексный груминг",
-            "description": "Полный уход",
+            "name": "Стрижка и укладка",
+            "description": "Стрижка с подбором формы",
+            "category_id": None,
             "price": Decimal("3500.00"),
+            "max_price": None,
+            "price_type": ServicePriceType.fixed,
+            "currency": "RUB",
             "duration_min": 120,
             "buffer_before_min": 10,
             "buffer_after_min": 15,
-            "category": "Комплексы",
-            "is_active": True,
-            "created_at": datetime(2026, 7, 14, tzinfo=UTC),
-            "updated_at": datetime(2026, 7, 14, tzinfo=UTC),
+            "requires_consultation": False,
+            "requires_patch_test": False,
+            "variant_selection_required": True,
+            "preparation_text": "Приходите с чистыми волосами",
+            "aftercare_text": "Используйте термозащиту",
         }
     )
 
@@ -83,10 +88,22 @@ def test_public_service_projection_drops_tenant_and_lifecycle_fields() -> None:
         "id",
         "name",
         "description",
+        "categoryId",
+        "categoryName",
         "price",
+        "maxPrice",
+        "priceType",
+        "currency",
         "durationMin",
         "bufferBeforeMin",
         "bufferAfterMin",
+        "requiresConsultation",
+        "requiresPatchTest",
+        "variantSelectionRequired",
+        "preparationText",
+        "aftercareText",
+        "variants",
+        "addons",
     }
 
 

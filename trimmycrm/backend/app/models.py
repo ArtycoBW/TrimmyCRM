@@ -74,6 +74,20 @@ class SalonType(StrEnum):
     unisex_hair_salon = "unisex_hair_salon"
 
 
+class ServiceAudience(StrEnum):
+    women = "women"
+    men = "men"
+    all = "all"
+    kids = "kids"
+
+
+class ServicePriceType(StrEnum):
+    fixed = "fixed"
+    from_ = "from"
+    range = "range"
+    consultation = "consultation"
+
+
 class DomainVerificationStatus(StrEnum):
     not_configured = "not_configured"
     pending = "pending"
@@ -494,15 +508,50 @@ class SiteVersion(UUIDPrimaryKeyMixin, Base):
     published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
+class ServiceCategory(UUIDPrimaryKeyMixin, TimestampMixin, Base):
+    __tablename__ = "service_categories"
+    __table_args__ = (
+        UniqueConstraint("tenant_id", "id", name="uq_service_categories_tenant_id_id"),
+        UniqueConstraint("tenant_id", "slug", name="uq_service_categories_tenant_slug"),
+        CheckConstraint("sort_order >= 0", name="nonnegative_sort_order"),
+        Index("ix_service_categories_tenant_active", "tenant_id", "is_active"),
+    )
+
+    tenant_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("sites.id", ondelete="CASCADE"), nullable=False
+    )
+    name: Mapped[str] = mapped_column(Text, nullable=False)
+    slug: Mapped[str] = mapped_column(Text, nullable=False)
+    audience: Mapped[ServiceAudience] = mapped_column(
+        PGEnum(ServiceAudience, name="service_audience", create_type=False),
+        nullable=False,
+        server_default=sql_text("'all'"),
+    )
+    sort_order: Mapped[int] = mapped_column(Integer, nullable=False, server_default=sql_text("0"))
+    is_active: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=sql_text("true")
+    )
+
+
 class Service(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     __tablename__ = "services"
     __table_args__ = (
         UniqueConstraint("tenant_id", "id", name="uq_services_tenant_id_id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "category_id"],
+            ["service_categories.tenant_id", "service_categories.id"],
+            ondelete="RESTRICT",
+            name="fk_services_tenant_category",
+        ),
         CheckConstraint("price >= 0", name="nonnegative_price"),
+        CheckConstraint("max_price IS NULL OR max_price >= price", name="valid_price_range"),
         CheckConstraint("duration_min > 0", name="positive_duration"),
         CheckConstraint("buffer_before_min >= 0", name="nonnegative_buffer_before"),
         CheckConstraint("buffer_after_min >= 0", name="nonnegative_buffer_after"),
+        CheckConstraint("sort_order >= 0", name="nonnegative_sort_order"),
+        CheckConstraint("char_length(currency) = 3", name="currency_code_length"),
         Index("ix_services_tenant_active", "tenant_id", "is_active"),
+        Index("ix_services_tenant_category", "tenant_id", "category_id"),
     )
 
     tenant_id: Mapped[uuid.UUID] = mapped_column(
@@ -510,7 +559,20 @@ class Service(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     )
     name: Mapped[str] = mapped_column(Text, nullable=False)
     description: Mapped[str | None] = mapped_column(Text)
+    category_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
     price: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
+    max_price: Mapped[Decimal | None] = mapped_column(Numeric(10, 2))
+    price_type: Mapped[ServicePriceType] = mapped_column(
+        PGEnum(
+            ServicePriceType,
+            name="service_price_type",
+            create_type=False,
+            values_callable=lambda enum: [item.value for item in enum],
+        ),
+        nullable=False,
+        server_default=sql_text("'fixed'"),
+    )
+    currency: Mapped[str] = mapped_column(Text, nullable=False, server_default=sql_text("'RUB'"))
     duration_min: Mapped[int] = mapped_column(Integer, nullable=False)
     buffer_before_min: Mapped[int] = mapped_column(
         Integer, nullable=False, server_default=sql_text("0")
@@ -519,6 +581,91 @@ class Service(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         Integer, nullable=False, server_default=sql_text("0")
     )
     category: Mapped[str | None] = mapped_column(Text)
+    requires_consultation: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=sql_text("false")
+    )
+    requires_patch_test: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=sql_text("false")
+    )
+    allow_online_booking: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=sql_text("true")
+    )
+    variant_selection_required: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=sql_text("false")
+    )
+    preparation_text: Mapped[str | None] = mapped_column(Text)
+    aftercare_text: Mapped[str | None] = mapped_column(Text)
+    sort_order: Mapped[int] = mapped_column(Integer, nullable=False, server_default=sql_text("0"))
+    is_active: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=sql_text("true")
+    )
+
+
+class ServiceVariant(UUIDPrimaryKeyMixin, TimestampMixin, Base):
+    __tablename__ = "service_variants"
+    __table_args__ = (
+        UniqueConstraint("tenant_id", "id", name="uq_service_variants_tenant_id_id"),
+        UniqueConstraint(
+            "tenant_id", "service_id", "label", name="uq_service_variants_service_label"
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "service_id"],
+            ["services.tenant_id", "services.id"],
+            ondelete="CASCADE",
+            name="fk_service_variants_tenant_service",
+        ),
+        CheckConstraint("price_delta >= 0", name="nonnegative_price_delta"),
+        CheckConstraint("duration_delta_min >= 0", name="nonnegative_duration_delta"),
+        CheckConstraint("sort_order >= 0", name="nonnegative_sort_order"),
+        Index("ix_service_variants_tenant_service", "tenant_id", "service_id"),
+    )
+
+    tenant_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("sites.id", ondelete="CASCADE"), nullable=False
+    )
+    service_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    label: Mapped[str] = mapped_column(Text, nullable=False)
+    price_delta: Mapped[Decimal] = mapped_column(
+        Numeric(10, 2), nullable=False, server_default=sql_text("0")
+    )
+    duration_delta_min: Mapped[int] = mapped_column(
+        Integer, nullable=False, server_default=sql_text("0")
+    )
+    sort_order: Mapped[int] = mapped_column(Integer, nullable=False, server_default=sql_text("0"))
+    is_active: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=sql_text("true")
+    )
+
+
+class ServiceAddon(UUIDPrimaryKeyMixin, TimestampMixin, Base):
+    __tablename__ = "service_addons"
+    __table_args__ = (
+        UniqueConstraint("tenant_id", "id", name="uq_service_addons_tenant_id_id"),
+        UniqueConstraint("tenant_id", "service_id", "name", name="uq_service_addons_service_name"),
+        ForeignKeyConstraint(
+            ["tenant_id", "service_id"],
+            ["services.tenant_id", "services.id"],
+            ondelete="CASCADE",
+            name="fk_service_addons_tenant_service",
+        ),
+        CheckConstraint("price_delta >= 0", name="nonnegative_price_delta"),
+        CheckConstraint("duration_delta_min >= 0", name="nonnegative_duration_delta"),
+        CheckConstraint("sort_order >= 0", name="nonnegative_sort_order"),
+        Index("ix_service_addons_tenant_service", "tenant_id", "service_id"),
+    )
+
+    tenant_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("sites.id", ondelete="CASCADE"), nullable=False
+    )
+    service_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    name: Mapped[str] = mapped_column(Text, nullable=False)
+    price_delta: Mapped[Decimal] = mapped_column(
+        Numeric(10, 2), nullable=False, server_default=sql_text("0")
+    )
+    duration_delta_min: Mapped[int] = mapped_column(
+        Integer, nullable=False, server_default=sql_text("0")
+    )
+    sort_order: Mapped[int] = mapped_column(Integer, nullable=False, server_default=sql_text("0"))
     is_active: Mapped[bool] = mapped_column(
         Boolean, nullable=False, server_default=sql_text("true")
     )

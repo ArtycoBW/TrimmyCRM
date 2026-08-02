@@ -19,7 +19,7 @@ from pydantic import (
     model_validator,
 )
 
-from app.models import SalonType
+from app.models import SalonType, ServiceAudience, ServicePriceType
 from app.services.scheduling import ScheduleError, parse_timezone, validate_schedule
 
 Slug = Annotated[
@@ -448,31 +448,149 @@ class DomainChallenge(APIModel):
     verified: bool
 
 
+class ServiceCategoryCreate(APIModel):
+    name: str = Field(min_length=2, max_length=120)
+    slug: Slug
+    audience: ServiceAudience = ServiceAudience.all
+    sortOrder: int = Field(default=0, ge=0, le=10_000)
+    isActive: bool = True
+
+
+class ServiceCategoryUpdate(APIModel):
+    name: str | None = Field(default=None, min_length=2, max_length=120)
+    slug: Slug | None = None
+    audience: ServiceAudience | None = None
+    sortOrder: int | None = Field(default=None, ge=0, le=10_000)
+    isActive: bool | None = None
+
+
+class ServiceCategoryView(ServiceCategoryCreate):
+    id: UUID
+    tenantId: UUID
+    createdAt: datetime
+    updatedAt: datetime
+
+
+class ServiceVariantCreate(APIModel):
+    label: str = Field(min_length=1, max_length=120)
+    priceDelta: Decimal = Field(default=Decimal("0"), ge=0, max_digits=10, decimal_places=2)
+    durationDeltaMin: int = Field(default=0, ge=0, le=1440, multiple_of=5)
+    sortOrder: int = Field(default=0, ge=0, le=10_000)
+    isActive: bool = True
+
+
+class ServiceVariantUpdate(APIModel):
+    label: str | None = Field(default=None, min_length=1, max_length=120)
+    priceDelta: Decimal | None = Field(default=None, ge=0, max_digits=10, decimal_places=2)
+    durationDeltaMin: int | None = Field(default=None, ge=0, le=1440, multiple_of=5)
+    sortOrder: int | None = Field(default=None, ge=0, le=10_000)
+    isActive: bool | None = None
+
+
+class ServiceVariantView(ServiceVariantCreate):
+    id: UUID
+    serviceId: UUID
+
+
+class ServiceAddonCreate(APIModel):
+    name: str = Field(min_length=1, max_length=120)
+    priceDelta: Decimal = Field(default=Decimal("0"), ge=0, max_digits=10, decimal_places=2)
+    durationDeltaMin: int = Field(default=0, ge=0, le=1440, multiple_of=5)
+    sortOrder: int = Field(default=0, ge=0, le=10_000)
+    isActive: bool = True
+
+
+class ServiceAddonUpdate(APIModel):
+    name: str | None = Field(default=None, min_length=1, max_length=120)
+    priceDelta: Decimal | None = Field(default=None, ge=0, max_digits=10, decimal_places=2)
+    durationDeltaMin: int | None = Field(default=None, ge=0, le=1440, multiple_of=5)
+    sortOrder: int | None = Field(default=None, ge=0, le=10_000)
+    isActive: bool | None = None
+
+
+class ServiceAddonView(ServiceAddonCreate):
+    id: UUID
+    serviceId: UUID
+
+
+class PublicServiceVariantView(APIModel):
+    id: UUID
+    label: str
+    priceDelta: Decimal
+    durationDeltaMin: int
+
+
+class PublicServiceAddonView(APIModel):
+    id: UUID
+    name: str
+    priceDelta: Decimal
+    durationDeltaMin: int
+
+
 class ServiceCreate(APIModel):
     name: str = Field(min_length=2, max_length=160)
     description: str | None = Field(default=None, max_length=3000)
+    categoryId: UUID | None = None
     price: Decimal = Field(ge=0, max_digits=10, decimal_places=2)
+    maxPrice: Decimal | None = Field(default=None, ge=0, max_digits=10, decimal_places=2)
+    priceType: ServicePriceType = ServicePriceType.fixed
+    currency: Literal["RUB"] = "RUB"
     durationMin: int = Field(ge=15, le=1440, multiple_of=5)
     bufferBeforeMin: int = Field(default=0, ge=0, le=240)
     bufferAfterMin: int = Field(default=0, ge=0, le=240)
     category: str | None = Field(default=None, max_length=100)
+    requiresConsultation: bool = False
+    requiresPatchTest: bool = False
+    allowOnlineBooking: bool = True
+    variantSelectionRequired: bool = False
+    preparationText: str | None = Field(default=None, max_length=3000)
+    aftercareText: str | None = Field(default=None, max_length=3000)
+    sortOrder: int = Field(default=0, ge=0, le=10_000)
     isActive: bool = True
+
+    @model_validator(mode="after")
+    def valid_price_configuration(self) -> ServiceCreate:
+        if self.priceType is ServicePriceType.range and self.maxPrice is None:
+            raise ValueError("Для диапазона цены укажите максимальную цену")
+        if self.maxPrice is not None and self.maxPrice < self.price:
+            raise ValueError("Максимальная цена не может быть ниже базовой")
+        return self
 
 
 class ServiceUpdate(APIModel):
     name: str | None = Field(default=None, min_length=2, max_length=160)
     description: str | None = Field(default=None, max_length=3000)
+    categoryId: UUID | None = None
     price: Decimal | None = Field(default=None, ge=0, max_digits=10, decimal_places=2)
+    maxPrice: Decimal | None = Field(default=None, ge=0, max_digits=10, decimal_places=2)
+    priceType: ServicePriceType | None = None
+    currency: Literal["RUB"] | None = None
     durationMin: int | None = Field(default=None, ge=15, le=1440, multiple_of=5)
     bufferBeforeMin: int | None = Field(default=None, ge=0, le=240)
     bufferAfterMin: int | None = Field(default=None, ge=0, le=240)
     category: str | None = Field(default=None, max_length=100)
+    requiresConsultation: bool | None = None
+    requiresPatchTest: bool | None = None
+    allowOnlineBooking: bool | None = None
+    variantSelectionRequired: bool | None = None
+    preparationText: str | None = Field(default=None, max_length=3000)
+    aftercareText: str | None = Field(default=None, max_length=3000)
+    sortOrder: int | None = Field(default=None, ge=0, le=10_000)
     isActive: bool | None = None
+
+    @model_validator(mode="after")
+    def valid_partial_price_range(self) -> ServiceUpdate:
+        if self.price is not None and self.maxPrice is not None and self.maxPrice < self.price:
+            raise ValueError("Максимальная цена не может быть ниже базовой")
+        return self
 
 
 class ServiceView(ServiceCreate):
     id: UUID
     tenantId: UUID
+    categoryName: str | None = None
+    variants: list[ServiceVariantView] = Field(default_factory=list)
+    addons: list[ServiceAddonView] = Field(default_factory=list)
     createdAt: datetime
     updatedAt: datetime
 
@@ -481,10 +599,22 @@ class PublicServiceView(APIModel):
     id: UUID
     name: str
     description: str | None = None
+    categoryId: UUID | None = None
+    categoryName: str | None = None
     price: Decimal
+    maxPrice: Decimal | None = None
+    priceType: ServicePriceType
+    currency: Literal["RUB"]
     durationMin: int
     bufferBeforeMin: int
     bufferAfterMin: int
+    requiresConsultation: bool
+    requiresPatchTest: bool
+    variantSelectionRequired: bool
+    preparationText: str | None = None
+    aftercareText: str | None = None
+    variants: list[PublicServiceVariantView] = Field(default_factory=list)
+    addons: list[PublicServiceAddonView] = Field(default_factory=list)
 
 
 class StaffCreate(APIModel):
