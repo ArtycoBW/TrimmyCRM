@@ -106,7 +106,7 @@ def _service() -> Service:
     return Service(
         id=ROW_ID,
         tenant_id=TENANT_ID,
-        name="Груминг",
+        name="Женская стрижка",
         description=None,
         category_id=None,
         price=Decimal("1500.00"),

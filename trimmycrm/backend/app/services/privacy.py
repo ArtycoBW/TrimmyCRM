@@ -5,21 +5,16 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from uuid import UUID
 
-from sqlalchemy import delete, select, update
+from sqlalchemy import delete, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.integrations.storage import ObjectStorage
 from app.models import (
     Appointment,
     ClientHairProfile,
-    MediaObject,
-    MediaStatus,
     Notification,
     NotificationPreference,
     NotificationStatus,
-    Pet,
-    PetDocument,
-    PetPhoto,
     Review,
     TenantUser,
     TenantUserStatus,
@@ -27,46 +22,9 @@ from app.models import (
 
 
 async def tenant_user_media_keys(session: AsyncSession, user: TenantUser) -> list[str]:
-    """Return ready private-object keys owned through a tenant user's pets."""
+    """Вернуть приватные файлы клиента, если такие связи появятся в продукте."""
 
-    pet_ids = list(
-        await session.scalars(
-            select(Pet.id).where(Pet.tenant_id == user.tenant_id, Pet.owner_id == user.id)
-        )
-    )
-    if not pet_ids:
-        return []
-
-    photo_media_ids = list(
-        await session.scalars(
-            select(PetPhoto.media_object_id).where(
-                PetPhoto.tenant_id == user.tenant_id,
-                PetPhoto.pet_id.in_(pet_ids),
-            )
-        )
-    )
-    document_media_ids = list(
-        await session.scalars(
-            select(PetDocument.media_object_id).where(
-                PetDocument.tenant_id == user.tenant_id,
-                PetDocument.pet_id.in_(pet_ids),
-            )
-        )
-    )
-    media_ids = [
-        media_id for media_id in {*photo_media_ids, *document_media_ids} if media_id is not None
-    ]
-    if not media_ids:
-        return []
-    return list(
-        await session.scalars(
-            select(MediaObject.object_key).where(
-                MediaObject.tenant_id == user.tenant_id,
-                MediaObject.id.in_(media_ids),
-                MediaObject.status == MediaStatus.ready,
-            )
-        )
-    )
+    return []
 
 
 async def erase_tenant_user_media(
@@ -75,7 +33,7 @@ async def erase_tenant_user_media(
     tenant_id: UUID,
     keys: list[str],
 ) -> None:
-    """Physically remove personal pet files before their database records are anonymized."""
+    """Физически удалить связанные с клиентом приватные файлы."""
 
     for key in keys:
         await storage.delete(key, tenant_id=tenant_id)
@@ -85,79 +43,6 @@ async def anonymize_tenant_user(session: AsyncSession, user: TenantUser) -> None
     """Удалить прямые и чувствительные данные профиля, не нарушая обязательный учёт."""
 
     now = datetime.now(UTC)
-    pet_ids = list(
-        await session.scalars(
-            select(Pet.id).where(
-                Pet.tenant_id == user.tenant_id,
-                Pet.owner_id == user.id,
-            )
-        )
-    )
-    media_ids: list[UUID] = []
-    if pet_ids:
-        photo_media_ids = list(
-            await session.scalars(
-                select(PetPhoto.media_object_id).where(
-                    PetPhoto.tenant_id == user.tenant_id,
-                    PetPhoto.pet_id.in_(pet_ids),
-                )
-            )
-        )
-        document_media_ids = list(
-            await session.scalars(
-                select(PetDocument.media_object_id).where(
-                    PetDocument.tenant_id == user.tenant_id,
-                    PetDocument.pet_id.in_(pet_ids),
-                )
-            )
-        )
-        media_ids = [
-            media_id for media_id in {*photo_media_ids, *document_media_ids} if media_id is not None
-        ]
-        await session.execute(
-            delete(PetPhoto).where(
-                PetPhoto.tenant_id == user.tenant_id,
-                PetPhoto.pet_id.in_(pet_ids),
-            )
-        )
-        await session.execute(
-            delete(PetDocument).where(
-                PetDocument.tenant_id == user.tenant_id,
-                PetDocument.pet_id.in_(pet_ids),
-            )
-        )
-        await session.execute(
-            update(Pet)
-            .where(Pet.tenant_id == user.tenant_id, Pet.id.in_(pet_ids))
-            .values(
-                name="Удалённый питомец",
-                species=None,
-                breed=None,
-                birth_date=None,
-                weight_kg=None,
-                coat_type=None,
-                temperament=None,
-                allergies=None,
-                medical_notes=None,
-                vaccinated_until=None,
-                archived_at=now,
-            )
-        )
-    if media_ids:
-        await session.execute(
-            update(MediaObject)
-            .where(
-                MediaObject.tenant_id == user.tenant_id,
-                MediaObject.id.in_(media_ids),
-            )
-            .values(
-                status=MediaStatus.deleted,
-                public_url=None,
-                deleted_at=now,
-                original_filename=None,
-                checksum_sha256=None,
-            )
-        )
     await session.execute(
         delete(ClientHairProfile).where(
             ClientHairProfile.tenant_id == user.tenant_id,

@@ -19,7 +19,6 @@ from app.core.errors import BadRequestError
 from app.models import (
     Appointment,
     AppointmentStatus,
-    Pet,
     PlatformUser,
     Service,
     Site,
@@ -336,11 +335,15 @@ async def _client_export_rows(session: AsyncSession, tenant_id: UUID) -> list[li
                 TenantUser.full_name,
                 TenantUser.email,
                 TenantUser.phone,
-                func.count(Pet.id),
+                func.count(Appointment.id),
                 TenantUser.created_at,
             )
             .outerjoin(
-                Pet, and_(Pet.tenant_id == TenantUser.tenant_id, Pet.owner_id == TenantUser.id)
+                Appointment,
+                and_(
+                    Appointment.tenant_id == TenantUser.tenant_id,
+                    Appointment.tenant_user_id == TenantUser.id,
+                ),
             )
             .where(TenantUser.tenant_id == tenant_id)
             .group_by(TenantUser.id)
@@ -388,7 +391,7 @@ async def _appointment_export_rows(session: AsyncSession, tenant_id: UUID) -> li
     return [list(row) for row in rows]
 
 
-CLIENT_HEADERS = ["id", "name", "email", "phone", "pets", "created_at"]
+CLIENT_HEADERS = ["id", "name", "email", "phone", "appointments", "created_at"]
 APPOINTMENT_HEADERS = [
     "id",
     "start_at",

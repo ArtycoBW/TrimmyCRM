@@ -114,7 +114,7 @@ def test_public_staff_projection_drops_internal_fields() -> None:
             "tenant_id": TENANT_ID,
             "user_id": UUID("33333333-3333-4333-8333-333333333333"),
             "name": "Анна",
-            "specialization": "Грумер",
+            "specialization": "Стилист",
             "photo_url": "/api/v1/public/media/photo",
             "schedule": {"monday": [{"start": "09:00", "end": "18:00"}]},
             "service_ids": [UUID("44444444-4444-4444-8444-444444444444")],

@@ -772,50 +772,6 @@ class ClientHairProfileView(APIModel):
     updatedAt: datetime
 
 
-class PetCreate(APIModel):
-    name: str = Field(min_length=1, max_length=100)
-    species: Literal["dog", "cat", "other"] = "dog"
-    breed: str | None = Field(default=None, max_length=160)
-    birthDate: date | None = None
-    weightKg: Decimal | None = Field(default=None, gt=0, le=999, decimal_places=2)
-    coatType: str | None = Field(default=None, max_length=160)
-    temperament: str | None = Field(default=None, max_length=1000)
-    allergies: str | None = Field(default=None, max_length=3000)
-    medicalNotes: str | None = Field(default=None, max_length=5000)
-    additionalInfo: str | None = Field(default=None, max_length=5000)
-    vaccinatedUntil: date | None = None
-
-
-class PetUpdate(APIModel):
-    name: str | None = Field(default=None, min_length=1, max_length=100)
-    species: Literal["dog", "cat", "other"] | None = None
-    breed: str | None = Field(default=None, max_length=160)
-    birthDate: date | None = None
-    weightKg: Decimal | None = Field(default=None, gt=0, le=999, decimal_places=2)
-    coatType: str | None = Field(default=None, max_length=160)
-    temperament: str | None = Field(default=None, max_length=1000)
-    allergies: str | None = Field(default=None, max_length=3000)
-    medicalNotes: str | None = Field(default=None, max_length=5000)
-    additionalInfo: str | None = Field(default=None, max_length=5000)
-    vaccinatedUntil: date | None = None
-
-
-class PhotoView(APIModel):
-    id: UUID
-    url: str
-    isCover: bool
-    position: int
-    uploadedAt: datetime
-
-
-class PetDocumentView(APIModel):
-    id: UUID
-    type: Literal["passport"]
-    filename: str | None = None
-    url: str
-    uploadedAt: datetime
-
-
 class MediaView(APIModel):
     id: UUID
     url: str
@@ -823,18 +779,6 @@ class MediaView(APIModel):
     isPublic: bool
     contentType: str
     sizeBytes: int
-    createdAt: datetime
-
-
-class PetView(PetCreate):
-    id: UUID
-    tenantId: UUID
-    ownerId: UUID
-    photos: list[PhotoView] = Field(default_factory=list)
-    documents: list[PetDocumentView] = Field(default_factory=list)
-    ageYears: int | None = None
-    vaccinationCurrent: bool | None = None
-    archivedAt: datetime | None = None
     createdAt: datetime
 
 
@@ -847,7 +791,6 @@ class ClientView(APIModel):
     emailVerified: bool
     status: str
     createdAt: datetime
-    pets: list[PetView] = Field(default_factory=list)
 
 
 class ClientAppointmentSummary(APIModel):

@@ -13,7 +13,6 @@ from app.api.deps import (
     TenantContext,
     actor_tenant_db,
     actor_tenant_id,
-    current_tenant_user,
     password_service,
     require_crm_actor,
     require_owner,
@@ -33,7 +32,6 @@ from app.models import (
     AuthTokenType,
     AuthUserType,
     ClientHairProfile,
-    Pet,
     PlatformRole,
     PlatformUser,
     PlatformUserStatus,
@@ -57,12 +55,8 @@ from app.schemas import (
     ClientHairProfileView,
     ClientUpdate,
     ClientView,
-    Message,
     Paginated,
     Pagination,
-    PetCreate,
-    PetUpdate,
-    PetView,
     PublicServiceView,
     PublicStaffView,
     ScheduleExceptionCreate,
@@ -1134,7 +1128,7 @@ async def list_clients(
         )
     ).all()
     return Paginated(
-        items=[ClientView.model_validate({**row.__dict__, "pets": []}) for row in rows],
+        items=[ClientView.model_validate(row) for row in rows],
         total=total,
         page=pagination.page,
         limit=pagination.limit,
@@ -1172,7 +1166,7 @@ async def create_client(
         await session.flush()
     except IntegrityError as exc:
         raise ConflictError("Клиент с таким email уже существует", code="client_exists") from exc
-    return ClientView.model_validate({**row.__dict__, "pets": []})
+    return ClientView.model_validate(row)
 
 
 async def _client_or_404(session: AsyncSession, tenant_id: UUID, client_id: UUID) -> TenantUser:
@@ -1192,17 +1186,6 @@ async def get_client(
     session: AsyncSession = Depends(actor_tenant_db, scope="function"),
 ) -> ClientDetailsView:
     row = await _client_or_404(session, tenant_id, client_id)
-    pets = (
-        await session.scalars(
-            select(Pet)
-            .where(
-                Pet.tenant_id == tenant_id,
-                Pet.owner_id == client_id,
-                Pet.archived_at.is_(None),
-            )
-            .order_by(Pet.created_at)
-        )
-    ).all()
     appointment_rows = (
         await session.execute(
             select(Appointment, Service.name, Staff.name)
@@ -1235,7 +1218,6 @@ async def get_client(
     return ClientDetailsView.model_validate(
         {
             **row.__dict__,
-            "pets": [await _pet_view(session, pet) for pet in pets],
             "appointment_history": history,
         }
     )
@@ -1366,218 +1348,4 @@ async def update_client(
         await session.flush()
     except IntegrityError as exc:
         raise ConflictError("Клиент с таким email уже существует", code="client_exists") from exc
-    return ClientView.model_validate({**row.__dict__, "pets": []})
-
-
-async def _pet_or_404(
-    session: AsyncSession,
-    tenant_id: UUID,
-    pet_id: UUID,
-    *,
-    owner_id: UUID | None = None,
-) -> Pet:
-    query = select(Pet).where(Pet.tenant_id == tenant_id, Pet.id == pet_id)
-    if owner_id:
-        query = query.where(Pet.owner_id == owner_id)
-    row = await session.scalar(query)
-    if row is None:
-        raise NotFoundError("Питомец не найден")
-    return row
-
-
-async def _pet_view(session: AsyncSession, pet: Pet) -> PetView:
-    from app.models import PetDocument, PetPhoto
-    from app.schemas import PetDocumentView, PhotoView
-
-    photos = (
-        await session.scalars(
-            select(PetPhoto)
-            .where(PetPhoto.pet_id == pet.id)
-            .order_by(PetPhoto.position, PetPhoto.uploaded_at)
-        )
-    ).all()
-    documents = (
-        await session.scalars(
-            select(PetDocument)
-            .where(
-                PetDocument.tenant_id == pet.tenant_id,
-                PetDocument.pet_id == pet.id,
-            )
-            .order_by(PetDocument.uploaded_at)
-        )
-    ).all()
-    today = datetime.now(UTC).date()
-    age = None
-    if pet.birth_date:
-        age = (
-            today.year
-            - pet.birth_date.year
-            - ((today.month, today.day) < (pet.birth_date.month, pet.birth_date.day))
-        )
-    return PetView.model_validate(
-        {
-            **pet.__dict__,
-            "photos": [PhotoView.model_validate(photo) for photo in photos],
-            "documents": [
-                PetDocumentView.model_validate(
-                    {
-                        **document.__dict__,
-                        "type": document.document_type,
-                        "filename": document.original_filename,
-                    }
-                )
-                for document in documents
-            ],
-            "age_years": age,
-            "vaccination_current": (
-                None if pet.vaccinated_until is None else pet.vaccinated_until >= today
-            ),
-        }
-    )
-
-
-@router.get("/pets", response_model=list[PetView])
-async def my_pets(
-    user: TenantUser = Depends(current_tenant_user),
-    session: AsyncSession = Depends(tenant_db, scope="function"),
-) -> list[PetView]:
-    rows = (
-        await session.scalars(
-            select(Pet)
-            .where(Pet.owner_id == user.id, Pet.archived_at.is_(None))
-            .order_by(Pet.created_at)
-        )
-    ).all()
-    return [await _pet_view(session, row) for row in rows]
-
-
-@router.get("/pets/{pet_id}", response_model=PetView)
-async def get_pet(
-    pet_id: UUID,
-    user: TenantUser = Depends(current_tenant_user),
-    context: TenantContext = Depends(tenant_context),
-    session: AsyncSession = Depends(tenant_db, scope="function"),
-) -> PetView:
-    return await _pet_view(
-        session, await _pet_or_404(session, context.id, pet_id, owner_id=user.id)
-    )
-
-
-@router.post("/pets", response_model=PetView, status_code=status.HTTP_201_CREATED)
-async def create_pet(
-    payload: PetCreate,
-    user: TenantUser = Depends(current_tenant_user),
-    context: TenantContext = Depends(tenant_context),
-    session: AsyncSession = Depends(tenant_db, scope="function"),
-) -> PetView:
-    row = Pet(tenant_id=context.id, owner_id=user.id)
-    _apply(
-        row,
-        payload,
-        {
-            "birthDate": "birth_date",
-            "weightKg": "weight_kg",
-            "coatType": "coat_type",
-            "medicalNotes": "medical_notes",
-            "additionalInfo": "additional_info",
-            "vaccinatedUntil": "vaccinated_until",
-        },
-    )
-    session.add(row)
-    await session.flush()
-    return await _pet_view(session, row)
-
-
-@router.post(
-    "/clients/{client_id}/pets", response_model=PetView, status_code=status.HTTP_201_CREATED
-)
-async def admin_create_pet(
-    client_id: UUID,
-    payload: PetCreate,
-    _actor: PlatformUser = Depends(require_crm_actor),
-    tenant_id: UUID = Depends(actor_tenant_id),
-    session: AsyncSession = Depends(actor_tenant_db, scope="function"),
-) -> PetView:
-    await _client_or_404(session, tenant_id, client_id)
-    row = Pet(tenant_id=tenant_id, owner_id=client_id)
-    _apply(
-        row,
-        payload,
-        {
-            "birthDate": "birth_date",
-            "weightKg": "weight_kg",
-            "coatType": "coat_type",
-            "medicalNotes": "medical_notes",
-            "additionalInfo": "additional_info",
-            "vaccinatedUntil": "vaccinated_until",
-        },
-    )
-    session.add(row)
-    await session.flush()
-    return await _pet_view(session, row)
-
-
-@router.patch("/pets/{pet_id}", response_model=PetView)
-async def update_pet(
-    pet_id: UUID,
-    payload: PetUpdate,
-    user: TenantUser = Depends(current_tenant_user),
-    context: TenantContext = Depends(tenant_context),
-    session: AsyncSession = Depends(tenant_db, scope="function"),
-) -> PetView:
-    row = await _pet_or_404(session, context.id, pet_id, owner_id=user.id)
-    _apply(
-        row,
-        payload,
-        {
-            "birthDate": "birth_date",
-            "weightKg": "weight_kg",
-            "coatType": "coat_type",
-            "medicalNotes": "medical_notes",
-            "additionalInfo": "additional_info",
-            "vaccinatedUntil": "vaccinated_until",
-        },
-    )
-    await session.flush()
-    return await _pet_view(session, row)
-
-
-@router.delete("/pets/{pet_id}", response_model=Message)
-async def delete_pet(
-    pet_id: UUID,
-    user: TenantUser = Depends(current_tenant_user),
-    context: TenantContext = Depends(tenant_context),
-    session: AsyncSession = Depends(tenant_db, scope="function"),
-) -> Message:
-    row = await _pet_or_404(session, context.id, pet_id, owner_id=user.id)
-    row.archived_at = datetime.now(UTC)
-    return Message(message="Питомец перемещён в архив")
-
-
-@router.get("/admin/pets", response_model=Paginated)
-async def admin_pets(
-    pagination: Pagination = Depends(),
-    search: str | None = Query(default=None, max_length=160),
-    _actor: PlatformUser = Depends(require_crm_actor),
-    tenant_id: UUID = Depends(actor_tenant_id),
-    session: AsyncSession = Depends(actor_tenant_db, scope="function"),
-) -> Paginated:
-    filters = [Pet.tenant_id == tenant_id, Pet.archived_at.is_(None)]
-    if search:
-        filters.append(or_(Pet.name.ilike(f"%{search}%"), Pet.breed.ilike(f"%{search}%")))
-    total = int(await session.scalar(select(func.count()).select_from(Pet).where(*filters)) or 0)
-    rows = (
-        await session.scalars(
-            select(Pet)
-            .where(*filters)
-            .order_by(Pet.created_at.desc())
-            .offset((pagination.page - 1) * pagination.limit)
-            .limit(pagination.limit)
-        )
-    ).all()
-    return Paginated(
-        items=[await _pet_view(session, row) for row in rows],
-        total=total,
-        page=pagination.page,
-        limit=pagination.limit,
-    )
+    return ClientView.model_validate(row)

@@ -78,7 +78,6 @@ from app.models import (
     Payment,
     PaymentPurpose,
     PaymentStatus,
-    PetPhoto,
     Plan,
     PlatformUser,
     RefreshToken,
@@ -1461,14 +1460,6 @@ async def _purge_deleted_media_object(
             or media.bucket != expected_bucket
         ):
             return
-        # Обычно процессы защиты данных сразу удаляют связь. Это идемпотентная
-        # страховка для прерванных транзакций и старых данных.
-        await session.execute(
-            delete(PetPhoto).where(
-                PetPhoto.tenant_id == tenant_id,
-                PetPhoto.media_object_id == media.id,
-            )
-        )
         await session.delete(media)
 
 

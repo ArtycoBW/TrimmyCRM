@@ -116,12 +116,6 @@ class TenantUserStatus(StrEnum):
     anonymized = "anonymized"
 
 
-class PetSpecies(StrEnum):
-    dog = "dog"
-    cat = "cat"
-    other = "other"
-
-
 class ScheduleExceptionType(StrEnum):
     unavailable = "unavailable"
     available = "available"
@@ -863,40 +857,6 @@ class ClientHairProfile(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     )
 
 
-class Pet(UUIDPrimaryKeyMixin, TimestampMixin, Base):
-    __tablename__ = "pets"
-    __table_args__ = (
-        UniqueConstraint("tenant_id", "id", name="uq_pets_tenant_id_id"),
-        ForeignKeyConstraint(
-            ["tenant_id", "owner_id"],
-            ["tenant_users.tenant_id", "tenant_users.id"],
-            ondelete="CASCADE",
-            name="fk_pets_tenant_owner",
-        ),
-        CheckConstraint("weight_kg IS NULL OR weight_kg > 0", name="positive_weight"),
-        Index("ix_pets_tenant_owner", "tenant_id", "owner_id"),
-    )
-
-    tenant_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("sites.id", ondelete="CASCADE"), nullable=False
-    )
-    owner_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
-    name: Mapped[str] = mapped_column(Text, nullable=False)
-    species: Mapped[PetSpecies | None] = mapped_column(
-        PGEnum(PetSpecies, name="pet_species", create_type=False)
-    )
-    breed: Mapped[str | None] = mapped_column(Text)
-    birth_date: Mapped[date | None] = mapped_column(Date)
-    weight_kg: Mapped[Decimal | None] = mapped_column(Numeric(5, 2))
-    coat_type: Mapped[str | None] = mapped_column(Text)
-    temperament: Mapped[str | None] = mapped_column(Text)
-    allergies: Mapped[str | None] = mapped_column(Text)
-    medical_notes: Mapped[str | None] = mapped_column(Text)
-    additional_info: Mapped[str | None] = mapped_column(Text)
-    vaccinated_until: Mapped[date | None] = mapped_column(Date)
-    archived_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-
-
 class MediaObject(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     __tablename__ = "media_objects"
     __table_args__ = (
@@ -938,84 +898,6 @@ class MediaObject(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         "metadata", JSONB, nullable=False, server_default=sql_text("'{}'::jsonb")
     )
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-
-
-class PetPhoto(UUIDPrimaryKeyMixin, Base):
-    __tablename__ = "pet_photos"
-    __table_args__ = (
-        UniqueConstraint("tenant_id", "id", name="uq_pet_photos_tenant_id_id"),
-        ForeignKeyConstraint(
-            ["tenant_id", "pet_id"],
-            ["pets.tenant_id", "pets.id"],
-            ondelete="CASCADE",
-            name="fk_pet_photos_tenant_pet",
-        ),
-        ForeignKeyConstraint(
-            ["tenant_id", "media_object_id"],
-            ["media_objects.tenant_id", "media_objects.id"],
-            ondelete="RESTRICT",
-            name="fk_pet_photos_tenant_media",
-        ),
-        CheckConstraint("position >= 0", name="nonnegative_position"),
-        Index("ix_pet_photos_tenant_pet", "tenant_id", "pet_id"),
-        Index(
-            "uq_pet_photos_one_cover_per_pet",
-            "tenant_id",
-            "pet_id",
-            unique=True,
-            postgresql_where=sql_text("is_cover"),
-        ),
-    )
-
-    tenant_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("sites.id", ondelete="CASCADE"), nullable=False
-    )
-    pet_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
-    media_object_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
-    url: Mapped[str] = mapped_column(Text, nullable=False)
-    is_cover: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, server_default=sql_text("false")
-    )
-    position: Mapped[int] = mapped_column(Integer, nullable=False, server_default=sql_text("0"))
-    uploaded_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
-
-
-class PetDocument(UUIDPrimaryKeyMixin, Base):
-    __tablename__ = "pet_documents"
-    __table_args__ = (
-        UniqueConstraint("tenant_id", "id", name="uq_pet_documents_tenant_id_id"),
-        ForeignKeyConstraint(
-            ["tenant_id", "pet_id"],
-            ["pets.tenant_id", "pets.id"],
-            ondelete="CASCADE",
-            name="fk_pet_documents_tenant_pet",
-        ),
-        ForeignKeyConstraint(
-            ["tenant_id", "media_object_id"],
-            ["media_objects.tenant_id", "media_objects.id"],
-            ondelete="RESTRICT",
-            name="fk_pet_documents_tenant_media",
-        ),
-        CheckConstraint(
-            "document_type IN ('passport')",
-            name="pet_documents_document_type_valid",
-        ),
-        Index("ix_pet_documents_tenant_pet", "tenant_id", "pet_id"),
-    )
-
-    tenant_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("sites.id", ondelete="CASCADE"), nullable=False
-    )
-    pet_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
-    media_object_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
-    document_type: Mapped[str] = mapped_column(Text, nullable=False)
-    original_filename: Mapped[str | None] = mapped_column(Text)
-    url: Mapped[str] = mapped_column(Text, nullable=False)
-    uploaded_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
 
 
 class Appointment(UUIDPrimaryKeyMixin, TimestampMixin, Base):
@@ -1701,8 +1583,6 @@ __all__ = [
     "Notification",
     "NotificationPreference",
     "Payment",
-    "Pet",
-    "PetPhoto",
     "Plan",
     "PlatformUser",
     "Promotion",

@@ -95,7 +95,12 @@ def test_catalog_provides_editable_copy_for_content_sections() -> None:
                 config={
                     "title": "Перед визитом",
                     "subtitle": "Отвечаем заранее",
-                    "items": [{"question": "Что взять?", "answer": "Только питомца."}],
+                    "items": [
+                        {
+                            "question": "Как подготовиться?",
+                            "answer": "Приходите с чистыми сухими волосами.",
+                        }
+                    ],
                 },
             )
         ],
@@ -103,7 +108,7 @@ def test_catalog_provides_editable_copy_for_content_sections() -> None:
         limits={"blocks": None},
     )
 
-    assert blocks[0].config["items"][0]["answer"] == "Только питомца."
+    assert blocks[0].config["items"][0]["answer"] == "Приходите с чистыми сухими волосами."
 
 
 def test_builder_accepts_safe_appearance_and_rejects_invalid_values() -> None:
