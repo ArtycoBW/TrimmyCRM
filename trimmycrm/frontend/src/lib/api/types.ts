@@ -279,6 +279,33 @@ export type StaffView = {
   updatedAt: string;
 };
 
+export type AppointmentItemAddonView = {
+  id: string;
+  addonId: string;
+  name: string;
+  price: string | number;
+  durationMin: number;
+};
+
+export type AppointmentItemView = {
+  id: string;
+  serviceId: string;
+  variantId: string | null;
+  assignedStaffId: string | null;
+  serviceName: string;
+  variantLabel: string | null;
+  selectedOptions: Record<string, unknown>;
+  unitPrice: string | number;
+  finalPrice: string | number | null;
+  durationMin: number;
+  bufferBeforeMin: number;
+  bufferAfterMin: number;
+  currency: "RUB";
+  sortOrder: number;
+  adjustmentReason: string | null;
+  addons: AppointmentItemAddonView[];
+};
+
 export type ScheduleExceptionView = {
   id: string;
   staffId: string;
@@ -327,6 +354,7 @@ export type AppointmentView = {
   petName: string | null;
   serviceName: string | null;
   staffName: string | null;
+  items: AppointmentItemView[];
 };
 
 export type PhotoView = {

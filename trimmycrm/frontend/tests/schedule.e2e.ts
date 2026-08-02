@@ -3,6 +3,7 @@ import { expect, test } from "@playwright/test";
 import { mockExistingSite, mockOwnerProfile } from "./helpers/app-fixtures";
 import {
   clientFixture,
+  colorServiceFixture,
   mockScheduleApis,
   petFixture,
   scheduleAppointment,
@@ -147,8 +148,7 @@ test("appointment status update sends expectedVersion", async ({ page }, testInf
   await expect(page.getByText("Статус записи обновлён")).toBeVisible();
 });
 
-test("manual appointment uses client pets and current admin payload", async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name !== "desktop-chrome", "One create integration pass is enough");
+test("manual appointment sends multiple catalog items with options", async ({ page }, testInfo) => {
   await prepare(page);
   await page.route("**/api/v1/admin/appointments", async (route) => {
     expect(route.request().method()).toBe("POST");
@@ -156,7 +156,18 @@ test("manual appointment uses client pets and current admin payload", async ({ p
     expect(payload).toMatchObject({
       tenantUserId: clientFixture.id,
       petId: petFixture.id,
-      serviceId: serviceFixture.id,
+      items: [
+        {
+          serviceId: serviceFixture.id,
+          variantId: serviceFixture.variants[0].id,
+          addonIds: [serviceFixture.addons[0].id],
+        },
+        {
+          serviceId: colorServiceFixture.id,
+          variantId: null,
+          addonIds: [],
+        },
+      ],
       staffId: staffFixture.id,
       notes: null,
     });
@@ -177,8 +188,22 @@ test("manual appointment uses client pets and current admin payload", async ({ p
   await selectOption(page, "Клиент", clientFixture.fullName);
   await expect(page.getByLabel("Питомец")).toBeEnabled();
   await selectOption(page, "Питомец", /Боня/);
-  await selectOption(page, /^Услуга$/, /Стрижка и укладка/);
+  await selectOption(page, "Услуги визита", /Стрижка и укладка/);
+  await page.getByRole("button", { name: "Добавить услугу" }).click();
+  await selectOption(page, /Вариант обязательно/, /Длинные волосы/);
+  await page.getByRole("checkbox", { name: /Экспресс-уход/ }).check();
+  await selectOption(page, "Услуги визита", /Тонирование/);
+  await page.getByRole("button", { name: "Добавить услугу" }).click();
   await selectOption(page, /^Мастер$/, staffFixture.name);
+  await expect(page.getByText("195 мин", { exact: false })).toBeVisible();
+  await expect(page.getByText("7 000 ₽", { exact: false })).toBeVisible();
+  if (testInfo.project.name === "mobile-chrome") {
+    const geometry = await page.evaluate(() => ({
+      viewport: innerWidth,
+      document: document.documentElement.scrollWidth,
+    }));
+    expect(geometry.document).toBeLessThanOrEqual(geometry.viewport + 1);
+  }
   await expect(page.locator('input[type="date"]')).toHaveCount(0);
   await page.getByRole("button", { name: "Дата визита" }).click();
   await expect(page.locator(".ui-date-picker__content")).toBeVisible();

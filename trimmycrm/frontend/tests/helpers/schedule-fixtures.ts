@@ -103,6 +103,20 @@ export const serviceFixture = {
   updatedAt: new Date().toISOString(),
 };
 
+export const colorServiceFixture = {
+  ...serviceFixture,
+  id: "821a7b8e-9cad-4bed-907c-28ec6b97fe42",
+  name: "Тонирование",
+  description: "Обновление оттенка волос",
+  price: "3200.00",
+  durationMin: 60,
+  bufferBeforeMin: 0,
+  bufferAfterMin: 20,
+  variantSelectionRequired: false,
+  variants: [],
+  addons: [],
+};
+
 export const staffFixture = {
   id: "e43f7318-1438-48fe-a7e5-9a14c87ee233",
   tenantId: siteFixture.id,
@@ -111,7 +125,7 @@ export const staffFixture = {
   specialization: "Стилист",
   photoUrl: null,
   schedule: {},
-  serviceIds: [serviceFixture.id],
+  serviceIds: [serviceFixture.id, colorServiceFixture.id],
   isActive: true,
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
@@ -127,7 +141,7 @@ export const scheduleAppointment = {
   startAt: zonedDateTimeToIso(today, "10:00", timezone),
   endAt: zonedDateTimeToIso(today, "11:30", timezone),
   status: "new",
-  price: "2400.00",
+  price: "3800.00",
   prepaid: false,
   notes: "Не стричь хвост коротко",
   version: 1,
@@ -136,6 +150,30 @@ export const scheduleAppointment = {
   petName: petFixture.name,
   serviceName: serviceFixture.name,
   staffName: staffFixture.name,
+  items: [{
+    id: "fee3312d-92f8-4a96-b914-256a23029db2",
+    serviceId: serviceFixture.id,
+    variantId: serviceFixture.variants[0].id,
+    assignedStaffId: staffFixture.id,
+    serviceName: serviceFixture.name,
+    variantLabel: serviceFixture.variants[0].label,
+    selectedOptions: { source: "catalogSelection" },
+    unitPrice: "3800.00",
+    finalPrice: null,
+    durationMin: 135,
+    bufferBeforeMin: 0,
+    bufferAfterMin: 15,
+    currency: "RUB" as const,
+    sortOrder: 0,
+    adjustmentReason: null,
+    addons: [{
+      id: "0353794d-8b7a-427d-8dd1-eb0322cfda66",
+      addonId: serviceFixture.addons[0].id,
+      name: serviceFixture.addons[0].name,
+      price: serviceFixture.addons[0].priceDelta,
+      durationMin: serviceFixture.addons[0].durationDeltaMin,
+    }],
+  }],
 };
 
 export async function mockScheduleApis(page: Page) {
@@ -152,6 +190,8 @@ export async function mockScheduleApis(page: Page) {
   await page.route("**/api/v1/clients/" + clientFixture.id, (route) =>
     json(route, { ...clientFixture, pets: [petFixture], appointmentHistory: [] }),
   );
-  await page.route("**/api/v1/services", (route) => json(route, [serviceFixture]));
+  await page.route("**/api/v1/services", (route) =>
+    json(route, [serviceFixture, colorServiceFixture]),
+  );
   await page.route("**/api/v1/staff", (route) => json(route, [staffFixture]));
 }

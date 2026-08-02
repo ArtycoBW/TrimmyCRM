@@ -3,7 +3,7 @@
 import type { CSSProperties } from "react";
 
 import type { AppointmentView, StaffView } from "@/lib/api/types";
-import { calendarEventLanes, calendarPosition } from "@/lib/app/calendar";
+import { appointmentServiceLabel, calendarEventLanes, calendarPosition } from "@/lib/app/calendar";
 import {
   appointmentStatuses,
   formatMoney,
@@ -64,6 +64,7 @@ export function CalendarGrid({
                 <div className={"calendar-day" + (day === today ? " is-today" : "")} key={day}>
                   {calendarEventLanes(values, timezone).map(({ appointment, lane, lanes }, index) => {
                     const position = calendarPosition(appointment, timezone, startHour, endHour);
+                    const serviceLabel = appointmentServiceLabel(appointment);
                     const tone = appointment.status === "cancelled"
                       ? "cancelled"
                       : "staff-" + (staffColors.get(appointment.staffId || "") ?? index % 5);
@@ -83,7 +84,7 @@ export function CalendarGrid({
                         aria-label={
                           formatSalonTime(appointment.startAt, timezone) + ", " +
                           (appointment.petName || "питомец") + ", " +
-                          (appointment.serviceName || "услуга")
+                          serviceLabel
                         }
                         key={appointment.id}
                         data-calendar-lane={lane}
@@ -91,7 +92,7 @@ export function CalendarGrid({
                       >
                         <time>{formatSalonTime(appointment.startAt, timezone)}</time>
                         <strong>{appointment.petName || "Питомец"}</strong>
-                        <span>{appointment.serviceName || "Услуга"}</span>
+                        <span>{serviceLabel}</span>
                         <small>{appointment.staffName || "Без мастера"}</small>
                       </button>
                     );
@@ -119,6 +120,7 @@ export function CalendarGrid({
                 <div>
                   {values.map((appointment) => {
                     const status = appointmentStatuses[appointment.status];
+                    const serviceLabel = appointmentServiceLabel(appointment);
                     return (
                       <button type="button" className="agenda-event" onClick={() => onSelect(appointment)} key={appointment.id}>
                         <time>
@@ -128,7 +130,7 @@ export function CalendarGrid({
                         <span aria-hidden="true">{(appointment.petName || "П")[0]?.toUpperCase()}</span>
                         <p>
                           <strong>{appointment.petName || "Питомец"}</strong>
-                          <small>{appointment.serviceName || "Услуга"} · {appointment.clientName || "Клиент"}</small>
+                          <small>{serviceLabel} · {appointment.clientName || "Клиент"}</small>
                         </p>
                         <em>{formatMoney(appointment.price)}</em>
                         <i className={"crm-status crm-status--" + status.tone}>{status.label}</i>

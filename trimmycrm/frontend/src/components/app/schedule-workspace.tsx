@@ -21,6 +21,8 @@ import type {
 } from "@/lib/api/types";
 import {
   addDays,
+  appointmentMatchesService,
+  appointmentServiceLabel,
   currentWeekKey,
   statusTransitions,
   weekDateKeys,
@@ -121,7 +123,7 @@ export function ScheduleWorkspace({ mode }: { mode: "calendar" | "list" }) {
     if (state.status !== "ready") return [];
     return state.data.appointments.filter((appointment) =>
       (!staffFilter || appointment.staffId === staffFilter) &&
-      (!serviceFilter || appointment.serviceId === serviceFilter) &&
+      (!serviceFilter || appointmentMatchesService(appointment, serviceFilter)) &&
       (!statusFilter || appointment.status === statusFilter)
     );
   }, [serviceFilter, staffFilter, state, statusFilter]);
@@ -325,7 +327,7 @@ export function ScheduleWorkspace({ mode }: { mode: "calendar" | "list" }) {
                     <span>{formatSalonTime(appointment.startAt, timezone)}</span>
                   </time>
                   <span><strong>{appointment.petName || "Питомец"}</strong><small>{appointment.clientName || "Клиент"}</small></span>
-                  <span>{appointment.serviceName || "Услуга"}</span>
+                  <span>{appointmentServiceLabel(appointment)}</span>
                   <span>{appointment.staffName || "Не назначен"}</span>
                   <strong>{formatMoney(appointment.price)}</strong>
                   <i className={"crm-status crm-status--" + status.tone}>{status.label}</i>

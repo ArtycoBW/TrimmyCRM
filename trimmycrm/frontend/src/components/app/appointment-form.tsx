@@ -21,8 +21,25 @@ const timeOptions = Array.from({ length: 27 }, (_, index) => {
   return String(Math.floor(minutes / 60)).padStart(2, "0") + ":" + String(minutes % 60).padStart(2, "0");
 });
 
+type BookingItemDraft = {
+  serviceId: string;
+  variantId: string;
+  addonIds: string[];
+};
+
 function clientLabel(client: ClientView) {
   return client.fullName || client.email || client.phone || "Клиент без имени";
+}
+
+function itemEstimate(service: ServiceView, item: BookingItemDraft) {
+  const variant = service.variants.find((value) => value.id === item.variantId);
+  const addons = service.addons.filter((value) => item.addonIds.includes(value.id));
+  return {
+    price: Number(service.price) + Number(variant?.priceDelta || 0) +
+      addons.reduce((total, value) => total + Number(value.priceDelta), 0),
+    duration: service.durationMin + (variant?.durationDeltaMin || 0) +
+      addons.reduce((total, value) => total + value.durationDeltaMin, 0),
+  };
 }
 
 export function AppointmentForm({
@@ -50,7 +67,8 @@ export function AppointmentForm({
   const [clientDetails, setClientDetails] = useState<ClientDetailsView | null>(null);
   const [petsLoading, setPetsLoading] = useState(false);
   const [petId, setPetId] = useState("");
-  const [serviceId, setServiceId] = useState("");
+  const [serviceToAdd, setServiceToAdd] = useState("");
+  const [items, setItems] = useState<BookingItemDraft[]>([]);
   const [staffId, setStaffId] = useState("");
   const [date, setDate] = useState(initialDate);
   const [time, setTime] = useState("10:00");
@@ -108,16 +126,59 @@ export function AppointmentForm({
     };
   }, [clientId]);
 
-  const selectedService = useMemo(
-    () => services.find((service) => service.id === serviceId) || null,
-    [serviceId, services],
+  const selectedItems = useMemo(() => items.flatMap((item) => {
+    const service = services.find((value) => value.id === item.serviceId);
+    return service ? [{ item, service }] : [];
+  }), [items, services]);
+  const eligibleStaff = useMemo(
+    () => staff.filter((member) => items.every((item) => member.serviceIds.includes(item.serviceId))),
+    [items, staff],
   );
+  const estimate = useMemo(() => selectedItems.reduce(
+    (total, value) => {
+      const current = itemEstimate(value.service, value.item);
+      return { price: total.price + current.price, duration: total.duration + current.duration };
+    },
+    { price: 0, duration: 0 },
+  ), [selectedItems]);
+
+  function commitItems(next: BookingItemDraft[]) {
+    setItems(next);
+    if (staffId) {
+      const selectedStaff = staff.find((member) => member.id === staffId);
+      if (!selectedStaff || next.some((item) => !selectedStaff.serviceIds.includes(item.serviceId))) {
+        setStaffId("");
+      }
+    }
+    setFormError(null);
+  }
+
+  function addService() {
+    if (!serviceToAdd || items.some((item) => item.serviceId === serviceToAdd)) return;
+    if (items.length >= 10) {
+      setFormError("В одной записи может быть не более 10 услуг");
+      return;
+    }
+    commitItems([...items, { serviceId: serviceToAdd, variantId: "", addonIds: [] }]);
+    setServiceToAdd("");
+  }
+
+  function updateItem(serviceId: string, update: Partial<BookingItemDraft>) {
+    commitItems(items.map((item) => item.serviceId === serviceId ? { ...item, ...update } : item));
+  }
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setFormError(null);
-    if (!clientId || !petId || !serviceId || !date || !time) {
-      setFormError("Заполните клиента, питомца, услугу, дату и время");
+    if (!clientId || !petId || !items.length || !date || !time) {
+      setFormError("Заполните клиента, профиль, услуги, дату и время");
+      return;
+    }
+    const missingVariant = selectedItems.find(
+      ({ item, service }) => service.variantSelectionRequired && !item.variantId,
+    );
+    if (missingVariant) {
+      setFormError("Выберите вариант услуги «" + missingVariant.service.name + "»");
       return;
     }
     setSubmitting(true);
@@ -128,7 +189,11 @@ export function AppointmentForm({
         body: JSON.stringify({
           tenantUserId: clientId,
           petId,
-          serviceId,
+          items: items.map((item) => ({
+            serviceId: item.serviceId,
+            variantId: item.variantId || null,
+            addonIds: item.addonIds,
+          })),
           staffId: staffId || null,
           startAt: zonedDateTimeToIso(date, time, timezone),
           notes: notes.trim() || null,
@@ -219,28 +284,124 @@ export function AppointmentForm({
               )}
             </div>
 
-            <div className="crm-field">
-              <label htmlFor="appointment-service">Услуга</label>
-              <AppSelect
-                id="appointment-service"
-                value={serviceId}
-                onValueChange={setServiceId}
-                placeholder="Выберите услугу"
-                options={services.map((service) => ({ value: service.id, label: service.name + " · " + formatMoney(service.price) }))}
-              />
-            </div>
+            <section className="appointment-form__services appointment-form__wide">
+              <div className="appointment-form__service-add">
+                <div className="crm-field">
+                  <label id="appointment-services-title" htmlFor="appointment-service-add">Услуги визита</label>
+                  <AppSelect
+                    id="appointment-service-add"
+                    value={serviceToAdd}
+                    onValueChange={setServiceToAdd}
+                    placeholder="Выберите услугу"
+                    options={services
+                      .filter((service) => !items.some((item) => item.serviceId === service.id))
+                      .map((service) => ({
+                        value: service.id,
+                        label: service.name + " · " + formatMoney(service.price),
+                      }))}
+                  />
+                </div>
+                <button
+                  className="button appointment-form__service-add-button"
+                  type="button"
+                  disabled={!serviceToAdd}
+                  onClick={addService}
+                >
+                  Добавить услугу
+                </button>
+              </div>
 
-            <div className="crm-field">
+              {selectedItems.length ? (
+                <ol className="appointment-form__service-list">
+                  {selectedItems.map(({ item, service }, index) => {
+                    const current = itemEstimate(service, item);
+                    return (
+                      <li key={service.id}>
+                        <header>
+                          <span>{String(index + 1).padStart(2, "0")}</span>
+                          <div>
+                            <strong>{service.name}</strong>
+                            <small>{current.duration} мин · {formatMoney(current.price)}</small>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => commitItems(items.filter((value) => value.serviceId !== service.id))}
+                            aria-label={"Убрать услугу «" + service.name + "»"}
+                          >
+                            Убрать
+                          </button>
+                        </header>
+
+                        {service.variants.length > 0 && (
+                          <div className="crm-field appointment-form__service-variant">
+                            <label htmlFor={"appointment-variant-" + service.id}>
+                              Вариант {service.variantSelectionRequired ? <small>обязательно</small> : <small>необязательно</small>}
+                            </label>
+                            <AppSelect
+                              id={"appointment-variant-" + service.id}
+                              value={item.variantId || (service.variantSelectionRequired ? "__select__" : "__none__")}
+                              onValueChange={(value) => updateItem(service.id, {
+                                variantId: value === "__none__" || value === "__select__" ? "" : value,
+                              })}
+                              options={[
+                                ...(service.variantSelectionRequired
+                                  ? [{ value: "__select__", label: "Выберите вариант", disabled: true }]
+                                  : [{ value: "__none__", label: "Без варианта" }]),
+                                ...service.variants.map((variant) => ({
+                                  value: variant.id,
+                                  label: variant.label + " · +" + formatMoney(variant.priceDelta) + " · +" + variant.durationDeltaMin + " мин",
+                                })),
+                              ]}
+                              placeholder="Выберите вариант"
+                            />
+                          </div>
+                        )}
+
+                        {service.addons.length > 0 && (
+                          <div className="appointment-form__addons" role="group" aria-label={"Дополнения к услуге «" + service.name + "»"}>
+                            <p>Дополнения <small>можно несколько</small></p>
+                            <div>
+                              {service.addons.map((addon) => (
+                                <label key={addon.id}>
+                                  <input
+                                    type="checkbox"
+                                    checked={item.addonIds.includes(addon.id)}
+                                    onChange={(event) => updateItem(service.id, {
+                                      addonIds: event.target.checked
+                                        ? [...item.addonIds, addon.id]
+                                        : item.addonIds.filter((value) => value !== addon.id),
+                                    })}
+                                  />
+                                  <span>
+                                    <strong>{addon.name}</strong>
+                                    <small>+{formatMoney(addon.priceDelta)} · +{addon.durationDeltaMin} мин</small>
+                                  </span>
+                                </label>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ol>
+              ) : (
+                <p className="appointment-form__services-empty">Добавьте одну или несколько услуг визита.</p>
+              )}
+            </section>
+
+            <div className="crm-field appointment-form__wide">
               <label htmlFor="appointment-staff">Мастер</label>
               <AppSelect
                 id="appointment-staff"
                 value={staffId}
                 onValueChange={setStaffId}
                 placeholder="Любой свободный"
-                options={staff
-                  .filter((member) => !serviceId || member.serviceIds.includes(serviceId))
-                  .map((member) => ({ value: member.id, label: member.name }))}
+                options={eligibleStaff.map((member) => ({ value: member.id, label: member.name }))}
               />
+              {items.length > 0 && !eligibleStaff.length && (
+                <p className="appointment-form__hint appointment-form__hint--error">Нет мастера, который оказывает весь выбранный набор.</p>
+              )}
             </div>
 
             <div className="crm-field">
@@ -272,15 +433,16 @@ export function AppointmentForm({
                 id="appointment-notes"
                 value={notes}
                 maxLength={5000}
-                placeholder="Пожелания клиента, особенности питомца"
+                placeholder="Пожелания клиента и детали визита"
                 onChange={(event) => setNotes(event.target.value)}
               />
             </div>
 
-            {selectedService && (
+            {selectedItems.length > 0 && (
               <div className="appointment-form__total">
-                <span>Продолжительность <strong>{selectedService.durationMin} мин</strong></span>
-                <span>Стоимость <strong>{formatMoney(selectedService.price)}</strong></span>
+                <span>Предварительная длительность <strong>{estimate.duration} мин</strong></span>
+                <span>Предварительная стоимость <strong>{formatMoney(estimate.price)}</strong></span>
+                <small>Сервер проверит каталог, мастера и слот перед сохранением.</small>
               </div>
             )}
 

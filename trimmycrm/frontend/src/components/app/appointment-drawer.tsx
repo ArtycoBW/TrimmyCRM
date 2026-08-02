@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 
 import type { AppointmentView } from "@/lib/api/types";
+import { appointmentServiceLabel } from "@/lib/app/calendar";
 import { appointmentStatuses, formatMoney, formatSalonTime, salonDayKey } from "@/lib/app/dashboard";
 
 const transitionLabels: Partial<Record<AppointmentView["status"], string>> = {
@@ -84,7 +85,7 @@ export function AppointmentDrawer({
           </div>
           <div>
             <dt>Услуга</dt>
-            <dd>{appointment.serviceName || "Не указана"}</dd>
+            <dd>{appointmentServiceLabel(appointment)}</dd>
           </div>
           <div>
             <dt>Мастер</dt>
@@ -99,6 +100,27 @@ export function AppointmentDrawer({
             <dd>{appointment.prepaid ? "Есть предоплата" : "Без предоплаты"}</dd>
           </div>
         </dl>
+
+        {appointment.items.length > 0 && (
+          <section className="appointment-drawer__items" aria-labelledby="appointment-items-title">
+            <p className="crm-kicker" id="appointment-items-title">Состав визита</p>
+            <ol>
+              {appointment.items.map((item, index) => (
+                <li key={item.id}>
+                  <span>{String(index + 1).padStart(2, "0")}</span>
+                  <div>
+                    <strong>{item.serviceName}</strong>
+                    {item.variantLabel && <p>{item.variantLabel}</p>}
+                    {item.addons.length > 0 && (
+                      <p>{item.addons.map((addon) => addon.name).join(", ")}</p>
+                    )}
+                    <small>{item.durationMin} мин · {formatMoney(item.finalPrice ?? item.unitPrice)}</small>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </section>
+        )}
 
         {appointment.notes && (
           <section className="appointment-drawer__notes">

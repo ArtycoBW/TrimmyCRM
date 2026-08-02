@@ -4,6 +4,8 @@ import type { SiteView } from "../src/lib/api/types";
 import { appointmentStatuses, formatSalonTimezone, launchChecklist, salonDayKey } from "../src/lib/app/dashboard";
 import {
   addDays,
+  appointmentMatchesService,
+  appointmentServiceLabel,
   calendarEventLanes,
   calendarPosition,
   startOfWeekKey,
@@ -124,6 +126,20 @@ describe("owner app contract", () => {
       expect.objectContaining({ appointment: values[1], lane: 1, lanes: 2 }),
       expect.objectContaining({ appointment: values[2], lane: 1, lanes: 2 }),
     ]);
+  });
+
+  it("uses all appointment item snapshots in labels and service filters", () => {
+    const appointment = {
+      serviceId: "haircut",
+      serviceName: "Старая основная услуга",
+      items: [
+        { serviceId: "haircut", serviceName: "Стрижка" },
+        { serviceId: "color", serviceName: "Тонирование" },
+      ],
+    };
+    expect(appointmentServiceLabel(appointment)).toBe("Стрижка + Тонирование");
+    expect(appointmentMatchesService(appointment, "color")).toBe(true);
+    expect(appointmentMatchesService(appointment, "care")).toBe(false);
   });
 
   it("validates client forms without inventing required contacts", () => {

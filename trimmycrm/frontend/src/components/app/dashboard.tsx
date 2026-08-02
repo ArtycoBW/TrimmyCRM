@@ -13,6 +13,7 @@ import type {
   ServiceView,
   StaffView,
 } from "@/lib/api/types";
+import { appointmentServiceLabel } from "@/lib/app/calendar";
 import {
   appointmentStatuses,
   formatMoney,
@@ -222,7 +223,7 @@ export function Dashboard() {
                     </span>
                     <div className="crm-appointment__main">
                       <strong>{appointment.petName || "Питомец"}</strong>
-                      <p>{appointment.serviceName || "Услуга"} · {appointment.clientName || "Клиент"}</p>
+                      <p>{appointmentServiceLabel(appointment)} · {appointment.clientName || "Клиент"}</p>
                     </div>
                     <div className="crm-appointment__staff">
                       <small>мастер</small>
