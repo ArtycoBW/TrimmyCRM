@@ -13,6 +13,17 @@ test.beforeEach(async ({ page }) => {
   }));
 });
 
+test("first visit intro plays once per browser session", async ({ page }) => {
+  await page.goto("/");
+
+  const intro = page.getByTestId("first-visit-preloader");
+  await expect(intro).toBeVisible();
+  await expect(intro).toBeHidden({ timeout: 5_000 });
+
+  await page.reload();
+  await expect(page.getByTestId("first-visit-preloader")).toHaveCount(0);
+});
+
 test("landing renders its core sections", async ({ page }, testInfo) => {
   await page.goto("/");
 

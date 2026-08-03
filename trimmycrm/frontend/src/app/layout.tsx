@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
 
+import { FirstVisitPreloader, firstVisitPreloaderScript } from "@/components/ui/first-visit-preloader";
 import { PwaRegister } from "@/components/pwa-register";
 import { realmForHostname } from "@/lib/auth/realm";
 import { fetchTenantPublicSite } from "@/lib/site/server-public-site";
@@ -86,8 +87,12 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="ru" data-scroll-behavior="smooth">
+    <html lang="ru" data-scroll-behavior="smooth" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: firstVisitPreloaderScript }} />
+      </head>
       <body>
+        <FirstVisitPreloader />
         <PwaRegister />
         {children}
       </body>

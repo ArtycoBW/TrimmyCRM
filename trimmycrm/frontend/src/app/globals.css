@@ -3336,6 +3336,113 @@ h2 span {
 .landing-chat form .button { display: inline-flex; min-height: 42px; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; }
 .landing-chat form .button svg { width: 16px; height: 16px; stroke-width: 1.8; }
 
+.first-visit-preloader {
+  position: fixed;
+  z-index: 6000;
+  inset: 0;
+  display: none;
+  min-height: 100dvh;
+  place-items: center;
+  overflow: hidden;
+  padding: clamp(24px, 5vw, 72px);
+  background:
+    linear-gradient(rgb(0 0 0 / .045) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(0 0 0 / .045) 1px, transparent 1px),
+    var(--color-paper-white);
+  background-size: 34px 34px;
+  color: var(--color-pure-black);
+  will-change: transform;
+  animation: first-visit-preloader-out .72s cubic-bezier(.76, 0, .24, 1) 2.15s both;
+}
+
+html[data-trimmy-intro="show"] {
+  overflow: hidden;
+}
+
+html[data-trimmy-intro="show"] .first-visit-preloader {
+  display: grid;
+}
+
+.first-visit-preloader::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0 0 0 auto;
+  width: clamp(88px, 22vw, 420px);
+  background: var(--color-vermillion);
+  content: "";
+}
+
+.first-visit-preloader::after {
+  position: absolute;
+  right: clamp(56px, 17vw, 320px);
+  bottom: 0;
+  width: clamp(44px, 7vw, 112px);
+  height: 38%;
+  background: var(--color-acid-mint);
+  content: "";
+  transform: translateY(100%);
+  animation: first-visit-accent-rise .75s cubic-bezier(.16, 1, .3, 1) 1.18s forwards;
+}
+
+.first-visit-preloader__brand {
+  position: absolute;
+  top: clamp(22px, 4vw, 48px);
+  left: clamp(22px, 4vw, 54px);
+}
+
+.first-visit-preloader__signature {
+  position: relative;
+  z-index: 2;
+  width: min(74vw, 720px);
+  height: auto;
+  overflow: visible;
+  filter: drop-shadow(0 1px 0 rgb(255 255 255 / .48));
+}
+
+.first-visit-preloader__stroke {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.first-visit-preloader__stroke--lead {
+  animation: first-visit-draw .72s cubic-bezier(.65, 0, .35, 1) .08s forwards;
+}
+
+.first-visit-preloader__stroke--word {
+  animation: first-visit-draw 1.38s cubic-bezier(.65, 0, .35, 1) .58s forwards;
+}
+
+.first-visit-preloader__accent {
+  position: absolute;
+  right: clamp(24px, 5vw, 70px);
+  bottom: clamp(22px, 4vw, 48px);
+  width: 64px;
+  height: 10px;
+  background: var(--color-pure-black);
+  transform: scaleX(0);
+  transform-origin: right;
+  animation: first-visit-accent-draw .42s cubic-bezier(.16, 1, .3, 1) 1.72s forwards;
+}
+
+@keyframes first-visit-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes first-visit-accent-rise {
+  to { transform: translateY(0); }
+}
+
+@keyframes first-visit-accent-draw {
+  to { transform: scaleX(1); }
+}
+
+@keyframes first-visit-preloader-out {
+  from { transform: translate3d(0, 0, 0); }
+  to { visibility: hidden; transform: translate3d(0, -100%, 0); }
+}
+
 .route-preloader {
   position: fixed;
   z-index: 4000;
@@ -3416,7 +3523,21 @@ h2 span {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .first-visit-preloader {
+    animation: first-visit-preloader-fade .16s linear .48s forwards;
+  }
+  .first-visit-preloader::after,
+  .first-visit-preloader__accent,
+  .first-visit-preloader__stroke {
+    animation: none;
+    transform: none;
+  }
+  .first-visit-preloader__stroke { stroke-dashoffset: 0; }
   .route-preloader__cut span { animation: none; transform: scaleY(1); }
+}
+
+@keyframes first-visit-preloader-fade {
+  to { visibility: hidden; opacity: 0; }
 }
 .client-list-section > header svg { width: 16px; }
 .client-booking__grid { display: grid; margin-top: 25px; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 17px; }
