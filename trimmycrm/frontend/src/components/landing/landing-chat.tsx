@@ -6,9 +6,9 @@ import { ApiError, apiRequest } from "@/lib/api/client";
 import { formatRussianPhone, normalizeRussianPhone } from "@/lib/app/phone";
 
 const answers = [
-  { question: "Что входит в TrimmyCRM?", answer: "Сайт салона, онлайн-запись, календарь, клиенты, услуги и базовая аналитика — в одном кабинете." },
-  { question: "Сколько стоит?", answer: "Есть 14 дней бесплатно. Затем можно выбрать подходящий тариф в кабинете — без привязки карты на старте." },
-  { question: "Как быстро запуститься?", answer: "Обычно сайт и первую запись можно настроить за один вечер. Если нужна помощь — оставьте контакты, и мы подскажем." },
+  { question: "Что входит в TrimmyCRM?", answer: "Сайт салона, онлайн-запись, календарь, клиенты, услуги и базовая аналитика находятся в одном кабинете." },
+  { question: "Сколько стоит?", answer: "Есть 14 дней бесплатно. Затем можно выбрать подходящий тариф в кабинете. Привязка карты на старте не нужна." },
+  { question: "Как быстро запуститься?", answer: "Обычно сайт и первую запись можно настроить за один вечер. Если нужна помощь, оставьте контакты, и мы подскажем." },
 ];
 
 export function LandingChat() {
@@ -53,7 +53,7 @@ export function LandingChat() {
       <div className="landing-chat__messages" ref={messagesRef}>{messages.map((message, index) => <p className={`is-${message.from}`} key={`${message.from}-${index}`}>{message.text}</p>)}</div>
       <div className="landing-chat__quick">{answers.map((item) => <button key={item.question} type="button" onClick={() => answer(item)}>{item.question}</button>)}</div>
       <form onSubmit={submit}>
-        <p>Оставьте контакты — подскажем по вашему сценарию.</p>
+        <p>Оставьте контакты, подскажем по вашему сценарию.</p>
         <input value={name} onChange={(event) => setName(event.target.value)} placeholder="Ваше имя" autoComplete="name" minLength={2} required />
         <input value={phone} onChange={(event) => setPhone(formatRussianPhone(event.target.value))} placeholder="+7 (989) 652 15 42" type="tel" inputMode="tel" autoComplete="tel" minLength={7} required />
         <input value={question} onChange={(event) => setQuestion(event.target.value)} placeholder="Ваш вопрос (необязательно)" maxLength={5000} />

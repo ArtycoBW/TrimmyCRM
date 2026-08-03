@@ -11,7 +11,7 @@ import "./globals.css";
 const platformMetadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://trimmycrm.ru"),
   title: {
-    default: "TrimmyCRM — сайт, онлайн-запись и CRM для парикмахерской",
+    default: "TrimmyCRM: сайт, онлайн-запись и CRM для парикмахерской",
     template: "%s · TrimmyCRM",
   },
   description:
@@ -34,7 +34,7 @@ const platformMetadata: Metadata = {
     apple: [{ url: "/brand/trimmy-mark-180.png", sizes: "180x180", type: "image/png" }],
   },
   openGraph: {
-    title: "TrimmyCRM — меньше рутины, больше точных записей",
+    title: "TrimmyCRM: меньше рутины, больше точных записей",
     description: "Сайт, онлайн-запись и CRM для парикмахерской или барбершопа в одном сервисе.",
     type: "website",
     locale: "ru_RU",

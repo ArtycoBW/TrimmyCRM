@@ -42,7 +42,7 @@ export function LandingContactSection() {
         <div className="landing-contact__copy">
           <p className="eyebrow">Можно просто спросить</p>
           <h2 id="contact-title">Обсудим ваш<br /><span>салон.</span></h2>
-          <p>Расскажите, что хотите настроить. Или оставьте время — перезвоним без навязчивых продаж.</p>
+          <p>Расскажите, что хотите настроить. Или оставьте время, перезвоним без навязчивых продаж.</p>
           <span className="landing-contact__note">Ответим в рабочее время · не продаём данные и не используем их для сторонней рекламы</span>
         </div>
         <form className="landing-contact__form" onSubmit={submit}>

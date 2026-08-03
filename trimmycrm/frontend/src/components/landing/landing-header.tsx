@@ -1,58 +1,70 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import * as Dialog from "@radix-ui/react-dialog";
+import { ArrowUpRight, X } from "lucide-react";
+import { useState } from "react";
 
+import { LandingHeaderActions } from "@/components/landing/landing-session";
 import { navigation } from "@/content/landing";
 import { useHydrated } from "@/hooks/use-hydrated";
-import { LandingHeaderActions } from "@/components/landing/landing-session";
+
+import styles from "./landing-header.module.css";
 
 export function LandingHeader() {
   const [open, setOpen] = useState(false);
   const hydrated = useHydrated();
 
-  useEffect(() => {
-    document.body.classList.toggle("menu-open", open);
-    return () => document.body.classList.remove("menu-open");
-  }, [open]);
-
   return (
-    <header className="site-header">
-      <div className="site-header__capsule">
-        <a className="site-header__logo" href="#top" aria-label="TrimmyCRM — на главную">
-          <span aria-hidden="true">T — CRM</span>
+    <Dialog.Root open={open} onOpenChange={setOpen}>
+      <header className={styles.header}>
+        <a className={styles.logo} href="#top" aria-label="TrimmyCRM, на главную">
+          <span>Trimmy</span>CRM
         </a>
 
-        <button
-          className="site-header__menu-button"
-          type="button"
-          aria-expanded={open}
-          disabled={!hydrated}
-          aria-controls="landing-navigation"
-          aria-label={open ? "Закрыть меню" : "Открыть меню"}
-          onClick={() => setOpen((value) => !value)}
-        >
-          {open ? "Закрыть" : "Меню"}
-        </button>
-
-        <nav
-          className={`site-header__nav${open ? " site-header__nav--open" : ""}`}
-          id="landing-navigation"
-          aria-label="Основная навигация"
-        >
-          <p>НАВИГАЦИЯ / 2026</p>
-          <div className="site-header__links">
-            {navigation.map((item) => (
-              <a key={item.href} href={item.href} onClick={() => setOpen(false)}>
-                {item.label}
-              </a>
-            ))}
-            <a href="#contact" onClick={() => setOpen(false)}>Контакты</a>
-          </div>
-          <div className="site-header__actions">
-            <LandingHeaderActions />
-          </div>
+        <nav className={styles.desktopNav} aria-label="Основная навигация">
+          {navigation.slice(0, 3).map((item) => (
+            <a key={item.href} href={item.href}>{item.label}</a>
+          ))}
         </nav>
-      </div>
-    </header>
+
+        <Dialog.Trigger asChild>
+          <button className={styles.menuButton} type="button" disabled={!hydrated}>
+            Меню
+            <span aria-hidden="true"><i /><i /></span>
+          </button>
+        </Dialog.Trigger>
+      </header>
+
+      <Dialog.Portal>
+        <Dialog.Overlay className={styles.overlay} />
+        <Dialog.Content className={styles.drawer} aria-describedby={undefined}>
+          <div className={styles.drawerBar}>
+            <Dialog.Title className={styles.drawerTitle}>Навигация TrimmyCRM</Dialog.Title>
+            <span className={styles.drawerLogo} aria-hidden="true"><b>Trimmy</b>CRM</span>
+            <Dialog.Close className={styles.closeButton}>
+              Закрыть <X aria-hidden="true" />
+            </Dialog.Close>
+          </div>
+
+          <div className={styles.drawerBody}>
+            <nav className={styles.drawerNav} aria-label="Навигация по лендингу">
+              {[...navigation, { href: "#contact", label: "Контакты" }].map((item) => (
+                <Dialog.Close asChild key={item.href}>
+                  <a href={item.href}>
+                    <span>{item.label}</span>
+                    <ArrowUpRight aria-hidden="true" />
+                  </a>
+                </Dialog.Close>
+              ))}
+            </nav>
+
+            <div className={styles.drawerAside}>
+              <p>Сайт, онлайн-запись и CRM для парикмахерских и барбершопов.</p>
+              <div className={styles.drawerActions}><LandingHeaderActions /></div>
+            </div>
+          </div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }

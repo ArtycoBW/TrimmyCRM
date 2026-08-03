@@ -25,6 +25,16 @@
       "path": "/images/editorial/man-layered-curls.webp",
       "subject": "fictional adult man, layered curls",
       "sha256": "b06d717eccf75e41ae5e3e4f343738e730d8bc853e4c40ad6c89d53587fcdf3c"
+    },
+    {
+      "path": "/images/editorial/salon-cut-session.webp",
+      "subject": "fictional adult barber and client during a haircut",
+      "sha256": "6c96f59541642b6e3c5b6091bf58b508595c9541aca9f5d5959beb571f4ef3f7"
+    },
+    {
+      "path": "/images/editorial/salon-copper-consultation.webp",
+      "subject": "fictional adult colorist and client during a consultation",
+      "sha256": "38f88552358a467518c879e503c2ebf63ec1443e5e959286f986e7542e0d95ed"
     }
   ]
 }

@@ -1,5 +1,7 @@
 import Image from "next/image";
+import { ArrowUpRight, MoveHorizontal, ShieldCheck } from "lucide-react";
 
+import { InfiniteDragGallery, HeroPhotoLoop, type EditorialPhoto } from "@/components/landing/infinite-gallery";
 import { LandingChat } from "@/components/landing/landing-chat";
 import { LandingContactSection } from "@/components/landing/landing-contact-section";
 import { LandingHeader } from "@/components/landing/landing-header";
@@ -14,28 +16,38 @@ import { faqs, productFeatures } from "@/content/landing";
 
 import styles from "./editorial-landing.module.css";
 
-const portraits = [
+const portraits: readonly EditorialPhoto[] = [
   {
     src: "/images/editorial/woman-copper-bob.webp",
-    alt: "Женская стрижка — медный графичный боб",
-    caption: "BOB / COPPER",
+    alt: "Женщина с медным графичным бобом",
+    label: "Медный боб",
   },
   {
     src: "/images/editorial/man-textured-crop.webp",
-    alt: "Мужская стрижка — текстурный кроп",
-    caption: "CROP / TEXTURE",
+    alt: "Мужчина с текстурной короткой стрижкой",
+    label: "Текстурный кроп",
   },
   {
     src: "/images/editorial/woman-graphic-pixie.webp",
-    alt: "Женская стрижка — графичная пикси",
-    caption: "PIXIE / EDGE",
+    alt: "Женщина с графичной стрижкой пикси",
+    label: "Графичная пикси",
   },
   {
     src: "/images/editorial/man-layered-curls.webp",
-    alt: "Мужская стрижка — слоистые кудри",
-    caption: "CURL / LAYER",
+    alt: "Мужчина со слоистой стрижкой на кудрявых волосах",
+    label: "Слоистые кудри",
   },
-] as const;
+  {
+    src: "/images/editorial/salon-cut-session.webp",
+    alt: "Мастер выполняет мужскую стрижку в светлом салоне",
+    label: "Стрижка в работе",
+  },
+  {
+    src: "/images/editorial/salon-copper-consultation.webp",
+    alt: "Колорист обсуждает медный оттенок с клиенткой",
+    label: "Консультация по цвету",
+  },
+];
 
 export function LandingPage() {
   return (
@@ -45,115 +57,86 @@ export function LandingPage() {
         <LandingHeader />
 
         <main id="main-content">
-          <section className={`${styles.hero} hero`} aria-labelledby="hero-title">
-            <div className={`${styles.heroWordmark} hero__title`} aria-hidden="true">
-              <span>TRIMMY</span>
-              <span>CRM</span>
+          <section className={styles.hero} aria-labelledby="hero-title">
+            <div className={styles.heroCopy}>
+              <p className={styles.eyebrow}>CRM для hair-индустрии</p>
+              <h1 id="hero-title">
+                <span>Салон в ритме.</span>
+                <span>Рутина уходит.</span>
+              </h1>
+              <p className={styles.heroLead}>Сайт, онлайн-запись, клиенты и расписание в одном понятном рабочем пространстве.</p>
+              <div className={styles.heroActions}>
+                <LandingPrimaryAction className={styles.primaryAction} anonymousLabel="Попробовать 14 дней" />
+                <a className={styles.secondaryAction} href="#product">Посмотреть возможности <ArrowUpRight aria-hidden="true" /></a>
+              </div>
             </div>
 
-            <figure className={`${styles.portrait} ${styles.portraitOne}`}>
-              <Image src={portraits[0].src} alt={portraits[0].alt} fill priority sizes="(max-width: 700px) 54vw, 30vw" />
-              <figcaption>{portraits[0].caption}</figcaption>
-            </figure>
-            <figure className={`${styles.portrait} ${styles.portraitTwo}`}>
-              <Image src={portraits[1].src} alt={portraits[1].alt} fill priority sizes="(max-width: 700px) 42vw, 22vw" />
-              <figcaption>{portraits[1].caption}</figcaption>
-            </figure>
-
-            <div className={`${styles.heroCopy} hero__content`}>
-              <p className={styles.index}>01 — CRM ДЛЯ HAIR-ИНДУСТРИИ</p>
-              <h1 id="hero-title">Салон растёт.<br />Рутина — нет.</h1>
-              <p>Сайт, онлайн-запись и полный рабочий день команды в одном дерзко простом кабинете.</p>
-              <div className={`${styles.heroActions} hero__actions`}>
-                <LandingPrimaryAction className={styles.outlineAction} anonymousLabel="Попробовать 14 дней" />
-                <a className={styles.textAction} href="#product">Смотреть систему ↓</a>
-              </div>
+            <div className={styles.heroMedia}>
+              <HeroPhotoLoop photos={portraits} />
             </div>
           </section>
 
-          <section className={styles.statement} id="product" aria-labelledby="product-title">
-            <p className={styles.index}>02 — СИСТЕМА</p>
-            <h2 id="product-title">САЙТ.<br />ЗАПИСЬ.<br />CRM.</h2>
-            <p className={styles.statementLead}>Не три сервиса. Один ритм работы — от первого визита на сайт до истории формулы в карточке клиента.</p>
-            <div className={styles.featureList}>
+          <section className={styles.product} id="product" aria-labelledby="product-title">
+            <div className={styles.sectionHeading}>
+              <p className={styles.eyebrow}>Возможности</p>
+              <h2 id="product-title">Один ритм работы вместо набора разрозненных сервисов.</h2>
+              <p>С первого визита на сайт до формулы окрашивания в карточке постоянного клиента.</p>
+            </div>
+            <div className={styles.featureGrid}>
               {productFeatures.map((feature) => (
-                <article key={feature.number}>
-                  <span>{feature.number}</span>
+                <article key={feature.title}>
                   <h3>{feature.title}</h3>
                   <p>{feature.text}</p>
+                  <span aria-hidden="true">{feature.number}</span>
                 </article>
               ))}
             </div>
           </section>
 
-          <section className={styles.people} id="examples" aria-labelledby="people-title">
-            <div className={styles.peopleType} aria-hidden="true">HAIR<br />IS<br />IDENTITY</div>
-            <p className={styles.index}>03 — ЖЕНСКИЙ САЛОН / БАРБЕРШОП / УНИСЕКС</p>
-            <h2 id="people-title">Разная эстетика.<br />Одна точная система.</h2>
-
-            <figure className={`${styles.portrait} ${styles.portraitThree}`}>
-              <Image src={portraits[2].src} alt={portraits[2].alt} fill loading="eager" sizes="(max-width: 700px) 58vw, 31vw" />
-              <figcaption>{portraits[2].caption}</figcaption>
-            </figure>
-            <figure className={`${styles.portrait} ${styles.portraitFour}`}>
-              <Image src={portraits[3].src} alt={portraits[3].alt} fill loading="eager" sizes="(max-width: 700px) 52vw, 28vw" />
-              <figcaption>{portraits[3].caption}</figcaption>
-            </figure>
-
-            <p className={styles.peopleNote}>При регистрации вы выбираете формат салона. TrimmyCRM меняет стартовый каталог, лексику и блоки сайта — не ограничивая вас шаблоном.</p>
+          <section className={styles.formats} id="examples" aria-labelledby="formats-title">
+            <div className={styles.formatIntro}>
+              <h2 id="formats-title">Разные салоны. Своя логика у каждого.</h2>
+              <p>При регистрации владелец выбирает женский салон, барбершоп или унисекс. TrimmyCRM подстраивает каталог услуг, лексику и стартовые блоки сайта.</p>
+              <span><MoveHorizontal aria-hidden="true" /> Галерею можно перетаскивать</span>
+            </div>
+            <InfiniteDragGallery photos={portraits} />
           </section>
 
-          <section className={styles.workspace} aria-labelledby="workspace-title">
-            <header>
-              <p className={styles.index}>04 — РАБОЧИЙ ДЕНЬ</p>
-              <h2 id="workspace-title">ВСЁ ВИДНО.<br />НИЧЕГО ЛИШНЕГО.</h2>
-            </header>
-            <div className={styles.workspaceBoard} aria-label="Возможности рабочего кабинета">
-              <div className={styles.boardDate}><span>ПН</span><strong>03</strong><small>АВГУСТА</small></div>
-              <div className={styles.boardSchedule}>
-                <span>10:00</span><strong>Стрижка + укладка</strong><small>АННА / МАРИЯ / 90 МИН</small>
-                <span>12:00</span><strong>Кроп + борода</strong><small>МАКСИМ / ИЛЬЯ / 75 МИН</small>
-                <span>14:30</span><strong>Окрашивание</strong><small>ВЕРА / СОФИЯ / 180 МИН</small>
-              </div>
-              <div className={styles.boardFacts}>
-                <p><strong>24/7</strong><span>онлайн-запись</span></p>
-                <p><strong>1</strong><span>карточка клиента</span></p>
-                <p><strong>0</strong><span>потерянных формул</span></p>
-              </div>
+          <section className={styles.tryOn} aria-labelledby="tryon-title">
+            <div className={styles.tryOnImage}>
+              <Image
+                src="/images/editorial/woman-copper-bob.webp"
+                alt="Пример визуального подбора медного боба"
+                fill
+                sizes="(max-width: 780px) 100vw, 46vw"
+              />
             </div>
-          </section>
-
-          <section className={styles.tryOnPromo} aria-labelledby="tryon-promo-title">
-            <div>
-              <p className={styles.index}>05 — ЛОКАЛЬНО В БРАУЗЕРЕ</p>
-              <h2 id="tryon-promo-title">ПРИМЕРЬ.<br />НЕ ЗАГРУЖАЯ.</h2>
-              <p>Клиент выбирает фото и вручную совмещает причёску. Изображение остаётся на его устройстве — без AI API, облака и распознавания лица.</p>
-              <a className={styles.outlineAction} href="/try-on">Открыть примерку →</a>
-            </div>
-            <div className={styles.tryOnCrop} aria-hidden="true">
-              <Image src={portraits[0].src} alt="" fill loading="eager" sizes="(max-width: 700px) 100vw, 42vw" />
-              <span>YOUR PHOTO<br />STAYS HERE</span>
+            <div className={styles.tryOnCopy}>
+              <ShieldCheck aria-hidden="true" />
+              <h2 id="tryon-title">Примерка причёски остаётся на устройстве клиента.</h2>
+              <p>Фото обрабатывается локально в браузере. Без загрузки в облако, распознавания лица и стороннего AI API.</p>
+              <a className={styles.secondaryAction} href="/try-on">Открыть примерку <ArrowUpRight aria-hidden="true" /></a>
             </div>
           </section>
 
           <section className={styles.pricing} id="plans" aria-labelledby="plans-title">
-            <div className={styles.sectionIntro}>
-              <p className={styles.index}>06 — ТАРИФЫ</p>
-              <h2 id="plans-title">Начните с малого.<br />Растите без переезда.</h2>
-              <p>14 дней бесплатно. Без карты на старте.</p>
+            <div className={styles.sectionHeading}>
+              <p className={styles.eyebrow}>Тарифы</p>
+              <h2 id="plans-title">Начните с малого. Масштабируйтесь в том же кабинете.</h2>
+              <p>14 дней бесплатно. Карта для старта не нужна.</p>
             </div>
             <PlansSection />
           </section>
 
           <section className={styles.faq} id="faq" aria-labelledby="faq-title">
-            <div className={styles.sectionIntro}>
-              <p className={styles.index}>07 — БЕЗ МЕЛКОГО ШРИФТА</p>
-              <h2 id="faq-title">ВОПРОСЫ.<br />ПРЯМЫЕ ОТВЕТЫ.</h2>
+            <div className={styles.faqIntro}>
+              <h2 id="faq-title">Прямые ответы на частые вопросы.</h2>
+              <p>Если вашего вопроса нет в списке, напишите нам в форме ниже.</p>
             </div>
             <div className={styles.faqList}>
               {faqs.map((item, index) => (
                 <details key={item.question} open={index === 0}>
-                  <summary><span>0{index + 1}</span>{item.question}</summary>
+                  <summary>{item.question}</summary>
                   <p>{item.answer}</p>
                 </details>
               ))}
@@ -164,10 +147,15 @@ export function LandingPage() {
         </main>
 
         <footer className={styles.footer}>
-          <strong>TRIMMYCRM</strong>
-          <div><a href="/privacy">Политика</a><a href="/terms">Условия</a><a href="/consent">Согласие</a></div>
+          <strong><span>Trimmy</span>CRM</strong>
+          <p>Сайт, запись и управление салоном в одном продукте.</p>
+          <nav aria-label="Документы">
+            <a href="/privacy">Политика</a>
+            <a href="/terms">Условия</a>
+            <a href="/consent">Согласие</a>
+          </nav>
           <div><LandingFooterAccountLink /><a href={`mailto:${legalConfig.email}`}>{legalConfig.email}</a></div>
-          <small>© {new Date().getFullYear()} / СДЕЛАНО ДЛЯ HAIR-ИНДУСТРИИ</small>
+          <small>© {new Date().getFullYear()} TrimmyCRM</small>
         </footer>
 
         <LandingChat />
