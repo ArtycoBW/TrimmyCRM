@@ -35,7 +35,7 @@ function EditorialCanvas({
   );
 }
 
-export function DualPhotoMarquee({ photos }: { photos: readonly EditorialPhoto[] }) {
+export function PhotoMarquee({ photos }: { photos: readonly EditorialPhoto[] }) {
   const rows = [photos, [...photos.slice(3), ...photos.slice(0, 3)]] as const;
 
   return (

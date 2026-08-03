@@ -11,7 +11,7 @@ export function BrandMark({ compact = false, inverse = false }: BrandMarkProps) 
         <img className="brand-mark__image" src="/brand/trimmy-symbol.svg" alt="" />
       </span>
       <span className="brand-mark__type" aria-hidden="true">
-        TrimmyCRM
+        <span>Trimmy</span><em>CRM</em>
       </span>
       <span className="sr-only">TrimmyCRM</span>
     </span>

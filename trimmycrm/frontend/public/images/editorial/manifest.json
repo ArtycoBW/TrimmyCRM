@@ -42,9 +42,14 @@
       "sha256": "a4666138aed11db0f00d078bd92955b5a81b58db3fe1672adcb4540f87c1aa3d"
     },
     {
+      "path": "/images/editorial/tryon-dark-bob-portrait.webp",
+      "subject": "fictional adult woman with a dark architectural bob",
+      "sha256": "500e71c42045e0a018ae8838215e7ed4fb2a06d7f4653deb874cbc303b316576"
+    },
+    {
       "path": "/brand/trimmy-symbol.svg",
-      "subject": "original text-free TrimmyCRM modular monogram",
-      "sha256": "207cf644e83ce763514506c2fcb0ecbf9cf3de2453e98c2d287285586450d8ed"
+      "subject": "original text-free TrimmyCRM precision-cut T monogram",
+      "sha256": "67b4ea664c642bdfb49b5481fbb5678a29d3ab06d0738cf2757de44d8bb398df"
     }
   ]
 }

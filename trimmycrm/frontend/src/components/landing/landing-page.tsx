@@ -2,7 +2,7 @@ import { ArrowUpRight } from "lucide-react";
 import Image from "next/image";
 
 import { EditorialFooter } from "@/components/landing/editorial-footer";
-import { DualPhotoMarquee, type EditorialPhoto } from "@/components/landing/infinite-gallery";
+import { PhotoMarquee, type EditorialPhoto } from "@/components/landing/infinite-gallery";
 import { InteractiveHead } from "@/components/landing/interactive-head";
 import { LandingChat } from "@/components/landing/landing-chat";
 import { LandingContactSection } from "@/components/landing/landing-contact-section";
@@ -101,7 +101,7 @@ export function LandingPage() {
               <h2 id="formats-title">Разные салоны. Своя логика у каждого.</h2>
               <p>Женский салон, барбершоп или смешанная команда получают сайт, который говорит с клиентом на своём языке.</p>
             </div>
-            <div data-reveal data-reveal-delay="1" data-parallax><DualPhotoMarquee photos={portraits} /></div>
+            <div data-reveal data-reveal-delay="1" data-parallax><PhotoMarquee photos={portraits} /></div>
           </section>
 
           <section className={styles.builder} aria-labelledby="builder-title">
@@ -115,10 +115,7 @@ export function LandingPage() {
           <section className={styles.tryOn} aria-labelledby="tryon-title">
             <div className={styles.tryOnVisual} data-reveal data-parallax>
               <figure className={styles.tryOnMainPhoto}>
-                <Image src="/images/editorial/woman-copper-bob.webp" alt="Женщина с современной медной стрижкой боб" fill sizes="(max-width: 780px) 100vw, 46vw" />
-              </figure>
-              <figure className={styles.tryOnDetailPhoto} aria-hidden="true">
-                <Image src="/images/editorial/man-textured-crop.webp" alt="" fill sizes="(max-width: 780px) 38vw, 18vw" />
+                <Image src="/images/editorial/tryon-dark-bob-portrait.webp" alt="Клиентка с тёмным архитектурным бобом для виртуальной примерки" fill sizes="(max-width: 780px) 100vw, 46vw" />
               </figure>
             </div>
             <div className={styles.tryOnCopy} data-reveal data-reveal-delay="1">

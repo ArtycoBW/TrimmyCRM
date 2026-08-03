@@ -11,7 +11,7 @@ export function LandingMotion() {
 
     for (const element of elements) {
       const bounds = element.getBoundingClientRect();
-      element.dataset.revealState = reducedMotion || (bounds.top < window.innerHeight * .92 && bounds.bottom > 0)
+      element.dataset.revealState = reducedMotion || (bounds.top < window.innerHeight * 1.03 && bounds.bottom > 0)
         ? "visible"
         : "hidden";
     }
@@ -28,7 +28,7 @@ export function LandingMotion() {
         element.dataset.revealOrigin = entry.boundingClientRect.top < (entry.rootBounds?.top ?? 0) ? "above" : "below";
         element.dataset.revealState = "hidden";
       }
-    }, { rootMargin: "-5% 0px -5%", threshold: .12 });
+    }, { rootMargin: "6% 0px 6%", threshold: .08 });
 
     for (const element of elements) observer.observe(element);
     return () => observer.disconnect();

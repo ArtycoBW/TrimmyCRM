@@ -20,7 +20,7 @@ export function LandingHeader() {
       <header className={styles.header}>
         <a className={styles.logo} href="#top" aria-label="TrimmyCRM, на главную">
           <span className={styles.logoSymbol}><Image src="/brand/trimmy-symbol.svg" alt="" width={44} height={44} priority /></span>
-          <b><span>Trimmy</span>CRM</b>
+          <b><span>Trimmy</span><em>CRM</em></b>
         </a>
 
         <nav className={styles.desktopNav} aria-label="Основная навигация">
@@ -42,7 +42,7 @@ export function LandingHeader() {
         <Dialog.Content className={styles.drawer} aria-describedby={undefined}>
           <div className={styles.drawerBar}>
             <Dialog.Title className={styles.drawerTitle}>Навигация TrimmyCRM</Dialog.Title>
-            <span className={styles.drawerLogo} aria-hidden="true"><b>Trimmy</b>CRM</span>
+            <span className={styles.drawerLogo} aria-hidden="true"><b>Trimmy</b><em>CRM</em></span>
             <Dialog.Close className={styles.closeButton}>
               Закрыть <X aria-hidden="true" />
             </Dialog.Close>

@@ -20,6 +20,11 @@ test("landing renders its core sections", async ({ page }, testInfo) => {
   const header = page.getByRole("banner");
   await expect(header.evaluate((element) => getComputedStyle(element).position)).resolves.toBe("fixed");
   await expect(header.locator("img").first()).toHaveAttribute("src", /trimmy-symbol\.svg/);
+  await expect(page.locator(".editorial-landing")).toHaveAttribute("data-motion-ready", "true");
+  const revealDuration = await page.locator("[data-reveal]").first().evaluate((element) =>
+    Number.parseFloat(getComputedStyle(element).transitionDuration.split(",")[0]),
+  );
+  expect(revealDuration).toBeGreaterThanOrEqual(1);
   const interactiveHead = page.getByRole("application", { name: /Интерактивная 3D-модель/i });
   await expect(interactiveHead.locator("canvas")).toBeVisible();
   const initialFrame = await interactiveHead.getAttribute("data-rotation");
@@ -40,6 +45,11 @@ test("landing renders its core sections", async ({ page }, testInfo) => {
   await expect(faq.locator("[class*='faqAnswer']").nth(1).evaluate((answer) => getComputedStyle(answer).transitionProperty)).resolves.toContain("grid-template-rows");
   await expect(page.getByRole("heading", { name: /Разные салоны/i })).toBeVisible();
   await page.locator("#examples").scrollIntoViewIfNeeded();
+  const gallery = page.getByLabel("Фотогалерея мужских и женских работ");
+  const galleryRows = gallery.locator("div[class*='marqueeRow']");
+  await expect(galleryRows).toHaveCount(2);
+  await expect(gallery.evaluate((element) => getComputedStyle(element).borderTopWidth)).resolves.toBe("1px");
+  await expect(galleryRows.evaluateAll((rows) => rows.every((row) => getComputedStyle(row).borderRadius === "0px"))).resolves.toBe(true);
   const womanPortrait = page.getByAltText("Женщина с медным графичным бобом").first();
   const manPortrait = page.getByAltText("Мужчина с текстурной короткой стрижкой").first();
   await expect(womanPortrait).toHaveAttribute("src", /woman-copper-bob\.webp/);
@@ -89,6 +99,11 @@ test("site builder reorders visual sections and the try-on uses real photography
 
   const builder = page.locator("section").filter({ has: page.getByRole("heading", { name: "Сайт выглядит как ваш салон." }) });
   await builder.scrollIntoViewIfNeeded();
+  const builderIntro = builder.locator("div").filter({ has: page.getByRole("heading", { name: "Сайт выглядит как ваш салон." }) }).first();
+  await expect(builderIntro.evaluate((element) => getComputedStyle(element).position)).resolves.toBe(testInfo.project.name === "desktop-chrome" ? "sticky" : "static");
+  if (testInfo.project.name === "desktop-chrome") {
+    await expect(builderIntro.evaluate((element) => Number.parseFloat(getComputedStyle(element).top))).resolves.toBeGreaterThan(80);
+  }
   const handles = builder.getByRole("button", { name: /Переместить секцию/i });
   await expect(handles).toHaveCount(6);
   await expect(builder.locator("button[class*='handle']")).toHaveCount(0);
@@ -101,8 +116,8 @@ test("site builder reorders visual sections and the try-on uses real photography
 
   const tryOn = page.locator("section").filter({ has: page.getByRole("heading", { name: "Примерьте образ до визита." }) });
   await tryOn.scrollIntoViewIfNeeded();
-  const portrait = tryOn.getByRole("img", { name: /медной стрижкой боб/i });
-  await expect(portrait).toHaveAttribute("src", /woman-copper-bob\.webp/);
+  const portrait = tryOn.getByRole("img", { name: /тёмным архитектурным бобом/i });
+  await expect(portrait).toHaveAttribute("src", /tryon-dark-bob-portrait\.webp/);
   await expect.poll(() => portrait.evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
   await expect(page.getByText("Фото обрабатывается локально в браузере.")).toHaveCount(0);
   await expect(page.getByText(/Shift и стрелки/)).toHaveCount(0);

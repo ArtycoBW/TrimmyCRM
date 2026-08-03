@@ -186,7 +186,7 @@ export function SiteBuilderSortable() {
             {blocks.map((block) => <SortableBlock block={block} key={block.id} onKeyboardMove={move} />)}
           </div>
         </SortableContext>
-        <DragOverlay dropAnimation={{ duration: 240, easing: "cubic-bezier(.16, 1, .3, 1)" }}>
+        <DragOverlay dropAnimation={{ duration: 520, easing: "cubic-bezier(.22, 1, .36, 1)" }}>
           {activeBlock ? <article className={`${styles.block} ${styles.overlay}`} data-kind={activeBlock.id}><BlockContent kind={activeBlock.id} /></article> : null}
         </DragOverlay>
       </DndContext>

@@ -1,7 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="trimmy-symbol-title">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="trimmy-symbol-title" shape-rendering="geometricPrecision">
   <title id="trimmy-symbol-title">TrimmyCRM</title>
-  <rect x="1" y="1" width="62" height="62" rx="14" fill="#050505"/>
-  <path d="M13 14h38v11H39v25H26V25H13V14Z" fill="#fff"/>
-  <path d="M13 14h16l-4 11H13V14Z" fill="#d15022"/>
-  <path d="M39 39h12v11H35l4-11Z" fill="#75dfb5"/>
+  <path d="M5 10h54v12H38v32H26V22H5V10Z" fill="#050505"/>
+  <path d="M39 10h13l-6 12H33l6-12Z" fill="#d15022"/>
 </svg>
