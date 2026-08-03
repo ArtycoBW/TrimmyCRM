@@ -23,6 +23,7 @@ test("login and registration layouts fit both viewports", async ({ page }) => {
   await mockAnonymous(page);
   await page.goto("/login");
   await expect(page.getByRole("heading", { name: /Войти в TrimmyCRM/i })).toBeVisible();
+  await expect(page.locator(".brand-mark__image").first()).toHaveAttribute("src", "/brand/trimmy-symbol.svg");
   if (await page.locator(".auth-story").isVisible()) {
     await expect(page.getByAltText("Стилист работает над короткой стрижкой в современной студии")).toHaveAttribute("src", /auth-salon-studio\.webp/);
   }

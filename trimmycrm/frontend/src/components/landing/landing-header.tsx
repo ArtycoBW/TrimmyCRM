@@ -19,7 +19,7 @@ export function LandingHeader() {
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <header className={styles.header}>
         <a className={styles.logo} href="#top" aria-label="TrimmyCRM, на главную">
-          <span className={styles.logoSymbol}><Image src="/brand/trimmy-symbol-editorial.webp" alt="" width={44} height={44} priority /></span>
+          <span className={styles.logoSymbol}><Image src="/brand/trimmy-symbol.svg" alt="" width={44} height={44} priority /></span>
           <b><span>Trimmy</span>CRM</b>
         </a>
 

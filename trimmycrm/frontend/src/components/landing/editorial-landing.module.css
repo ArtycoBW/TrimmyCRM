@@ -226,7 +226,7 @@
   right: -70px;
   width: min(34vw, 520px);
   aspect-ratio: 1;
-  background: url("/brand/trimmy-symbol-editorial.webp") center / contain no-repeat;
+  background: url("/brand/trimmy-symbol.svg") center / contain no-repeat;
   content: "";
   opacity: .09;
   transform: rotate(8deg);

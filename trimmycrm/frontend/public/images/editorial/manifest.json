@@ -42,9 +42,9 @@
       "sha256": "a4666138aed11db0f00d078bd92955b5a81b58db3fe1672adcb4540f87c1aa3d"
     },
     {
-      "path": "/brand/trimmy-symbol-editorial.webp",
-      "subject": "original text-free TrimmyCRM hair profile symbol",
-      "sha256": "f73df8b099886d89ea0b52bb848803add17acfdb4a31980e9adf538c822ff68f"
+      "path": "/brand/trimmy-symbol.svg",
+      "subject": "original text-free TrimmyCRM modular monogram",
+      "sha256": "207cf644e83ce763514506c2fcb0ecbf9cf3de2453e98c2d287285586450d8ed"
     }
   ]
 }

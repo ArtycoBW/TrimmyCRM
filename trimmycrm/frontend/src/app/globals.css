@@ -451,9 +451,8 @@ h2 span {
   height: 48px;
   flex: 0 0 auto;
   overflow: hidden;
-  border: 1px solid var(--ink);
-  border-radius: 14px;
-  background: var(--white);
+  border-radius: 12px;
+  background: var(--ink);
   box-shadow: none;
 }
 
@@ -477,11 +476,15 @@ h2 span {
 .brand-mark--compact .brand-mark__symbol {
   width: 42px;
   height: 42px;
-  border-radius: 14px;
+  border-radius: 11px;
 }
 
 .brand-mark--inverse {
   color: var(--white);
+}
+
+.brand-mark--inverse .brand-mark__symbol {
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 32%);
 }
 
 /* Hero */
