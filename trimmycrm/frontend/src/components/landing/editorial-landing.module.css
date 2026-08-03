@@ -75,6 +75,7 @@
 
 .heroCopy {
   display: flex;
+  min-width: 0;
   min-height: 560px;
   padding: clamp(28px, 4vw, var(--spacing-50));
   border: 1px solid var(--black);
@@ -516,7 +517,7 @@
   .formatIntro h2,
   .tryOnCopy h2,
   .faqIntro h2 { font-size: clamp(42px, 12vw, 56px); }
-  .hero h1 { font-size: clamp(36px, 10.2vw, 44px); }
+  .hero h1 { font-size: clamp(32px, 8.7vw, 38px); }
   .heroLead { margin-top: 24px; font-size: 18px; }
   .heroActions { margin-top: 28px; align-items: stretch; flex-direction: column; }
   .primaryAction,

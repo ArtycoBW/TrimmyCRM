@@ -25,6 +25,8 @@ test("first visit intro plays once per browser session", async ({ page }) => {
 });
 
 test("landing renders its core sections", async ({ page }, testInfo) => {
+  const requestedAssets: string[] = [];
+  page.on("request", (request) => requestedAssets.push(request.url()));
   await page.goto("/");
 
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Записи и клиенты");
@@ -36,12 +38,14 @@ test("landing renders its core sections", async ({ page }, testInfo) => {
     Number.parseFloat(getComputedStyle(element).transitionDuration.split(",")[0]),
   );
   expect(revealDuration).toBeGreaterThanOrEqual(1);
-  const interactiveHead = page.getByRole("application", { name: /Интерактивная 3D-модель/i });
+  const interactiveHead = page.getByRole("application", { name: /Интерактивный 3D-портрет/i });
   await expect(interactiveHead.locator("canvas")).toBeVisible();
   const initialFrame = await interactiveHead.getAttribute("data-rotation");
   await interactiveHead.focus();
   await interactiveHead.press("ArrowRight");
   await expect.poll(() => interactiveHead.getAttribute("data-rotation")).not.toBe(initialFrame);
+  expect(requestedAssets.some((url) => url.includes("three-point-cloud-portrait.webp"))).toBe(true);
+  expect(requestedAssets.some((url) => url.includes("marble-bust"))).toBe(false);
   await expect(page.locator("#product")).toBeAttached();
   await expect(page.locator("#examples")).toBeAttached();
   await expect(page.locator("#plans")).toBeAttached();
@@ -141,7 +145,7 @@ test("reduced motion stays static and the editorial footer is complete", async (
   await expect.poll(() => page.locator("[data-reveal]").evaluateAll((elements) =>
     elements.every((element) => element.getAttribute("data-reveal-state") === "visible"),
   )).toBe(true);
-  const interactiveHead = page.getByRole("application", { name: /Интерактивная 3D-модель/i });
+  const interactiveHead = page.getByRole("application", { name: /Интерактивный 3D-портрет/i });
   await expect(interactiveHead).toBeVisible();
   const photoRows = page.getByLabel("Фотогалерея мужских и женских работ").locator("div[class*='track']");
   await expect(photoRows).toHaveCount(2);

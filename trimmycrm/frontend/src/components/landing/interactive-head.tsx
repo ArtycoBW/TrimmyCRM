@@ -1,6 +1,7 @@
 "use client";
 
 import { Rotate3D } from "lucide-react";
+import type { BufferGeometry, Material, Texture } from "three";
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 
 import { TrimmyLoader } from "@/components/ui/trimmy-loader";
@@ -8,6 +9,8 @@ import { TrimmyLoader } from "@/components/ui/trimmy-loader";
 import styles from "./interactive-head.module.css";
 
 type SceneStatus = "loading" | "ready" | "error";
+
+const portraitSource = "/images/editorial/three-point-cloud-portrait.webp";
 
 export function InteractiveHead() {
   const mountRef = useRef<HTMLDivElement>(null);
@@ -23,14 +26,12 @@ export function InteractiveHead() {
 
     async function createScene() {
       try {
-        const [THREE, { GLTFLoader }, { OrbitControls }] = await Promise.all([
+        const [THREE, { OrbitControls }] = await Promise.all([
           import("three"),
-          import("three/examples/jsm/loaders/GLTFLoader.js"),
           import("three/examples/jsm/controls/OrbitControls.js"),
         ]);
         if (cancelled || !mount) return;
 
-        const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
         const renderer = new THREE.WebGLRenderer({
           alpha: true,
           antialias: true,
@@ -39,90 +40,144 @@ export function InteractiveHead() {
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
         renderer.outputColorSpace = THREE.SRGBColorSpace;
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.02;
-        renderer.shadowMap.enabled = true;
-        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.toneMappingExposure = 1.05;
         renderer.domElement.className = styles.canvas;
         renderer.domElement.setAttribute("aria-hidden", "true");
         mount.appendChild(renderer.domElement);
 
         const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(31, 1, 0.1, 30);
-        camera.position.set(0, 0.02, 5.45);
+        const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 30);
+        camera.position.set(0, -0.02, 6.25);
 
-        const keyLight = new THREE.DirectionalLight(0xfff8f0, 3.4);
-        keyLight.position.set(3.6, 4.4, 4.8);
-        keyLight.castShadow = true;
-        keyLight.shadow.mapSize.set(1024, 1024);
+        const keyLight = new THREE.DirectionalLight(0xfff5eb, 2.8);
+        keyLight.position.set(3.8, 4.5, 5.4);
         scene.add(keyLight);
-
-        const fillLight = new THREE.DirectionalLight(0x75dfb5, 2.25);
-        fillLight.position.set(-3.8, 1.4, 2.2);
+        const fillLight = new THREE.DirectionalLight(0x75dfb5, 1.35);
+        fillLight.position.set(-4, 1.4, 3);
         scene.add(fillLight);
-        const rimLight = new THREE.DirectionalLight(0xd15022, 2.4);
-        rimLight.position.set(2.2, 1.2, -4.2);
+        const rimLight = new THREE.DirectionalLight(0xd15022, 1.8);
+        rimLight.position.set(3, 1.5, -4);
         scene.add(rimLight);
-        scene.add(new THREE.HemisphereLight(0xffffff, 0x496e61, 1.2));
+        scene.add(new THREE.HemisphereLight(0xffffff, 0x385d52, 1.1));
 
-        const head = new THREE.Group();
-        head.rotation.set(0.02, -0.24, -0.012);
-        scene.add(head);
-
-        const gltf = await new GLTFLoader().loadAsync(
-          "/models/marble-bust-01/marble_bust_01_1k.gltf",
-        );
+        const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+          const source = new Image();
+          source.decoding = "async";
+          source.onload = () => resolve(source);
+          source.onerror = () => reject(new Error("Portrait source could not be loaded"));
+          source.src = portraitSource;
+        });
         if (cancelled) {
           renderer.dispose();
+          renderer.domElement.remove();
           return;
         }
 
-        const model = gltf.scene;
-        model.traverse((object) => {
-          if (!(object instanceof THREE.Mesh)) return;
-          object.castShadow = true;
-          object.receiveShadow = true;
-          const materials = Array.isArray(object.material) ? object.material : [object.material];
-          materials.forEach((material) => {
-            if ("roughness" in material) material.roughness = Math.max(material.roughness, 0.38);
-          });
+        const sampleWidth = 480;
+        const sampleHeight = 600;
+        const sourceCanvas = document.createElement("canvas");
+        sourceCanvas.width = sampleWidth;
+        sourceCanvas.height = sampleHeight;
+        const context = sourceCanvas.getContext("2d", { willReadFrequently: true });
+        if (!context) throw new Error("Canvas2D is unavailable");
+        context.drawImage(image, 0, 0, sampleWidth, sampleHeight);
+        const pixels = context.getImageData(0, 0, sampleWidth, sampleHeight);
+
+        const isBackground = (red: number, green: number, blue: number) => (
+          green > 145
+          && green - Math.max(red, blue) > 18
+          && green > red * 1.2
+          && blue > 95
+        );
+        for (let offset = 0; offset < pixels.data.length; offset += 4) {
+          const red = pixels.data[offset];
+          const green = pixels.data[offset + 1];
+          const blue = pixels.data[offset + 2];
+          pixels.data[offset + 3] = isBackground(red, green, blue) ? 0 : 255;
+        }
+        context.putImageData(pixels, 0, 0);
+
+        const depthAt = (u: number, v: number) => {
+          const face = Math.exp(-Math.pow((u - 0.5) / 0.25, 2) - Math.pow((v - 0.68) / 0.31, 2));
+          const hair = Math.exp(-Math.pow((u - 0.5) / 0.31, 2) - Math.pow((v - 0.86) / 0.19, 2));
+          const shoulders = Math.exp(-Math.pow((u - 0.5) / 0.62, 2) - Math.pow((v - 0.12) / 0.24, 2));
+          return face * 0.34 + hair * 0.21 + shoulders * 0.055;
+        };
+
+        const portraitTexture = new THREE.CanvasTexture(sourceCanvas);
+        portraitTexture.colorSpace = THREE.SRGBColorSpace;
+        portraitTexture.minFilter = THREE.LinearMipmapLinearFilter;
+        portraitTexture.magFilter = THREE.LinearFilter;
+
+        const portraitGeometry = new THREE.PlaneGeometry(2.55, 3.2, 72, 90);
+        const portraitPositions = portraitGeometry.attributes.position;
+        const portraitUvs = portraitGeometry.attributes.uv;
+        for (let index = 0; index < portraitPositions.count; index += 1) {
+          portraitPositions.setZ(index, depthAt(portraitUvs.getX(index), portraitUvs.getY(index)));
+        }
+        portraitGeometry.computeVertexNormals();
+        const portraitMaterial = new THREE.MeshStandardMaterial({
+          map: portraitTexture,
+          transparent: true,
+          alphaTest: 0.08,
+          roughness: 0.78,
+          metalness: 0,
+          side: THREE.DoubleSide,
         });
 
-        const originalBounds = new THREE.Box3().setFromObject(model);
-        const originalSize = originalBounds.getSize(new THREE.Vector3());
-        model.scale.setScalar(3.02 / originalSize.y);
-        const scaledBounds = new THREE.Box3().setFromObject(model);
-        const scaledCenter = scaledBounds.getCenter(new THREE.Vector3());
-        model.position.sub(scaledCenter);
-        model.position.y += 0.03;
-        head.add(model);
+        const pointPositions: number[] = [];
+        const pointColors: number[] = [];
+        for (let y = 0; y < sampleHeight; y += 4) {
+          for (let x = 0; x < sampleWidth; x += 4) {
+            const offset = (y * sampleWidth + x) * 4;
+            if (pixels.data[offset + 3] < 128) continue;
+            const u = x / (sampleWidth - 1);
+            const v = 1 - y / (sampleHeight - 1);
+            const red = pixels.data[offset] / 255;
+            const green = pixels.data[offset + 1] / 255;
+            const blue = pixels.data[offset + 2] / 255;
+            const luminance = red * 0.2126 + green * 0.7152 + blue * 0.0722;
+            pointPositions.push(
+              (u - 0.5) * 2.55,
+              (v - 0.5) * 3.2,
+              depthAt(u, v) + 0.035 + (luminance - 0.5) * 0.025,
+            );
+            pointColors.push(red, green, blue);
+          }
+        }
+        const pointGeometry = new THREE.BufferGeometry();
+        pointGeometry.setAttribute("position", new THREE.Float32BufferAttribute(pointPositions, 3));
+        pointGeometry.setAttribute("color", new THREE.Float32BufferAttribute(pointColors, 3));
+        const pointMaterial = new THREE.PointsMaterial({
+          size: 0.014,
+          sizeAttenuation: true,
+          vertexColors: true,
+          transparent: true,
+          opacity: 0.74,
+        });
 
-        const shadow = new THREE.Mesh(
-          new THREE.CircleGeometry(1.05, 64),
-          new THREE.ShadowMaterial({ color: 0x063c2e, opacity: 0.2 }),
-        );
-        shadow.rotation.x = -Math.PI / 2;
-        shadow.position.set(0, -1.49, 0.1);
-        shadow.receiveShadow = true;
-        scene.add(shadow);
+        const portrait = new THREE.Group();
+        portrait.rotation.y = -0.07;
+        portrait.add(new THREE.Mesh(portraitGeometry, portraitMaterial));
+        portrait.add(new THREE.Points(pointGeometry, pointMaterial));
+        scene.add(portrait);
 
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
-        controls.dampingFactor = 0.065;
+        controls.dampingFactor = 0.055;
         controls.enablePan = false;
         controls.enableZoom = false;
-        controls.autoRotate = !reducedMotion;
-        controls.autoRotateSpeed = 0.34;
-        controls.minPolarAngle = Math.PI * 0.39;
-        controls.maxPolarAngle = Math.PI * 0.59;
-        controls.minAzimuthAngle = -Math.PI * 0.64;
-        controls.maxAzimuthAngle = Math.PI * 0.64;
-        controls.target.set(0, 0.04, 0);
+        controls.minPolarAngle = Math.PI * 0.46;
+        controls.maxPolarAngle = Math.PI * 0.54;
+        controls.minAzimuthAngle = -0.34;
+        controls.maxAzimuthAngle = 0.34;
+        controls.target.set(0, 0, 0.08);
         controls.update();
 
-        mount.dataset.rotation = head.rotation.y.toFixed(2);
+        mount.dataset.rotation = portrait.rotation.y.toFixed(2);
         nudgeRef.current = (delta) => {
-          head.rotation.y += delta;
-          mount.dataset.rotation = head.rotation.y.toFixed(2);
+          portrait.rotation.y = THREE.MathUtils.clamp(portrait.rotation.y + delta, -0.32, 0.32);
+          mount.dataset.rotation = portrait.rotation.y.toFixed(2);
           renderer.render(scene, camera);
         };
 
@@ -148,12 +203,23 @@ export function InteractiveHead() {
           observer.disconnect();
           renderer.setAnimationLoop(null);
           controls.dispose();
+          const geometries = new Set<BufferGeometry>();
+          const materials = new Set<Material>();
+          const textures = new Set<Texture>([portraitTexture]);
           scene.traverse((object) => {
-            if (!(object instanceof THREE.Mesh)) return;
-            object.geometry.dispose();
-            const materials = Array.isArray(object.material) ? object.material : [object.material];
-            materials.forEach((material) => material.dispose());
+            const drawable = object as typeof object & {
+              geometry?: BufferGeometry;
+              material?: Material | Material[];
+            };
+            if (drawable.geometry) geometries.add(drawable.geometry);
+            if (drawable.material) {
+              const objectMaterials = Array.isArray(drawable.material) ? drawable.material : [drawable.material];
+              objectMaterials.forEach((material) => materials.add(material));
+            }
           });
+          geometries.forEach((geometry) => geometry.dispose());
+          materials.forEach((material) => material.dispose());
+          textures.forEach((texture) => texture.dispose());
           renderer.dispose();
           renderer.domElement.remove();
           delete mount.dataset.rotation;
@@ -174,7 +240,7 @@ export function InteractiveHead() {
   function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
     if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
     event.preventDefault();
-    nudgeRef.current(event.key === "ArrowLeft" ? -0.14 : 0.14);
+    nudgeRef.current(event.key === "ArrowLeft" ? -0.1 : 0.1);
   }
 
   return (
@@ -184,12 +250,12 @@ export function InteractiveHead() {
         ref={mountRef}
         role="application"
         tabIndex={0}
-        aria-label="Интерактивная 3D-модель головы с объёмной стрижкой. Поверните модель перетаскиванием или стрелками."
+        aria-label="Интерактивный 3D-портрет с короткой стрижкой. Поверните его перетаскиванием или стрелками."
         onKeyDown={handleKeyDown}
       >
         <div className={styles.loader} aria-hidden={status === "ready"}>
-          <TrimmyLoader size="lg" label={status === "error" ? "3D недоступно" : "Загружаем 3D-модель"} />
-          <small>{status === "error" ? "3D недоступно" : "Собираем образ"}</small>
+          <TrimmyLoader size="lg" label={status === "error" ? "3D недоступно" : "Загружаем 3D-портрет"} />
+          <small>{status === "error" ? "3D недоступно" : "Готовим модель"}</small>
         </div>
       </div>
       <span className={styles.control} aria-hidden="true"><Rotate3D /></span>
