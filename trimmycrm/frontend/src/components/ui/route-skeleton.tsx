@@ -1,14 +1,16 @@
 export function RouteSkeleton({ variant = "page" }: { variant?: "page" | "document" | "form" }) {
   return (
-    <main className={`route-skeleton route-skeleton--${variant}`} aria-busy="true" aria-label="Загружаем страницу">
-      <span className="route-skeleton__bar route-skeleton__bar--eyebrow" />
-      <span className="route-skeleton__bar route-skeleton__bar--title" />
-      <span className="route-skeleton__bar route-skeleton__bar--lead" />
-      <div className="route-skeleton__grid">
-        <span />
-        <span />
-        <span />
+    <main
+      className={`route-preloader route-preloader--${variant}`}
+      aria-busy="true"
+      aria-live="polite"
+      aria-label="Загружаем страницу"
+    >
+      <div className="route-preloader__cut" aria-hidden="true">
+        <span /><span /><span /><span /><span /><span /><span />
       </div>
+      <p>TrimmyCRM</p>
+      <small>Собираем образ</small>
     </main>
   );
 }

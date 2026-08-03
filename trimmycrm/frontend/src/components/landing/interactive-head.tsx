@@ -1,89 +1,193 @@
 "use client";
 
 import { Rotate3D } from "lucide-react";
-import Image from "next/image";
-import { useEffect, useRef, type KeyboardEvent, type PointerEvent } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 
 import styles from "./interactive-head.module.css";
 
-const FRAME_COUNT = 8;
-
-function frameTransform(frame: number) {
-  const column = frame % 4;
-  const row = Math.floor(frame / 4);
-  return `translate3d(${-column * 25}%, ${-row * 50}%, 0)`;
-}
+type SceneStatus = "loading" | "ready" | "error";
 
 export function InteractiveHead() {
-  const spriteRef = useRef<HTMLDivElement>(null);
-  const frameRef = useRef(0);
-  const startXRef = useRef(0);
-  const startFrameRef = useRef(0);
-  const draggingRef = useRef(false);
-
-  const renderFrame = (frame: number) => {
-    const normalized = (frame + FRAME_COUNT) % FRAME_COUNT;
-    frameRef.current = normalized;
-    spriteRef.current?.style.setProperty("--head-transform", frameTransform(normalized));
-  };
+  const mountRef = useRef<HTMLDivElement>(null);
+  const nudgeRef = useRef<(delta: number) => void>(() => undefined);
+  const [status, setStatus] = useState<SceneStatus>("loading");
 
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const timer = window.setInterval(() => {
-      if (!draggingRef.current) renderFrame(frameRef.current + 1);
-    }, 1800);
-    return () => window.clearInterval(timer);
+    const mount = mountRef.current;
+    if (!mount) return;
+
+    let cancelled = false;
+    let cleanup = () => undefined;
+
+    async function createScene() {
+      try {
+        const [THREE, { GLTFLoader }, { OrbitControls }] = await Promise.all([
+          import("three"),
+          import("three/examples/jsm/loaders/GLTFLoader.js"),
+          import("three/examples/jsm/controls/OrbitControls.js"),
+        ]);
+        if (cancelled || !mount) return;
+
+        const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        const renderer = new THREE.WebGLRenderer({
+          alpha: true,
+          antialias: true,
+          powerPreference: "high-performance",
+        });
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
+        renderer.outputColorSpace = THREE.SRGBColorSpace;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.02;
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.domElement.className = styles.canvas;
+        renderer.domElement.setAttribute("aria-hidden", "true");
+        mount.appendChild(renderer.domElement);
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(31, 1, 0.1, 30);
+        camera.position.set(0, 0.02, 5.45);
+
+        const keyLight = new THREE.DirectionalLight(0xfff8f0, 3.4);
+        keyLight.position.set(3.6, 4.4, 4.8);
+        keyLight.castShadow = true;
+        keyLight.shadow.mapSize.set(1024, 1024);
+        scene.add(keyLight);
+
+        const fillLight = new THREE.DirectionalLight(0x75dfb5, 2.25);
+        fillLight.position.set(-3.8, 1.4, 2.2);
+        scene.add(fillLight);
+        const rimLight = new THREE.DirectionalLight(0xd15022, 2.4);
+        rimLight.position.set(2.2, 1.2, -4.2);
+        scene.add(rimLight);
+        scene.add(new THREE.HemisphereLight(0xffffff, 0x496e61, 1.2));
+
+        const head = new THREE.Group();
+        head.rotation.set(0.02, -0.24, -0.012);
+        scene.add(head);
+
+        const gltf = await new GLTFLoader().loadAsync(
+          "/models/marble-bust-01/marble_bust_01_1k.gltf",
+        );
+        if (cancelled) {
+          renderer.dispose();
+          return;
+        }
+
+        const model = gltf.scene;
+        model.traverse((object) => {
+          if (!(object instanceof THREE.Mesh)) return;
+          object.castShadow = true;
+          object.receiveShadow = true;
+          const materials = Array.isArray(object.material) ? object.material : [object.material];
+          materials.forEach((material) => {
+            if ("roughness" in material) material.roughness = Math.max(material.roughness, 0.38);
+          });
+        });
+
+        const originalBounds = new THREE.Box3().setFromObject(model);
+        const originalSize = originalBounds.getSize(new THREE.Vector3());
+        model.scale.setScalar(3.02 / originalSize.y);
+        const scaledBounds = new THREE.Box3().setFromObject(model);
+        const scaledCenter = scaledBounds.getCenter(new THREE.Vector3());
+        model.position.sub(scaledCenter);
+        model.position.y += 0.03;
+        head.add(model);
+
+        const shadow = new THREE.Mesh(
+          new THREE.CircleGeometry(1.05, 64),
+          new THREE.ShadowMaterial({ color: 0x063c2e, opacity: 0.2 }),
+        );
+        shadow.rotation.x = -Math.PI / 2;
+        shadow.position.set(0, -1.49, 0.1);
+        shadow.receiveShadow = true;
+        scene.add(shadow);
+
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.065;
+        controls.enablePan = false;
+        controls.enableZoom = false;
+        controls.autoRotate = !reducedMotion;
+        controls.autoRotateSpeed = 0.34;
+        controls.minPolarAngle = Math.PI * 0.39;
+        controls.maxPolarAngle = Math.PI * 0.59;
+        controls.minAzimuthAngle = -Math.PI * 0.64;
+        controls.maxAzimuthAngle = Math.PI * 0.64;
+        controls.target.set(0, 0.04, 0);
+        controls.update();
+
+        mount.dataset.rotation = head.rotation.y.toFixed(2);
+        nudgeRef.current = (delta) => {
+          head.rotation.y += delta;
+          mount.dataset.rotation = head.rotation.y.toFixed(2);
+          renderer.render(scene, camera);
+        };
+
+        const resize = () => {
+          const { width, height } = mount.getBoundingClientRect();
+          if (!width || !height) return;
+          renderer.setSize(width, height, false);
+          camera.aspect = width / height;
+          camera.updateProjectionMatrix();
+          renderer.render(scene, camera);
+        };
+        const observer = new ResizeObserver(resize);
+        observer.observe(mount);
+        resize();
+
+        renderer.setAnimationLoop(() => {
+          controls.update();
+          renderer.render(scene, camera);
+        });
+        setStatus("ready");
+
+        cleanup = () => {
+          observer.disconnect();
+          renderer.setAnimationLoop(null);
+          controls.dispose();
+          scene.traverse((object) => {
+            if (!(object instanceof THREE.Mesh)) return;
+            object.geometry.dispose();
+            const materials = Array.isArray(object.material) ? object.material : [object.material];
+            materials.forEach((material) => material.dispose());
+          });
+          renderer.dispose();
+          renderer.domElement.remove();
+          delete mount.dataset.rotation;
+        };
+      } catch {
+        if (!cancelled) setStatus("error");
+      }
+    }
+
+    void createScene();
+    return () => {
+      cancelled = true;
+      nudgeRef.current = () => undefined;
+      cleanup();
+    };
   }, []);
 
-  const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
-    draggingRef.current = true;
-    startXRef.current = event.clientX;
-    startFrameRef.current = frameRef.current;
-    event.currentTarget.setPointerCapture(event.pointerId);
-    event.currentTarget.dataset.dragging = "true";
-  };
-
-  const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
-    if (!draggingRef.current) return;
-    const step = Math.round((event.clientX - startXRef.current) / 42);
-    renderFrame(startFrameRef.current - step);
-  };
-
-  const handlePointerEnd = (event: PointerEvent<HTMLDivElement>) => {
-    draggingRef.current = false;
-    delete event.currentTarget.dataset.dragging;
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-      event.currentTarget.releasePointerCapture(event.pointerId);
-    }
-  };
-
-  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+  function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
     if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
     event.preventDefault();
-    renderFrame(frameRef.current + (event.key === "ArrowLeft" ? -1 : 1));
-  };
+    nudgeRef.current(event.key === "ArrowLeft" ? -0.14 : 0.14);
+  }
 
   return (
-    <div className={styles.stage} data-parallax>
+    <div className={styles.stage} data-parallax data-status={status}>
       <div
         className={styles.viewport}
-        role="img"
+        ref={mountRef}
+        role="application"
         tabIndex={0}
-        aria-label="Фотореалистичная причёска. Потяните в сторону или используйте стрелки, чтобы повернуть голову"
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerEnd}
-        onPointerCancel={handlePointerEnd}
+        aria-label="Интерактивная 3D-модель головы с объёмной стрижкой. Поверните модель перетаскиванием или стрелками."
         onKeyDown={handleKeyDown}
       >
-        <div className={styles.sprite} ref={spriteRef}>
-          <Image
-            src="/images/editorial/head-turntable.webp"
-            alt=""
-            fill
-            priority
-            sizes="(max-width: 780px) 92vw, 56vw"
-          />
+        <div className={styles.loader} aria-hidden={status === "ready"}>
+          <span /><span /><span /><span /><span />
+          <small>{status === "error" ? "3D недоступно" : "Собираем образ"}</small>
         </div>
       </div>
       <span className={styles.control} aria-hidden="true"><Rotate3D /></span>

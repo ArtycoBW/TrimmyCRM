@@ -40,7 +40,7 @@ describe("editorial asset provenance", () => {
 
     expect(manifest.containsSyntheticPeopleOnly).toBe(true);
     expect(manifest.productionApproved).toBe(false);
-    expect(manifest.assets).toHaveLength(8);
+    expect(manifest.assets).toHaveLength(7);
     for (const asset of manifest.assets) {
       const bytes = readFileSync(new URL(`../public${asset.path}`, import.meta.url));
       expect(createHash("sha256").update(bytes).digest("hex")).toBe(asset.sha256);

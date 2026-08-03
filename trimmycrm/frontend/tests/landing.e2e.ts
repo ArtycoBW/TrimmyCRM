@@ -18,12 +18,12 @@ test("landing renders its core sections", async ({ page }, testInfo) => {
 
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Салон в ритме");
   await expect(page.getByRole("banner").evaluate((header) => getComputedStyle(header).position)).resolves.toBe("fixed");
-  const interactiveHead = page.getByRole("img", { name: /Фотореалистичная причёска/i });
-  const sprite = interactiveHead.locator("div[class*='sprite']");
-  const initialFrame = await sprite.evaluate((element) => element.getAttribute("style") || "");
+  const interactiveHead = page.getByRole("application", { name: /Интерактивная 3D-модель/i });
+  await expect(interactiveHead.locator("canvas")).toBeVisible();
+  const initialFrame = await interactiveHead.getAttribute("data-rotation");
   await interactiveHead.focus();
   await interactiveHead.press("ArrowRight");
-  await expect.poll(() => sprite.evaluate((element) => element.getAttribute("style") || "")).not.toBe(initialFrame);
+  await expect.poll(() => interactiveHead.getAttribute("data-rotation")).not.toBe(initialFrame);
   await expect(page.locator("#product")).toBeAttached();
   await expect(page.locator("#examples")).toBeAttached();
   await expect(page.locator("#plans")).toBeAttached();
@@ -99,7 +99,7 @@ test("reduced motion stays static and the editorial footer is complete", async (
   await expect.poll(() => page.locator("[data-reveal]").evaluateAll((elements) =>
     elements.every((element) => element.getAttribute("data-reveal-state") === "visible"),
   )).toBe(true);
-  const interactiveHead = page.getByRole("img", { name: /Фотореалистичная причёска/i });
+  const interactiveHead = page.getByRole("application", { name: /Интерактивная 3D-модель/i });
   await expect(interactiveHead).toBeVisible();
   const photoRows = page.getByLabel("Фотогалерея мужских и женских работ").locator("div[class*='track']");
   await expect(photoRows).toHaveCount(2);
