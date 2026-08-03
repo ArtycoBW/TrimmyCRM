@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowUpRight, Building2, CheckCircle2, Rocket, UserRound } from "lucide-react";
+import { ArrowUpRight, Building2, Check, Scissors, Sparkles } from "lucide-react";
 
 import {
   fallbackPlans,
@@ -44,7 +44,7 @@ export function PlansSection() {
   return (
     <div className="plans-grid" aria-live="polite">
       {plans.map((plan, index) => {
-        const PlanIcon = index === 0 ? UserRound : index === 1 ? Rocket : Building2;
+        const PlanIcon = index === 0 ? Scissors : index === 1 ? Sparkles : Building2;
         return (
           <article
             className={`plan-card${plan.featured ? " plan-card--featured" : ""}`}
@@ -75,7 +75,7 @@ export function PlansSection() {
           <ul className="plan-card__features">
             {plan.features.map((feature) => (
               <li key={feature}>
-                <span className="plan-card__check"><CheckCircle2 aria-hidden="true" /></span>
+                <span className="plan-card__check"><Check aria-hidden="true" /></span>
                 {feature}
               </li>
             ))}
