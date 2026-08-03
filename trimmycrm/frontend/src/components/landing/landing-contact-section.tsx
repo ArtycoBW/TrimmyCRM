@@ -1,5 +1,7 @@
 "use client";
 
+import { ArrowUpRight } from "lucide-react";
+import Image from "next/image";
 import { useState, type FormEvent } from "react";
 
 import { useHydrated } from "@/hooks/use-hydrated";
@@ -39,11 +41,22 @@ export function LandingContactSection() {
   return (
     <section className="landing-contact section" id="contact" aria-labelledby="contact-title" data-hydrated={hydrated}>
       <div className="page-container landing-contact__layout">
-        <div className="landing-contact__copy" data-reveal>
-          <p className="eyebrow">Можно просто спросить</p>
-          <h2 id="contact-title">Обсудим ваш<br /><span>салон.</span></h2>
-          <p>Расскажите, что хотите настроить. Или оставьте время, перезвоним без навязчивых продаж.</p>
-          <span className="landing-contact__note">Ответим в рабочее время · не продаём данные и не используем их для сторонней рекламы</span>
+        <div className="landing-contact__visual" data-reveal>
+          <Image
+            alt="Стилист обсуждает новую форму стрижки с клиенткой"
+            fill
+            sizes="(max-width: 1080px) 100vw, 46vw"
+            src="/images/editorial/salon-copper-consultation.webp"
+          />
+          <div className="landing-contact__visual-top">
+            <span>Диалог без сценариев</span>
+            <span>01 / 01</span>
+          </div>
+          <div className="landing-contact__copy">
+            <p className="eyebrow">Можно просто спросить</p>
+            <h2 id="contact-title">Обсудим ваш<br /><span>салон.</span></h2>
+            <p>Расскажите, что хотите настроить. Ответим по существу и без навязчивых продаж.</p>
+          </div>
         </div>
         <form className="landing-contact__form" onSubmit={submit} data-reveal data-reveal-delay="1">
           <div className="landing-contact__tabs" role="tablist" aria-label="Тип обращения">
@@ -55,7 +68,10 @@ export function LandingContactSection() {
           {kind === "question" ? <label className="landing-contact__wide">Ваш вопрос<textarea value={question} onChange={(event) => setQuestion(event.target.value)} maxLength={5000} placeholder="Например: как перенести клиентов и записи?" required /></label> : <label className="landing-contact__wide">Когда удобно позвонить?<input type="time" value={preferredTime} onChange={(event) => setPreferredTime(event.target.value)} required /></label>}
           <label className="landing-contact__consent"><input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} required /><span>Даю <a href="/consent" target="_blank" rel="noreferrer">согласие на обработку персональных данных</a> и ознакомлен(-а) с <a href="/privacy" target="_blank" rel="noreferrer">Политикой</a>.</span></label>
           {result && <p className="landing-contact__result" role="status">{result}</p>}
-          <button className="button button--ink" type="submit" disabled={sending}>{sending ? "Отправляем…" : kind === "callback" ? "Заказать звонок" : "Отправить вопрос"}</button>
+          <button className="button button--ink" type="submit" disabled={sending}>
+            <span>{sending ? "Отправляем…" : kind === "callback" ? "Заказать звонок" : "Отправить вопрос"}</span>
+            <ArrowUpRight aria-hidden="true" />
+          </button>
         </form>
       </div>
     </section>

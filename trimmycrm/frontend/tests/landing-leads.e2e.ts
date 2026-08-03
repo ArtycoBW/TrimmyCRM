@@ -16,6 +16,9 @@ test("landing captures question, callback request and chat contact without layou
   const contact = page.locator("#contact");
   await contact.scrollIntoViewIfNeeded();
   await expect(contact).toHaveAttribute("data-hydrated", "true");
+  const contactPhoto = contact.getByRole("img", { name: /стилист обсуждает новую форму/i });
+  await expect(contactPhoto).toHaveAttribute("src", /salon-copper-consultation\.webp/);
+  await expect.poll(() => contactPhoto.evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
   await expect(contact.locator(".landing-contact__form")).toBeVisible();
   await expect(contact.getByRole("link", { name: /согласие на обработку персональных данных/i })).toHaveAttribute("href", "/consent");
   await contact.getByLabel("Имя").fill("Арина");

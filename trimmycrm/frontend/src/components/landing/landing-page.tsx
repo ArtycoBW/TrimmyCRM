@@ -6,6 +6,7 @@ import { DualPhotoMarquee, type EditorialPhoto } from "@/components/landing/infi
 import { InteractiveHead } from "@/components/landing/interactive-head";
 import { LandingChat } from "@/components/landing/landing-chat";
 import { LandingContactSection } from "@/components/landing/landing-contact-section";
+import { LandingFaq } from "@/components/landing/landing-faq";
 import { LandingHeader } from "@/components/landing/landing-header";
 import { LandingMotion } from "@/components/landing/landing-motion";
 import {
@@ -140,14 +141,7 @@ export function LandingPage() {
               <h2 id="faq-title">Прямые ответы на частые вопросы.</h2>
               <p>Если вашего вопроса нет в списке, напишите нам в форме ниже.</p>
             </div>
-            <div className={styles.faqList} data-reveal data-reveal-delay="1" data-parallax>
-              {faqs.map((item, index) => (
-                <details key={item.question} open={index === 0}>
-                  <summary>{item.question}</summary>
-                  <p>{item.answer}</p>
-                </details>
-              ))}
-            </div>
+            <LandingFaq items={faqs} />
           </section>
 
           <LandingContactSection />

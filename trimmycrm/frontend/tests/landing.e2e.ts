@@ -28,14 +28,26 @@ test("landing renders its core sections", async ({ page }, testInfo) => {
   await expect(page.locator("#examples")).toBeAttached();
   await expect(page.locator("#plans")).toBeAttached();
   await expect(page.locator("#faq")).toBeAttached();
+  const faq = page.locator("#faq");
+  await faq.scrollIntoViewIfNeeded();
+  const faqButtons = faq.getByRole("button");
+  await expect(faqButtons.first()).toHaveAttribute("aria-expanded", "true");
+  await faqButtons.nth(1).click();
+  await expect(faqButtons.first()).toHaveAttribute("aria-expanded", "false");
+  await expect(faqButtons.nth(1)).toHaveAttribute("aria-expanded", "true");
+  await expect(faq.locator("[class*='faqAnswer']").nth(1).evaluate((answer) => getComputedStyle(answer).transitionProperty)).resolves.toContain("grid-template-rows");
   await expect(page.getByRole("heading", { name: /Разные салоны/i })).toBeVisible();
   await page.locator("#examples").scrollIntoViewIfNeeded();
   const womanPortrait = page.getByAltText("Женщина с медным графичным бобом").first();
   const manPortrait = page.getByAltText("Мужчина с текстурной короткой стрижкой").first();
   await expect(womanPortrait).toHaveAttribute("src", /woman-copper-bob\.webp/);
   await expect(manPortrait).toHaveAttribute("src", /man-textured-crop\.webp/);
-  await expect.poll(() => womanPortrait.evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
-  await expect.poll(() => manPortrait.evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
+  await expect.poll(() => page.getByAltText("Женщина с медным графичным бобом").evaluateAll((images: HTMLImageElement[]) =>
+    images.some((image) => image.complete && image.naturalWidth > 0),
+  )).toBe(true);
+  await expect.poll(() => page.getByAltText("Мужчина с текстурной короткой стрижкой").evaluateAll((images: HTMLImageElement[]) =>
+    images.some((image) => image.complete && image.naturalWidth > 0),
+  )).toBe(true);
 
   if (testInfo.project.name === "desktop-chrome") {
     await expect(page.getByRole("navigation", { name: "Основная навигация" })).toBeVisible();
