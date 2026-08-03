@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type KeyboardEvent, type PointerEvent } from "react";
+import Image from "next/image";
 import Link from "next/link";
 
 import { clampTransform, drawComposition, initialTransform, moveTransform } from "./canvas-engine";
@@ -214,13 +215,17 @@ export function LocalTryOn() {
     <main className="tryon-shell">
       <a className="tryon-skip" href="#tryon-editor">К редактору</a>
       <header className="tryon-header">
-        <Link href="/" className="tryon-brand" aria-label="TrimmyCRM — вернуться на сайт">Trimmy<span>CRM</span></Link>
+        <Link href="/" className="tryon-brand" aria-label="TrimmyCRM — вернуться на сайт">T — CRM</Link>
         <a href="/client?booking=1" className="tryon-header__booking">Записаться без примерки</a>
       </header>
 
       <section className="tryon-intro" aria-labelledby="tryon-title">
         <p className="tryon-kicker">Локальная 2D-примерка · прототип</p>
         <h1 id="tryon-title">Примерьте форму <span>до консультации</span></h1>
+        <figure className="tryon-intro__portrait" aria-hidden="true">
+          <Image src="/images/editorial/woman-graphic-pixie.webp" alt="" fill priority sizes="(max-width: 760px) 50vw, 28vw" />
+          <figcaption>PIXIE / EDGE</figcaption>
+        </figure>
         <div className="tryon-intro__copy">
           <p>{LOCAL_TRYON_PRIVACY_NOTICE}</p>
           <p>{LOCAL_TRYON_DISCLAIMER}</p>
