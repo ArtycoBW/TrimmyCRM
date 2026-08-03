@@ -21,24 +21,17 @@ test("landing renders its core sections", async ({ page }, testInfo) => {
   await expect(page.locator("#examples")).toBeAttached();
   await expect(page.locator("#plans")).toBeAttached();
   await expect(page.locator("#faq")).toBeAttached();
-  await expect(page.getByRole("heading", { name: /До — идея/i })).toBeVisible();
-  await expect(page.getByAltText("Абстрактный образ барбершопа")).toBeAttached();
-
-  const beforeImage = page.locator(".before-after__image--before");
-  const afterImage = page.locator(".before-after__image--after");
-  await expect(beforeImage).toHaveAttribute("src", /before-consultation\.svg/);
-  await expect(afterImage).toHaveAttribute("src", /after-style\.svg/);
-  await beforeImage.scrollIntoViewIfNeeded();
-  await expect.poll(() => beforeImage.evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
-  await expect.poll(() => afterImage.evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
-
-  const comparison = page.getByLabel("Сравнить образ до и после работы мастера");
-  await comparison.fill("72");
-  await expect(page.locator(".before-after")).toHaveCSS("--comparison-position", "72%");
+  await expect(page.getByRole("heading", { name: /Разная эстетика/i })).toBeVisible();
+  const womanPortrait = page.getByAltText("Женская стрижка — медный графичный боб");
+  const manPortrait = page.getByAltText("Мужская стрижка — текстурный кроп");
+  await expect(womanPortrait).toHaveAttribute("src", /woman-copper-bob\.webp/);
+  await expect(manPortrait).toHaveAttribute("src", /man-textured-crop\.webp/);
+  await expect.poll(() => womanPortrait.evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
+  await expect.poll(() => manPortrait.evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
 
   if (testInfo.project.name === "desktop-chrome") {
-    await expect(page.getByRole("navigation", { name: "Основная навигация" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Открыть меню" })).toBeHidden();
+    await expect(page.getByRole("navigation", { name: "Основная навигация" })).toBeHidden();
+    await expect(page.getByRole("button", { name: "Открыть меню" })).toBeVisible();
   }
 });
 
@@ -46,20 +39,9 @@ test("mobile hero fits the viewport and navigation opens", async ({ page }, test
   test.skip(testInfo.project.name !== "mobile-chrome", "Mobile-only layout assertion");
   await page.goto("/");
 
-  const selectors = [
-    ".site-header__capsule",
-    ".site-header__menu-button",
-    ".hero__content",
-    ".hero__title",
-    ".hero__actions",
-  ];
-
-  for (const selector of selectors) {
-    const box = await page.locator(selector).boundingBox();
-    expect(box, `${selector} should be rendered`).not.toBeNull();
-    expect(box!.x, `${selector} starts inside viewport`).toBeGreaterThanOrEqual(-1);
-    expect(box!.x + box!.width, `${selector} ends inside viewport`).toBeLessThanOrEqual(391);
-  }
+  await expect(page.locator("body").evaluate((body) => body.scrollWidth <= window.innerWidth)).resolves.toBe(true);
+  await expect(page.locator(".hero__content")).toBeVisible();
+  await expect(page.locator(".hero__actions")).toBeVisible();
 
   const menuButton = page.getByRole("button", { name: "Открыть меню" });
   await expect(menuButton).toBeVisible();

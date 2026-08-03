@@ -1,3 +1,6 @@
+import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
+
 import { describe, expect, it } from "vitest";
 
 import { fallbackPlans, normalizePlans } from "../src/content/landing";
@@ -24,5 +27,23 @@ describe("landing pricing contract", () => {
 
   it("falls back when the API response is incomplete", () => {
     expect(normalizePlans([{ code: "start", name: "Старт", price: 990 }])).toBe(fallbackPlans);
+  });
+});
+
+describe("editorial portrait provenance", () => {
+  it("tracks every synthetic portrait with its exact checksum", () => {
+    const manifest = JSON.parse(readFileSync(new URL("../public/images/editorial/manifest.json", import.meta.url), "utf8")) as {
+      containsSyntheticPeopleOnly: boolean;
+      productionApproved: boolean;
+      assets: Array<{ path: string; sha256: string }>;
+    };
+
+    expect(manifest.containsSyntheticPeopleOnly).toBe(true);
+    expect(manifest.productionApproved).toBe(false);
+    expect(manifest.assets).toHaveLength(4);
+    for (const asset of manifest.assets) {
+      const bytes = readFileSync(new URL(`../public${asset.path}`, import.meta.url));
+      expect(createHash("sha256").update(bytes).digest("hex")).toBe(asset.sha256);
+    }
   });
 });

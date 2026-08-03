@@ -64,7 +64,9 @@ export function LandingPrimaryAction({
   anonymousHref?: "/register" | "/register?intent=custom-landing";
 }) {
   const state = useLandingSession();
-  if (state === "checking") return <span className={`${className} landing-cta-placeholder`} aria-hidden="true" />;
+  if (state === "checking") {
+    return <span className={`${className} landing-cta-placeholder`} aria-hidden="true">{anonymousLabel} <Icon name="arrow" /></span>;
+  }
   return (
     <Link className={className} href={state === "authenticated" ? "/app" : anonymousHref}>
       {state === "authenticated" ? authenticatedLabel : anonymousLabel} <Icon name="arrow" />

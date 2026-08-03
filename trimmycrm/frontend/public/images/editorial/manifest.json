@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "createdAt": "2026-08-03",
+  "source": "OpenAI built-in image generation",
+  "rightsBasis": "original-ai-assisted-marketing-asset",
+  "containsSyntheticPeopleOnly": true,
+  "productionApproved": false,
+  "assets": [
+    {
+      "path": "/images/editorial/woman-copper-bob.webp",
+      "subject": "fictional adult woman, copper bob",
+      "sha256": "f07ed33b0ed065ecfb35b1badd6fde3abe184294fe54d10f3c459f319ac49b31"
+    },
+    {
+      "path": "/images/editorial/man-textured-crop.webp",
+      "subject": "fictional adult man, textured crop",
+      "sha256": "8679d07681512a9e48938f1509ae134e25c8c07aea934a999b2731bd2864b04d"
+    },
+    {
+      "path": "/images/editorial/woman-graphic-pixie.webp",
+      "subject": "fictional adult woman, graphic pixie",
+      "sha256": "8c5e49a8d4009b40d4c90b3a71e7ffcbd2dedf45748a7824394db4a967bf321b"
+    },
+    {
+      "path": "/images/editorial/man-layered-curls.webp",
+      "subject": "fictional adult man, layered curls",
+      "sha256": "b06d717eccf75e41ae5e3e4f343738e730d8bc853e4c40ad6c89d53587fcdf3c"
+    }
+  ]
+}

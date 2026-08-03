@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 
 import { navigation } from "@/content/landing";
-import { BrandMark } from "@/components/ui/brand-mark";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { LandingHeaderActions } from "@/components/landing/landing-session";
 
@@ -20,7 +19,7 @@ export function LandingHeader() {
     <header className="site-header">
       <div className="site-header__capsule">
         <a className="site-header__logo" href="#top" aria-label="TrimmyCRM — на главную">
-          <BrandMark compact />
+          <span aria-hidden="true">T — CRM</span>
         </a>
 
         <button
@@ -32,8 +31,7 @@ export function LandingHeader() {
           aria-label={open ? "Закрыть меню" : "Открыть меню"}
           onClick={() => setOpen((value) => !value)}
         >
-          <span />
-          <span />
+          {open ? "Закрыть" : "Меню"}
         </button>
 
         <nav
@@ -41,12 +39,14 @@ export function LandingHeader() {
           id="landing-navigation"
           aria-label="Основная навигация"
         >
+          <p>НАВИГАЦИЯ / 2026</p>
           <div className="site-header__links">
             {navigation.map((item) => (
               <a key={item.href} href={item.href} onClick={() => setOpen(false)}>
                 {item.label}
               </a>
             ))}
+            <a href="#contact" onClick={() => setOpen(false)}>Контакты</a>
           </div>
           <div className="site-header__actions">
             <LandingHeaderActions />
