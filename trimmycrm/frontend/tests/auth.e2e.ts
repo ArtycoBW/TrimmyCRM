@@ -24,7 +24,7 @@ test("login and registration layouts fit both viewports", async ({ page }) => {
   await page.goto("/login");
   await expect(page.getByRole("heading", { name: /Войти в TrimmyCRM/i })).toBeVisible();
   if (await page.locator(".auth-story").isVisible()) {
-    await expect(page.getByAltText("Мастер создаёт современную стрижку в салоне")).toHaveAttribute("src", /salon-cut-session\.webp/);
+    await expect(page.getByAltText("Стилист работает над короткой стрижкой в современной студии")).toHaveAttribute("src", /auth-salon-studio\.webp/);
   }
   await expect(page.getByLabel("Email")).toBeVisible();
   await expect(page.getByLabel("Пароль", { exact: true })).toBeVisible();
@@ -41,10 +41,21 @@ test("login and registration layouts fit both viewports", async ({ page }) => {
 
   await page.goto("/register");
   await expect(page.getByRole("heading", { name: /Создать аккаунт/i })).toBeVisible();
-  await page.getByRole("button", { name: /Создать аккаунт/i }).click();
+  await expect(page.getByLabel("Шаги регистрации").locator("li[data-state='active']")).toContainText("Контакты");
+  await page.getByRole("button", { name: /Продолжить/i }).click();
   await expect(page.getByText("Введите email")).toBeVisible();
-  await expect(page.getByText("Нужно принять условия сервиса")).toBeVisible();
-  await expect(page.getByText("Нужно согласие на обработку данных")).toBeVisible();
+  await expect(page.getByText("Укажите номер телефона")).toBeVisible();
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollHeight <= innerHeight + 1)).toBe(true);
+  await page.getByLabel("Email").fill("layout@example.ru");
+  await page.getByLabel("Телефон").fill("9896521542");
+  await page.getByRole("button", { name: /Продолжить/i }).click();
+  await page.getByLabel("Название салона").fill("ФОРМА");
+  await page.getByLabel(/Женский салон/).check();
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollHeight <= innerHeight + 1)).toBe(true);
+  await page.getByRole("button", { name: /Продолжить/i }).click();
+  await expect(page.getByLabel("Шаги регистрации").locator("li[data-state='active']")).toContainText("Защита");
+  await expect(page.getByText("Минимум 10 символов")).toHaveCount(0);
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollHeight <= innerHeight + 1)).toBe(true);
 });
 
 test("legal documents are readable and fit both viewports", async ({ page }) => {
@@ -121,22 +132,31 @@ test("platform login continues to authenticated entry", async ({ page }, testInf
 
 test("registration shows privacy-safe email confirmation", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop-chrome", "Single integration pass is enough");
+  let registrationPayload: Record<string, unknown> | null = null;
   await mockAnonymous(page);
-  await page.route("**/api/v1/auth/register", (route) =>
-    route.fulfill({
+  await page.route("**/api/v1/auth/register", async (route) => {
+    registrationPayload = route.request().postDataJSON() as Record<string, unknown>;
+    await route.fulfill({
       status: 201,
       contentType: "application/json",
       body: JSON.stringify({ id: "user-id", email: "new@example.ru", status: "pending" }),
-    }),
-  );
+    });
+  });
 
   await page.goto("/register");
   await page.getByLabel("Email").fill("new@example.ru");
   await page.getByLabel("Телефон").fill("9896521542");
   await expect(page.getByLabel("Телефон")).toHaveValue("+7 (989) 652 15 42");
+  await page.getByRole("button", { name: /Продолжить/i }).click();
+  await expect(page.getByLabel("Шаги регистрации").locator("li[data-state='active']")).toContainText("Салон");
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollHeight <= innerHeight + 1)).toBe(true);
   await page.getByLabel("Название салона").fill("ФОРМА");
   await page.getByLabel(/Женский салон/).check();
   await page.getByLabel("Город").fill("Москва");
+  await page.getByRole("button", { name: /Продолжить/i }).click();
+  await expect(page.getByLabel("Шаги регистрации").locator("li[data-state='active']")).toContainText("Защита");
+  await expect(page.getByText("Минимум 10 символов")).toHaveCount(0);
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollHeight <= innerHeight + 1)).toBe(true);
   await page.getByLabel("Пароль", { exact: true }).fill("Strong-pass1!");
   await page.getByLabel("Повторите пароль").fill("Strong-pass1!");
   await page.getByRole("checkbox").nth(0).check();
@@ -145,6 +165,17 @@ test("registration shows privacy-safe email confirmation", async ({ page }, test
   await page.getByRole("button", { name: "Создать аккаунт →" }).click();
   await expect(page.getByRole("heading", { name: "Проверьте почту" })).toBeVisible();
   await expect(page.getByText("new@example.ru")).toBeVisible();
+  expect(registrationPayload).toMatchObject({
+    email: "new@example.ru",
+    phone: "+79896521542",
+    salonName: "ФОРМА",
+    salonType: "women_hair_salon",
+    city: "Москва",
+    timezone: "Europe/Moscow",
+    termsAccepted: true,
+    consent: true,
+    dataProcessingInstructionAccepted: true,
+  });
 });
 
 test("authenticated platform session sees cabinet links and cannot reopen auth forms", async ({ page }, testInfo) => {

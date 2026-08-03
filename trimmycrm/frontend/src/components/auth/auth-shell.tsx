@@ -41,10 +41,10 @@ export async function AuthShell({ eyebrow, title, description, children }: AuthS
         </div>
         <figure className="auth-story__photo">
           <Image
-            src="/images/editorial/salon-cut-session.webp"
-            alt="Мастер создаёт современную стрижку в салоне"
-            width={1024}
-            height={1536}
+            src="/images/editorial/auth-salon-studio.webp"
+            alt="Стилист работает над короткой стрижкой в современной студии"
+            width={1536}
+            height={1024}
             sizes="(max-width: 1100px) 52vw, 620px"
             priority
           />
