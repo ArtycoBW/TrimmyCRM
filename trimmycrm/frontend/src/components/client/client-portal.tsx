@@ -13,7 +13,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { DatePicker } from "@/components/ui/date-picker";
 import { AppSelect } from "@/components/ui/select";
-import { apiRequest, ApiError, logout } from "@/lib/api/client";
+import { apiRequest, logout } from "@/lib/api/client";
 import type {
   AppointmentView,
   Paginated,
@@ -62,34 +62,48 @@ export function ClientPortal() {
   const [slotTimezone, setSlotTimezone] = useState("Europe/Moscow");
   const [slot, setSlot] = useState("");
   const [booking, setBooking] = useState(false);
+  const currentQuery = searchParams.toString();
 
   useEffect(() => {
     let active = true;
-    Promise.all([
-      apiRequest<UserView>("/t/auth/me", { realm: "tenant" }),
-      apiRequest<Paginated<AppointmentView>>("/appointments/mine?page=1&limit=100", { realm: "tenant" }),
-      apiRequest<PublicServiceView[]>("/public/services"),
-      apiRequest<PublicStaffView[]>("/public/staff"),
-      apiRequest<PublicSiteSnapshot>("/public/site"),
-    ]).then(([currentUser, currentAppointments, currentServices, currentStaff, currentSite]) => {
-      if (!active) return;
-      setUser(currentUser);
-      setAppointments(currentAppointments.items);
-      setServices(currentServices);
-      setStaff(currentStaff);
-      setSite(currentSite);
-      setServiceId(currentServices[0]?.id || "");
-      setStaffId(currentStaff.find((member) => member.serviceIds.includes(currentServices[0]?.id || ""))?.id || "");
-    }).catch((reason) => {
-      if (!active) return;
-      if (reason instanceof ApiError && reason.status === 401) {
-        router.replace("/login?next=%2Fclient%3Fbooking%3D1");
-        return;
+
+    async function initialize() {
+      let authenticated = false;
+      try {
+        const currentUser = await apiRequest<UserView>("/t/auth/me", { realm: "tenant" });
+        if (!active) return;
+        authenticated = true;
+        setUser(currentUser);
+
+        const [currentAppointments, currentServices, currentStaff, currentSite] = await Promise.all([
+          apiRequest<Paginated<AppointmentView>>("/appointments/mine?page=1&limit=100", { realm: "tenant" }),
+          apiRequest<PublicServiceView[]>("/public/services"),
+          apiRequest<PublicStaffView[]>("/public/staff"),
+          apiRequest<PublicSiteSnapshot>("/public/site"),
+        ]);
+        if (!active) return;
+        setAppointments(currentAppointments.items);
+        setServices(currentServices);
+        setStaff(currentStaff);
+        setSite(currentSite);
+        setServiceId(currentServices[0]?.id || "");
+        setStaffId(currentStaff.find((member) => member.serviceIds.includes(currentServices[0]?.id || ""))?.id || "");
+      } catch (reason) {
+        if (!active) return;
+        if (!authenticated) {
+          const returnPath = `/client${currentQuery ? `?${currentQuery}` : ""}`;
+          router.replace(`/login?next=${encodeURIComponent(returnPath)}`);
+          return;
+        }
+        setMessage(reason instanceof Error ? reason.message : "Не удалось открыть кабинет");
+      } finally {
+        if (active) setLoading(false);
       }
-      setMessage(reason instanceof Error ? reason.message : "Не удалось открыть кабинет");
-    }).finally(() => { if (active) setLoading(false); });
+    }
+
+    void initialize();
     return () => { active = false; };
-  }, [router]);
+  }, [currentQuery, router]);
 
   const availableStaff = useMemo(
     () => staff.filter((member) => !serviceId || member.serviceIds.includes(serviceId)),
@@ -155,7 +169,7 @@ export function ClientPortal() {
   }
 
   if (loading) return <main className="client-portal-state" aria-busy="true"><i /><p>Открываем личный кабинет…</p></main>;
-  if (!user) return <main className="client-portal-state"><h1>Кабинет недоступен</h1><p>{message}</p></main>;
+  if (!user) return <main className="client-portal-state" aria-busy="true"><i /><p>Переходим ко входу…</p></main>;
 
   return (
     <main className="client-portal">

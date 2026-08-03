@@ -104,6 +104,20 @@ test("tenant root and preview render salon data instead of the platform landing"
   await expectNoHorizontalOverflow(page);
 });
 
+test("unauthorized client is redirected to login with the full return path", async ({ page }) => {
+  await mockPublicSite(page);
+  await page.route("**/api/v1/t/auth/me", (route) => json(route, {
+    message: "Требуется авторизация",
+    code: "unauthorized",
+  }, 401));
+
+  await page.goto(`${tenantOrigin}/client?booking=1`);
+  await expect(page).toHaveURL(/\/login\?next=/);
+  expect(new URL(page.url()).searchParams.get("next")).toBe("/client?booking=1");
+  await expect(page.getByText("Кабинет недоступен")).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: /Войти/i })).toBeVisible();
+});
+
 test("tenant login and client portal use the salon identity and Russian appointment statuses", async ({ page }) => {
   const brandedSite = {
     ...site,
