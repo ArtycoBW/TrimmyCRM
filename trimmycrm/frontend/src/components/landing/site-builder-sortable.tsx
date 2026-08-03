@@ -47,7 +47,7 @@ function BlockContent({ kind }: { kind: BlockKind }) {
     return (
       <div className={styles.cover}>
         <Image src="/images/editorial/salon-copper-consultation.webp" alt="Мастер и клиентка в салоне" fill sizes="(max-width: 780px) 90vw, 46vw" />
-        <div><span>Студия Форма</span><strong>Цвет и стрижка, которые остаются вашими.</strong><b>Записаться</b></div>
+        <div><span>Студия Форма</span><strong>Стрижки, окрашивание и уход в центре Москвы.</strong><b>Записаться</b></div>
       </div>
     );
   }
@@ -68,7 +68,7 @@ function BlockContent({ kind }: { kind: BlockKind }) {
   if (kind === "team") {
     return (
       <div className={styles.team}>
-        <div><h3>Люди, которым доверяют волосы.</h3><span>Выберите мастера по стилю работ.</span></div>
+        <div><h3>Наши мастера</h3><span>Посмотрите работы и выберите специалиста.</span></div>
         <div className={styles.teamFaces}>
           {workImages.slice(0, 2).map((src, index) => (
             <figure key={src}><Image src={src} alt={index === 0 ? "Женский мастер" : "Мужской мастер"} fill sizes="110px" /></figure>
@@ -91,7 +91,7 @@ function BlockContent({ kind }: { kind: BlockKind }) {
   if (kind === "booking") {
     return (
       <div className={styles.booking}>
-        <div><span>Ближайшая запись</span><h3>Выберите удобное время</h3></div>
+        <div><span>Свободные окна</span><h3>Выберите время на этой неделе</h3></div>
         <div className={styles.slots}><b>11:30</b><b>14:00</b><b>17:30</b></div>
       </div>
     );

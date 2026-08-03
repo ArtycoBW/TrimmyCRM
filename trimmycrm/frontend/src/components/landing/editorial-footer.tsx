@@ -30,9 +30,9 @@ export function EditorialFooter() {
     <footer className={styles.footer}>
       <div className={styles.cta} data-reveal>
         <div>
-          <h2>Соберите сайт. Откройте запись. Ведите салон.</h2>
+          <h2>Попробуйте TrimmyCRM в работе.</h2>
         </div>
-        <div className={styles.ctaAside}><p>14 дней бесплатно. Карта на старте не нужна.</p></div>
+        <div className={styles.ctaAside}><p>Первые 14 дней бесплатны. Банковская карта не нужна.</p></div>
       </div>
 
       <div className={styles.gallery} data-reveal data-reveal-delay="1" data-parallax>
@@ -51,7 +51,7 @@ export function EditorialFooter() {
       <div className={styles.bottom}>
         <div className={styles.brand}>
           <strong><span>Trimmy</span>CRM</strong>
-          <p>Сайт, запись и управление салоном в одном продукте.</p>
+          <p>CRM и сайт для парикмахерских и барбершопов.</p>
         </div>
         <nav aria-label="Документы и поддержка">
           <a href="/privacy">Политика</a>

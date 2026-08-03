@@ -7,14 +7,14 @@ import { ApiError, apiRequest } from "@/lib/api/client";
 import { formatRussianPhone, normalizeRussianPhone } from "@/lib/app/phone";
 
 const answers = [
-  { question: "Что входит в TrimmyCRM?", answer: "Сайт салона, онлайн-запись, календарь, клиенты, услуги и базовая аналитика находятся в одном кабинете." },
-  { question: "Сколько стоит?", answer: "Есть 14 дней бесплатно. Затем можно выбрать подходящий тариф в кабинете. Привязка карты на старте не нужна." },
-  { question: "Как быстро запуститься?", answer: "Обычно сайт и первую запись можно настроить за один вечер. Если нужна помощь, оставьте контакты, и мы подскажем." },
+  { question: "Что входит в TrimmyCRM?", answer: "Сайт салона, онлайн-запись, календарь, клиентская база, услуги и основная аналитика." },
+  { question: "Сколько стоит?", answer: "Первые 14 дней бесплатны. Затем тариф стоит от 990 ₽ в месяц. Банковская карта для регистрации не нужна." },
+  { question: "Как быстро запустить?", answer: "Базовый сайт и расписание можно настроить за вечер. Если нужно перенести клиентов, поможем подготовить данные." },
 ];
 
 export function LandingChat() {
   const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState([{ from: "bot", text: "Здравствуйте! Я помогу с базовыми вопросами о TrimmyCRM." }]);
+  const [messages, setMessages] = useState([{ from: "bot", text: "Здравствуйте. Что хотите узнать о TrimmyCRM?" }]);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [question, setQuestion] = useState("");
@@ -39,7 +39,7 @@ export function LandingChat() {
     try {
       const response = await apiRequest<{ message: string }>("/public/chat-leads", { method: "POST", body: JSON.stringify({ name, phone: normalizeRussianPhone(phone), question, consent }) });
       setResult(response.message);
-      setMessages((current) => [...current, { from: "bot", text: "Спасибо, контакты переданы команде. Скоро напишем или позвоним." }]);
+      setMessages((current) => [...current, { from: "bot", text: "Спасибо. Получили контакты и скоро свяжемся с вами." }]);
     } catch (reason) {
       setResult(reason instanceof ApiError ? reason.message : "Не удалось сохранить контакты. Попробуйте ещё раз.");
     } finally {
@@ -50,7 +50,7 @@ export function LandingChat() {
   return <div className="landing-chat">
     <button className="landing-chat__trigger" type="button" aria-expanded={open} aria-controls="landing-chat-panel" onClick={() => setOpen((value) => !value)}><span>Спросить</span><MessageCircleQuestion aria-hidden="true" /></button>
     {open && <aside className="landing-chat__panel" id="landing-chat-panel" aria-label="Чат с TrimmyCRM">
-      <header><div><strong>Поможем выбрать сценарий</strong><span>Ответим на вопрос о запуске салона</span></div><button type="button" aria-label="Закрыть чат" onClick={() => setOpen(false)}><X aria-hidden="true" /></button></header>
+      <header><div><strong>Есть вопрос?</strong><span>Ответим по TrimmyCRM и запуску сайта</span></div><button type="button" aria-label="Закрыть чат" onClick={() => setOpen(false)}><X aria-hidden="true" /></button></header>
       <div className="landing-chat__messages" ref={messagesRef}>{messages.map((message, index) => <p className={`is-${message.from}`} key={`${message.from}-${index}`}>{message.text}</p>)}</div>
       <div className="landing-chat__quick">{answers.map((item) => <button key={item.question} type="button" onClick={() => answer(item)}>{item.question}</button>)}</div>
       <form onSubmit={submit}>

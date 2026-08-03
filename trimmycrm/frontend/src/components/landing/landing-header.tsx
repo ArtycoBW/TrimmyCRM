@@ -61,7 +61,7 @@ export function LandingHeader() {
             </nav>
 
             <div className={styles.drawerAside}>
-              <p>Сайт, онлайн-запись и CRM для парикмахерских и барбершопов.</p>
+              <p>CRM и сайт для парикмахерских и барбершопов.</p>
               <div className={styles.drawerActions}><LandingHeaderActions /></div>
             </div>
           </div>

@@ -9,7 +9,7 @@ export function ProductMockup() {
         <div className="product-mockup__bar">
           <span className="window-dots"><i /><i /><i /></span>
           <span className="product-mockup__url">app.trimmycrm.ru/calendar</span>
-          <span className="product-mockup__status">всё спокойно</span>
+          <span className="product-mockup__status">онлайн</span>
         </div>
         <div className="product-mockup__body">
           <aside className="product-mockup__sidebar">
@@ -22,7 +22,7 @@ export function ProductMockup() {
             <div className="mockup-heading">
               <div>
                 <span className="mockup-caption">РАСПИСАНИЕ</span>
-                <strong>Неделя без накладок</strong>
+                <strong>Расписание на неделю</strong>
               </div>
               <span className="mockup-add">+ новая запись</span>
             </div>
@@ -42,7 +42,7 @@ export function ProductMockup() {
           </div>
         </div>
       </div>
-      <div className="product-mockup__note note-card note-card--pink">Записи приходят сами ↓</div>
+      <div className="product-mockup__note note-card note-card--pink">3 записи с сайта</div>
       <div className="product-mockup__kpi">
         <span>Сегодня</span>
         <strong>12 клиентов</strong>

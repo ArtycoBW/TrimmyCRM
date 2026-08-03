@@ -63,15 +63,15 @@ export function LandingPage() {
         <main id="main-content">
           <section className={styles.hero} aria-labelledby="hero-title">
             <div className={styles.heroCopy} data-reveal>
-              <p className={styles.eyebrow}>CRM для hair-индустрии</p>
+              <p className={styles.eyebrow}>Для парикмахерских и барбершопов</p>
               <h1 id="hero-title">
-                <span>Салон в ритме.</span>
-                <span>Рутина уходит.</span>
+                <span>Записи и клиенты.</span>
+                <span>Сайт и календарь.</span>
               </h1>
-              <p className={styles.heroLead}>Сайт, онлайн-запись, клиенты и расписание в одном понятном рабочем пространстве.</p>
+              <p className={styles.heroLead}>Всё в одном кабинете. Ведите расписание, храните историю клиентов и принимайте онлайн-записи.</p>
               <div className={styles.heroActions}>
-                <LandingPrimaryAction className={styles.primaryAction} anonymousLabel="Попробовать 14 дней" />
-                <a className={styles.secondaryAction} href="#product">Посмотреть возможности <ArrowUpRight aria-hidden="true" /></a>
+                <LandingPrimaryAction className={styles.primaryAction} anonymousLabel="Попробовать бесплатно" />
+                <a className={styles.secondaryAction} href="#product">Как это работает <ArrowUpRight aria-hidden="true" /></a>
               </div>
             </div>
 
@@ -82,8 +82,8 @@ export function LandingPage() {
 
           <section className={styles.product} id="product" aria-labelledby="product-title">
             <div className={styles.sectionHeading} data-reveal>
-              <h2 id="product-title">Один ритм работы вместо набора разрозненных сервисов.</h2>
-              <p>С первого визита на сайт до формулы окрашивания в карточке постоянного клиента.</p>
+              <h2 id="product-title">Что можно делать в TrimmyCRM.</h2>
+              <p>Сайт, расписание и клиентская база связаны между собой.</p>
             </div>
             <div className={styles.featureGrid} data-parallax>
               {productFeatures.map((feature) => (
@@ -98,16 +98,16 @@ export function LandingPage() {
 
           <section className={styles.formats} id="examples" aria-labelledby="formats-title">
             <div className={styles.formatIntro} data-reveal>
-              <h2 id="formats-title">Разные салоны. Своя логика у каждого.</h2>
-              <p>Женский салон, барбершоп или смешанная команда получают сайт, который говорит с клиентом на своём языке.</p>
+              <h2 id="formats-title">Для салона, барбершопа или студии.</h2>
+              <p>Выберите формат при регистрации. Услуги, названия и блоки сайта подстроятся под него.</p>
             </div>
             <div data-reveal data-reveal-delay="1" data-parallax><PhotoMarquee photos={portraits} /></div>
           </section>
 
           <section className={styles.builder} aria-labelledby="builder-title">
             <div className={styles.builderIntro} data-reveal>
-              <h2 id="builder-title">Сайт выглядит как ваш салон.</h2>
-              <p>Портфолио, мастера, услуги и свободные окна складываются в одну цельную страницу.</p>
+              <h2 id="builder-title">Соберите сайт из готовых блоков.</h2>
+              <p>Добавьте услуги, мастеров, работы и контакты. Порядок блоков можно менять.</p>
             </div>
             <div data-reveal data-reveal-delay="1" data-parallax><SiteBuilderSortable /></div>
           </section>
@@ -119,24 +119,24 @@ export function LandingPage() {
               </figure>
             </div>
             <div className={styles.tryOnCopy} data-reveal data-reveal-delay="1">
-              <h2 id="tryon-title">Примерьте образ до визита.</h2>
-              <p>Клиент загружает фото, выбирает причёску и видит новый образ ещё до записи к мастеру.</p>
+              <h2 id="tryon-title">Примерьте причёску до записи.</h2>
+              <p>Клиент загружает фото, выбирает причёску и получает примерный результат до визита.</p>
               <a className={styles.secondaryAction} href="/try-on">Примерить причёску <ArrowUpRight aria-hidden="true" /></a>
             </div>
           </section>
 
           <section className={styles.pricing} id="plans" aria-labelledby="plans-title">
             <div className={styles.sectionHeading} data-reveal>
-              <h2 id="plans-title">Начните с малого. Масштабируйтесь в том же кабинете.</h2>
-              <p>14 дней бесплатно. Карта для старта не нужна.</p>
+              <h2 id="plans-title">Тариф зависит от размера команды.</h2>
+              <p>Первые 14 дней бесплатны. Банковская карта не нужна.</p>
             </div>
             <div data-reveal data-reveal-delay="1" data-parallax><PlansSection /></div>
           </section>
 
           <section className={styles.faq} id="faq" aria-labelledby="faq-title">
             <div className={styles.faqIntro} data-reveal>
-              <h2 id="faq-title">Прямые ответы на частые вопросы.</h2>
-              <p>Если вашего вопроса нет в списке, напишите нам в форме ниже.</p>
+              <h2 id="faq-title">Что важно знать перед началом.</h2>
+              <p>Ответили на вопросы о сайте, переносе клиентов, тарифах и данных.</p>
             </div>
             <LandingFaq items={faqs} />
           </section>

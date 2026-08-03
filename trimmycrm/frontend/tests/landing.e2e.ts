@@ -27,7 +27,7 @@ test("first visit intro plays once per browser session", async ({ page }) => {
 test("landing renders its core sections", async ({ page }, testInfo) => {
   await page.goto("/");
 
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("Салон в ритме");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Записи и клиенты");
   const header = page.getByRole("banner");
   await expect(header.evaluate((element) => getComputedStyle(element).position)).resolves.toBe("fixed");
   await expect(header.locator("img").first()).toHaveAttribute("src", /trimmy-symbol\.svg/);
@@ -54,7 +54,7 @@ test("landing renders its core sections", async ({ page }, testInfo) => {
   await expect(faqButtons.first()).toHaveAttribute("aria-expanded", "false");
   await expect(faqButtons.nth(1)).toHaveAttribute("aria-expanded", "true");
   await expect(faq.locator("[class*='faqAnswer']").nth(1).evaluate((answer) => getComputedStyle(answer).transitionProperty)).resolves.toContain("grid-template-rows");
-  await expect(page.getByRole("heading", { name: /Разные салоны/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Для салона, барбершопа/i })).toBeVisible();
   await page.locator("#examples").scrollIntoViewIfNeeded();
   const gallery = page.getByLabel("Фотогалерея мужских и женских работ");
   const galleryRows = gallery.locator("div[class*='marqueeRow']");
@@ -87,7 +87,7 @@ test("mobile hero fits the viewport and navigation opens", async ({ page }, test
 
   await expect(page.locator("body").evaluate((body) => body.scrollWidth <= window.innerWidth)).resolves.toBe(true);
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-  await expect(page.getByRole("link", { name: /Попробовать 14 дней/i })).toBeVisible();
+  await expect(page.getByRole("link", { name: /Попробовать бесплатно/i })).toBeVisible();
 
   const menuButton = page.getByRole("button", { name: "Меню" });
   await expect(menuButton).toBeVisible();
@@ -100,7 +100,7 @@ test("mobile hero fits the viewport and navigation opens", async ({ page }, test
 test("pricing anchor and cards are reachable", async ({ page }) => {
   await page.goto("/");
   await page.locator("#plans").scrollIntoViewIfNeeded();
-  await expect(page.getByRole("heading", { name: /Начните с малого/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Тариф зависит от размера команды/i })).toBeVisible();
   await expect(page.locator(".plan-card")).toHaveCount(3);
   await expect(page.locator(".plan-card--featured")).toContainText("Бизнес");
 });
@@ -108,9 +108,9 @@ test("pricing anchor and cards are reachable", async ({ page }) => {
 test("site builder reorders visual sections and the try-on uses real photography", async ({ page }, testInfo) => {
   await page.goto("/");
 
-  const builder = page.locator("section").filter({ has: page.getByRole("heading", { name: "Сайт выглядит как ваш салон." }) });
+  const builder = page.locator("section").filter({ has: page.getByRole("heading", { name: "Соберите сайт из готовых блоков." }) });
   await builder.scrollIntoViewIfNeeded();
-  const builderIntro = builder.locator("div").filter({ has: page.getByRole("heading", { name: "Сайт выглядит как ваш салон." }) }).first();
+  const builderIntro = builder.locator("div").filter({ has: page.getByRole("heading", { name: "Соберите сайт из готовых блоков." }) }).first();
   await expect(builderIntro.evaluate((element) => getComputedStyle(element).position)).resolves.toBe(testInfo.project.name === "desktop-chrome" ? "sticky" : "static");
   if (testInfo.project.name === "desktop-chrome") {
     await expect(builderIntro.evaluate((element) => Number.parseFloat(getComputedStyle(element).top))).resolves.toBeGreaterThan(80);
@@ -125,7 +125,7 @@ test("site builder reorders visual sections and the try-on uses real photography
     await expect(builder.locator("[aria-live='polite']")).toContainText("позиция 2 из 6");
   }
 
-  const tryOn = page.locator("section").filter({ has: page.getByRole("heading", { name: "Примерьте образ до визита." }) });
+  const tryOn = page.locator("section").filter({ has: page.getByRole("heading", { name: "Примерьте причёску до записи." }) });
   await tryOn.scrollIntoViewIfNeeded();
   const portrait = tryOn.getByRole("img", { name: /тёмным архитектурным бобом/i });
   await expect(portrait).toHaveAttribute("src", /tryon-dark-bob-portrait\.webp/);
@@ -149,7 +149,7 @@ test("reduced motion stays static and the editorial footer is complete", async (
 
   const footer = page.locator("footer");
   await footer.scrollIntoViewIfNeeded();
-  await expect(footer.getByRole("heading", { name: /Соберите сайт/i })).toBeVisible();
+  await expect(footer.getByRole("heading", { name: /Попробуйте TrimmyCRM в работе/i })).toBeVisible();
   await expect(footer.getByRole("navigation", { name: "Документы и поддержка" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Вернуться в начало страницы" })).toBeVisible();
   await expect(footer.getByText("Наверх", { exact: true })).toHaveCount(0);

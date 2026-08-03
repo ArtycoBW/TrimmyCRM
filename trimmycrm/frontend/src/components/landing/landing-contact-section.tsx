@@ -48,14 +48,10 @@ export function LandingContactSection() {
             sizes="(max-width: 1080px) 100vw, 46vw"
             src="/images/editorial/salon-copper-consultation.webp"
           />
-          <div className="landing-contact__visual-top">
-            <span>Диалог без сценариев</span>
-            <span>01 / 01</span>
-          </div>
           <div className="landing-contact__copy">
-            <p className="eyebrow">Можно просто спросить</p>
-            <h2 id="contact-title">Обсудим ваш<br /><span>салон.</span></h2>
-            <p>Расскажите, что хотите настроить. Ответим по существу и без навязчивых продаж.</p>
+            <p className="eyebrow">Есть вопрос?</p>
+            <h2 id="contact-title">Расскажите, что<br /><span>нужно настроить.</span></h2>
+            <p>Опишите, как сейчас работает салон и что хотите перенести в TrimmyCRM. Мы подскажем, с чего начать.</p>
           </div>
         </div>
         <form className="landing-contact__form" onSubmit={submit} data-reveal data-reveal-delay="1">
