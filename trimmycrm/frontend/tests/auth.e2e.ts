@@ -23,6 +23,9 @@ test("login and registration layouts fit both viewports", async ({ page }) => {
   await mockAnonymous(page);
   await page.goto("/login");
   await expect(page.getByRole("heading", { name: /Войти в TrimmyCRM/i })).toBeVisible();
+  if (await page.locator(".auth-story").isVisible()) {
+    await expect(page.getByAltText("Мастер создаёт современную стрижку в салоне")).toHaveAttribute("src", /salon-cut-session\.webp/);
+  }
   await expect(page.getByLabel("Email")).toBeVisible();
   await expect(page.getByLabel("Пароль", { exact: true })).toBeVisible();
   const passwordWrap = page.getByLabel("Пароль", { exact: true }).locator("..");

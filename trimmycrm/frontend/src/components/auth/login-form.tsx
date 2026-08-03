@@ -88,7 +88,7 @@ export function LoginForm() {
       <div className="auth-form-heading">
         <p className="auth-kicker">С возвращением</p>
         <h2>{realm === "platform" ? "Войти в TrimmyCRM" : "Войти в кабинет клиента"}</h2>
-        <p>{realm === "platform" ? "Расписание, клиенты и сайт уже ждут." : "Ваши записи и история визитов — в одном месте."}</p>
+        <p>{realm === "platform" ? "Расписание, клиенты и сайт уже ждут." : "Ваши записи и история визитов в одном месте."}</p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} noValidate>

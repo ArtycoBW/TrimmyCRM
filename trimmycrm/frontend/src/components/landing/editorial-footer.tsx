@@ -1,7 +1,8 @@
-import { ArrowUp, ArrowUpRight } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import Image from "next/image";
 
-import { LandingFooterAccountLink, LandingPrimaryAction } from "@/components/landing/landing-session";
+import { FooterToTop } from "@/components/landing/footer-to-top";
+import { LandingFooterAccountLink } from "@/components/landing/landing-session";
 import { legalConfig } from "@/components/legal/legal-config";
 
 import styles from "./editorial-footer.module.css";
@@ -31,13 +32,10 @@ export function EditorialFooter() {
         <div>
           <h2>Соберите сайт. Откройте запись. Ведите салон.</h2>
         </div>
-        <div className={styles.ctaAside}>
-          <p>14 дней бесплатно. Карта на старте не нужна.</p>
-          <LandingPrimaryAction className={styles.footerAction} anonymousLabel="Попробовать TrimmyCRM" />
-        </div>
+        <div className={styles.ctaAside}><p>14 дней бесплатно. Карта на старте не нужна.</p></div>
       </div>
 
-      <div className={styles.gallery} data-reveal data-reveal-delay="1">
+      <div className={styles.gallery} data-reveal data-reveal-delay="1" data-parallax>
         {footerImages.map((image, index) => (
           <figure key={image.src} data-size={index === 0 ? "wide" : "portrait"}>
             <div>
@@ -63,10 +61,10 @@ export function EditorialFooter() {
         </nav>
         <div className={styles.account}>
           <LandingFooterAccountLink />
-          <a href="#top">Наверх <ArrowUp aria-hidden="true" /></a>
         </div>
         <small>© {new Date().getFullYear()} TrimmyCRM</small>
       </div>
+      <FooterToTop />
     </footer>
   );
 }

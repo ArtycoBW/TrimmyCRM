@@ -1,8 +1,9 @@
-import { ArrowUpRight, MoveHorizontal, ShieldCheck } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
+import Image from "next/image";
 
-import { AsciiHairPortrait } from "@/components/landing/ascii-hair-portrait";
 import { EditorialFooter } from "@/components/landing/editorial-footer";
-import { InfiniteDragGallery, HeroPhotoLoop, type EditorialPhoto } from "@/components/landing/infinite-gallery";
+import { DualPhotoMarquee, type EditorialPhoto } from "@/components/landing/infinite-gallery";
+import { InteractiveHead } from "@/components/landing/interactive-head";
 import { LandingChat } from "@/components/landing/landing-chat";
 import { LandingContactSection } from "@/components/landing/landing-contact-section";
 import { LandingHeader } from "@/components/landing/landing-header";
@@ -74,7 +75,7 @@ export function LandingPage() {
             </div>
 
             <div className={styles.heroMedia} data-reveal data-reveal-delay="1">
-              <HeroPhotoLoop photos={portraits} />
+              <InteractiveHead />
             </div>
           </section>
 
@@ -83,7 +84,7 @@ export function LandingPage() {
               <h2 id="product-title">Один ритм работы вместо набора разрозненных сервисов.</h2>
               <p>С первого визита на сайт до формулы окрашивания в карточке постоянного клиента.</p>
             </div>
-            <div className={styles.featureGrid}>
+            <div className={styles.featureGrid} data-parallax>
               {productFeatures.map((feature) => (
                 <article key={feature.title} data-reveal data-reveal-delay={feature.number}>
                   <h3>{feature.title}</h3>
@@ -97,32 +98,32 @@ export function LandingPage() {
           <section className={styles.formats} id="examples" aria-labelledby="formats-title">
             <div className={styles.formatIntro} data-reveal>
               <h2 id="formats-title">Разные салоны. Своя логика у каждого.</h2>
-              <p>При регистрации владелец выбирает женский салон, барбершоп или унисекс. TrimmyCRM подстраивает каталог услуг, лексику и стартовые блоки сайта.</p>
-              <span><MoveHorizontal aria-hidden="true" /> Галерею можно перетаскивать</span>
+              <p>Женский салон, барбершоп или смешанная команда получают сайт, который говорит с клиентом на своём языке.</p>
             </div>
-            <div data-reveal data-reveal-delay="1"><InfiniteDragGallery photos={portraits} /></div>
+            <div data-reveal data-reveal-delay="1" data-parallax><DualPhotoMarquee photos={portraits} /></div>
           </section>
 
           <section className={styles.builder} aria-labelledby="builder-title">
             <div className={styles.builderIntro} data-reveal>
-              <h2 id="builder-title">Сайт в вашем порядке.</h2>
-              <p>Блоки можно менять местами без разработчика. Попробуйте прямо здесь.</p>
+              <h2 id="builder-title">Сайт выглядит как ваш салон.</h2>
+              <p>Портфолио, мастера, услуги и свободные окна складываются в одну цельную страницу.</p>
             </div>
-            <div data-reveal data-reveal-delay="1"><SiteBuilderSortable /></div>
+            <div data-reveal data-reveal-delay="1" data-parallax><SiteBuilderSortable /></div>
           </section>
 
           <section className={styles.tryOn} aria-labelledby="tryon-title">
-            <div className={styles.tryOnVisual} data-reveal>
-              <AsciiHairPortrait
-                src="/images/editorial/woman-copper-bob.webp"
-                alt="Анимированный Canvas2D-портрет с эффектом штриховки"
-              />
+            <div className={styles.tryOnVisual} data-reveal data-parallax>
+              <figure className={styles.tryOnMainPhoto}>
+                <Image src="/images/editorial/woman-copper-bob.webp" alt="Женщина с современной медной стрижкой боб" fill sizes="(max-width: 780px) 100vw, 46vw" />
+              </figure>
+              <figure className={styles.tryOnDetailPhoto} aria-hidden="true">
+                <Image src="/images/editorial/man-textured-crop.webp" alt="" fill sizes="(max-width: 780px) 38vw, 18vw" />
+              </figure>
             </div>
             <div className={styles.tryOnCopy} data-reveal data-reveal-delay="1">
-              <ShieldCheck aria-hidden="true" />
-              <h2 id="tryon-title">Примерка работает локально.</h2>
-              <p>Фото обрабатывается локально в браузере. Без загрузки в облако, распознавания лица и стороннего AI API.</p>
-              <a className={styles.secondaryAction} href="/try-on">Открыть примерку <ArrowUpRight aria-hidden="true" /></a>
+              <h2 id="tryon-title">Примерьте образ до визита.</h2>
+              <p>Клиент загружает фото, выбирает причёску и видит новый образ ещё до записи к мастеру.</p>
+              <a className={styles.secondaryAction} href="/try-on">Примерить причёску <ArrowUpRight aria-hidden="true" /></a>
             </div>
           </section>
 
@@ -131,7 +132,7 @@ export function LandingPage() {
               <h2 id="plans-title">Начните с малого. Масштабируйтесь в том же кабинете.</h2>
               <p>14 дней бесплатно. Карта для старта не нужна.</p>
             </div>
-            <div data-reveal data-reveal-delay="1"><PlansSection /></div>
+            <div data-reveal data-reveal-delay="1" data-parallax><PlansSection /></div>
           </section>
 
           <section className={styles.faq} id="faq" aria-labelledby="faq-title">
@@ -139,7 +140,7 @@ export function LandingPage() {
               <h2 id="faq-title">Прямые ответы на частые вопросы.</h2>
               <p>Если вашего вопроса нет в списке, напишите нам в форме ниже.</p>
             </div>
-            <div className={styles.faqList} data-reveal data-reveal-delay="1">
+            <div className={styles.faqList} data-reveal data-reveal-delay="1" data-parallax>
               {faqs.map((item, index) => (
                 <details key={item.question} open={index === 0}>
                   <summary>{item.question}</summary>

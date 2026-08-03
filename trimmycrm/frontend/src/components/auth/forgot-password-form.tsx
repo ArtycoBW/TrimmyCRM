@@ -59,7 +59,7 @@ export function ForgotPasswordForm() {
       <div className="auth-form-heading">
         <p className="auth-kicker">Восстановление доступа</p>
         <h2>Забыли пароль?</h2>
-        <p>Введите email — пришлём одноразовую ссылку для создания нового пароля.</p>
+        <p>Введите email. Пришлём одноразовую ссылку для создания нового пароля.</p>
       </div>
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <fieldset className="auth-fieldset" disabled={!hydrated || isSubmitting}>

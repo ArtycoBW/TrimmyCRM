@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import { ArrowUpRight, MessageCircleQuestion, X } from "lucide-react";
 
 import { ApiError, apiRequest } from "@/lib/api/client";
 import { formatRussianPhone, normalizeRussianPhone } from "@/lib/app/phone";
@@ -47,19 +48,18 @@ export function LandingChat() {
   }
 
   return <div className="landing-chat">
-    <button className="landing-chat__trigger" type="button" aria-expanded={open} aria-controls="landing-chat-panel" onClick={() => setOpen((value) => !value)}><span>{open ? "Закрыть" : "Спросить"}</span><i aria-hidden="true">{open ? "×" : "?"}</i></button>
+    <button className="landing-chat__trigger" type="button" aria-expanded={open} aria-controls="landing-chat-panel" onClick={() => setOpen((value) => !value)}><span>Спросить</span><MessageCircleQuestion aria-hidden="true" /></button>
     {open && <aside className="landing-chat__panel" id="landing-chat-panel" aria-label="Чат с TrimmyCRM">
-      <header><div><strong>TrimmyCRM на связи</strong><span>Обычно отвечаем быстро</span></div><button type="button" aria-label="Закрыть чат" onClick={() => setOpen(false)}>×</button></header>
+      <header><div><strong>Поможем выбрать сценарий</strong><span>Ответим на вопрос о запуске салона</span></div><button type="button" aria-label="Закрыть чат" onClick={() => setOpen(false)}><X aria-hidden="true" /></button></header>
       <div className="landing-chat__messages" ref={messagesRef}>{messages.map((message, index) => <p className={`is-${message.from}`} key={`${message.from}-${index}`}>{message.text}</p>)}</div>
       <div className="landing-chat__quick">{answers.map((item) => <button key={item.question} type="button" onClick={() => answer(item)}>{item.question}</button>)}</div>
       <form onSubmit={submit}>
-        <p>Оставьте контакты, подскажем по вашему сценарию.</p>
-        <input value={name} onChange={(event) => setName(event.target.value)} placeholder="Ваше имя" autoComplete="name" minLength={2} required />
-        <input value={phone} onChange={(event) => setPhone(formatRussianPhone(event.target.value))} placeholder="+7 (989) 652 15 42" type="tel" inputMode="tel" autoComplete="tel" minLength={7} required />
-        <input value={question} onChange={(event) => setQuestion(event.target.value)} placeholder="Ваш вопрос (необязательно)" maxLength={5000} />
-        <label><input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} required /><span>Даю <a href="/consent" target="_blank" rel="noreferrer">согласие на обработку персональных данных</a> и ознакомлен(-а) с <a href="/privacy" target="_blank" rel="noreferrer">Политикой</a>.</span></label>
+        <label><span>Имя</span><input value={name} onChange={(event) => setName(event.target.value)} placeholder="Анна" autoComplete="name" minLength={2} required /></label>
+        <label><span>Телефон</span><input value={phone} onChange={(event) => setPhone(formatRussianPhone(event.target.value))} placeholder="+7 (989) 652 15 42" type="tel" inputMode="tel" autoComplete="tel" minLength={7} required /></label>
+        <label><span>Вопрос</span><input value={question} onChange={(event) => setQuestion(event.target.value)} placeholder="Необязательно" maxLength={5000} /></label>
+        <label className="landing-chat__consent"><input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} required /><span>Согласен(-на) на <a href="/consent" target="_blank" rel="noreferrer">обработку данных</a> и с <a href="/privacy" target="_blank" rel="noreferrer">Политикой</a>.</span></label>
         {result && <small role="status">{result}</small>}
-        <button className="button button--lime" type="submit" disabled={sending}>{sending ? "Сохраняем…" : "Оставить контакты"}</button>
+        <button className="button button--lime" type="submit" disabled={sending}>{sending ? "Сохраняем..." : "Оставить контакты"}<ArrowUpRight aria-hidden="true" /></button>
       </form>
     </aside>}
   </div>;

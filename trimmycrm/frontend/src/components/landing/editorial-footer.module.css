@@ -24,24 +24,6 @@
 }
 .ctaAside { display: flex; align-items: flex-start; flex-direction: column; gap: 26px; }
 .ctaAside p { max-width: 360px; margin: 0; font-weight: 700; line-height: 1.4; }
-.footerAction {
-  display: inline-flex;
-  min-height: 54px;
-  padding: 0 var(--spacing-20);
-  border: 1px solid var(--color-pure-black);
-  border-radius: 999px;
-  background: var(--color-vermillion);
-  color: var(--color-paper-white);
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  font-size: 15px;
-  font-weight: 800;
-  white-space: nowrap;
-  transition: transform 300ms cubic-bezier(.16, 1, .3, 1), background 300ms ease;
-}
-.footerAction:hover,
-.footerAction:focus-visible { background: var(--color-pure-black); transform: translateY(-3px); }
 
 .gallery {
   display: grid;
@@ -115,6 +97,31 @@
 .bottom a svg { width: 14px; height: 14px; }
 .bottom small { grid-column: 1 / -1; margin-top: 30px; font-size: var(--text-caption); font-weight: 700; }
 
+.topMarker { position: absolute; width: 1px; height: 1px; overflow: hidden; }
+.toTop {
+  position: fixed;
+  z-index: 650;
+  bottom: var(--spacing-20);
+  left: 50%;
+  display: grid;
+  width: 54px;
+  height: 54px;
+  padding: 0;
+  border: 1px solid var(--color-pure-black);
+  border-radius: 50%;
+  background: var(--color-paper-white);
+  color: var(--color-pure-black);
+  place-items: center;
+  opacity: 0;
+  transform: translate3d(-50%, 16px, 0) scale(.9);
+  pointer-events: none;
+  transition: opacity 260ms ease, transform 360ms cubic-bezier(.16, 1, .3, 1), background 220ms ease, color 220ms ease;
+}
+.toTop[data-visible="true"] { opacity: 1; transform: translate3d(-50%, 0, 0) scale(1); pointer-events: auto; }
+.toTop:hover,
+.toTop:focus-visible { background: var(--color-vermillion); color: var(--color-paper-white); }
+.toTop svg { width: 21px; height: 21px; stroke-width: 1.8; }
+
 @media (max-width: 980px) {
   .cta { grid-template-columns: 1fr; gap: 36px; }
   .gallery { grid-template-columns: 1.15fr .85fr; }
@@ -124,7 +131,6 @@
 @media (max-width: 780px) {
   .cta { padding: 80px var(--spacing-20) 50px; }
   .cta h2 { font-size: clamp(42px, 12vw, 56px); }
-  .footerAction { width: 100%; }
   .gallery { padding: 0 var(--spacing-5); grid-template-columns: 1.08fr .92fr; gap: var(--spacing-5); }
   .gallery figure,
   .gallery figure[data-size="wide"] { border-radius: 14px; }
@@ -136,6 +142,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .footerAction,
-  .gallery img { transition-duration: 1ms; }
+  .gallery img,
+  .toTop { transition-duration: 1ms; }
 }

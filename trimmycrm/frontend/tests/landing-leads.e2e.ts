@@ -31,20 +31,20 @@ test("landing captures question, callback request and chat contact without layou
   await contact.getByRole("button", { name: "Заказать звонок" }).click();
 
   await page.getByRole("button", { name: "Спросить" }).click();
-  await expect(page.getByText("TrimmyCRM на связи")).toBeVisible();
+  await expect(page.getByText("Поможем выбрать сценарий")).toBeVisible();
   const chat = page.locator(".landing-chat__panel");
-  await expect(chat.getByRole("link", { name: /согласие на обработку персональных данных/i })).toHaveAttribute("href", "/consent");
+  await expect(chat.getByRole("link", { name: /обработку данных/i })).toHaveAttribute("href", "/consent");
   await expect(chat.locator(".landing-chat__messages").evaluate((element) => element.scrollWidth <= element.clientWidth)).resolves.toBe(true);
   await expect(chat.locator(".landing-chat__quick").evaluate((element) => element.scrollWidth <= element.clientWidth)).resolves.toBe(true);
-  await expect(page.locator(".landing-chat__trigger > *").evaluateAll((elements) => elements.map((element) => element.tagName))).resolves.toEqual(["SPAN", "I"]);
+  await expect(page.locator(".landing-chat__trigger > *").evaluateAll((elements) => elements.map((element) => element.tagName))).resolves.toEqual(["SPAN", "svg"]);
   for (let index = 0; index < 4; index += 1) await chat.locator(".landing-chat__quick button").nth(index % 3).click();
   await expect(chat.locator(".landing-chat__messages").evaluate((element) => ({
     overflowY: getComputedStyle(element).overflowY,
     hasOverflow: element.scrollHeight > element.clientHeight,
     atLatest: Math.abs(element.scrollHeight - element.clientHeight - element.scrollTop) < 3,
   }))).resolves.toEqual({ overflowY: "auto", hasOverflow: true, atLatest: true });
-  await page.getByPlaceholder("Ваше имя").fill("Арина");
-  await page.getByPlaceholder("+7 (989) 652 15 42").last().fill("9896521542");
+  await chat.getByLabel("Имя").fill("Арина");
+  await chat.getByLabel("Телефон").fill("9896521542");
   await page.getByRole("checkbox").last().check();
   await page.getByRole("button", { name: "Оставить контакты" }).click();
   await expect(page.getByText(/контакты сохранены/i)).toBeVisible();

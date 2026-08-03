@@ -14,75 +14,147 @@ import {
 import {
   SortableContext,
   arrayMove,
-  rectSortingStrategy,
   sortableKeyboardCoordinates,
   useSortable,
+  verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Grip, Move } from "lucide-react";
+import Image from "next/image";
 import { useState, type KeyboardEvent } from "react";
 
 import styles from "./site-builder-sortable.module.css";
 
-type SiteBlock = {
-  id: string;
-  title: string;
-  description: string;
-  tone: "paper" | "mint" | "vermillion";
-  size: "wide" | "regular";
-};
+type BlockKind = "cover" | "services" | "team" | "works" | "booking" | "contacts";
+type SiteBlock = { id: BlockKind; label: string };
 
 const initialBlocks: SiteBlock[] = [
-  { id: "cover", title: "Обложка", description: "Название, позиционирование и кнопка записи.", tone: "vermillion", size: "wide" },
-  { id: "services", title: "Услуги", description: "Цена, длительность и варианты процедуры.", tone: "paper", size: "regular" },
-  { id: "team", title: "Команда", description: "Мастера, специализация и расписание.", tone: "mint", size: "regular" },
-  { id: "works", title: "Работы", description: "Стрижки, цвет и форма без шаблонного портфолио.", tone: "paper", size: "wide" },
-  { id: "booking", title: "Онлайн-запись", description: "Свободные слоты прямо на сайте салона.", tone: "mint", size: "regular" },
-  { id: "contacts", title: "Контакты", description: "Адрес, график, маршрут и способы связи.", tone: "paper", size: "regular" },
+  { id: "cover", label: "Обложка" },
+  { id: "services", label: "Услуги" },
+  { id: "team", label: "Команда" },
+  { id: "works", label: "Работы" },
+  { id: "booking", label: "Онлайн-запись" },
+  { id: "contacts", label: "Контакты" },
 ];
+
+const workImages = [
+  "/images/editorial/woman-copper-bob.webp",
+  "/images/editorial/man-textured-crop.webp",
+  "/images/editorial/woman-graphic-pixie.webp",
+] as const;
+
+function BlockContent({ kind }: { kind: BlockKind }) {
+  if (kind === "cover") {
+    return (
+      <div className={styles.cover}>
+        <Image src="/images/editorial/salon-copper-consultation.webp" alt="Мастер и клиентка в салоне" fill sizes="(max-width: 780px) 90vw, 46vw" />
+        <div><span>Студия Форма</span><strong>Цвет и стрижка, которые остаются вашими.</strong><b>Записаться</b></div>
+      </div>
+    );
+  }
+
+  if (kind === "services") {
+    return (
+      <div className={styles.services}>
+        <h3>Услуги</h3>
+        <ul>
+          <li><span>Стрижка и укладка</span><b>3 200 ₽</b></li>
+          <li><span>Сложное окрашивание</span><b>от 6 900 ₽</b></li>
+          <li><span>Форма бороды</span><b>1 800 ₽</b></li>
+        </ul>
+      </div>
+    );
+  }
+
+  if (kind === "team") {
+    return (
+      <div className={styles.team}>
+        <div><h3>Люди, которым доверяют волосы.</h3><span>Выберите мастера по стилю работ.</span></div>
+        <div className={styles.teamFaces}>
+          {workImages.slice(0, 2).map((src, index) => (
+            <figure key={src}><Image src={src} alt={index === 0 ? "Женский мастер" : "Мужской мастер"} fill sizes="110px" /></figure>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (kind === "works") {
+    return (
+      <div className={styles.works}>
+        {workImages.map((src, index) => (
+          <figure key={src}><Image src={src} alt={`Работа мастера ${index + 1}`} fill sizes="(max-width: 780px) 28vw, 15vw" /></figure>
+        ))}
+      </div>
+    );
+  }
+
+  if (kind === "booking") {
+    return (
+      <div className={styles.booking}>
+        <div><span>Ближайшая запись</span><h3>Выберите удобное время</h3></div>
+        <div className={styles.slots}><b>11:30</b><b>14:00</b><b>17:30</b></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.contacts}>
+      <strong>Москва, Покровка 18</strong>
+      <span>Ежедневно, 10:00-21:00</span>
+      <b>Построить маршрут</b>
+    </div>
+  );
+}
 
 function SortableBlock({ block, onKeyboardMove }: { block: SiteBlock; onKeyboardMove: (id: string, offset: number) => void }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: block.id });
 
-  const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
-    if (event.shiftKey && ["ArrowLeft", "ArrowUp", "ArrowRight", "ArrowDown"].includes(event.key)) {
+  const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+    if (event.shiftKey && ["ArrowUp", "ArrowDown"].includes(event.key)) {
       event.preventDefault();
       event.stopPropagation();
-      onKeyboardMove(block.id, ["ArrowLeft", "ArrowUp"].includes(event.key) ? -1 : 1);
+      onKeyboardMove(block.id, event.key === "ArrowUp" ? -1 : 1);
       return;
     }
     listeners?.onKeyDown?.(event);
   };
 
   return (
-    <button
+    <article
       ref={setNodeRef}
-      className={`${styles.block} ${styles[block.tone]} ${styles[block.size]}${isDragging ? ` ${styles.dragging}` : ""}`}
-      type="button"
-      style={{ transform: CSS.Transform.toString(transform), transition }}
+      className={`${styles.block}${isDragging ? ` ${styles.dragging}` : ""}`}
+      data-kind={block.id}
+      aria-label={`Переместить секцию ${block.label}`}
       {...attributes}
       {...listeners}
       onKeyDown={handleKeyDown}
+      style={{ transform: CSS.Transform.toString(transform), transition }}
     >
-      <span className={styles.blockTop}>
-        <Move aria-hidden="true" />
-        <Grip aria-hidden="true" />
-      </span>
-      <strong>{block.title}</strong>
-      <span>{block.description}</span>
-    </button>
+      <BlockContent kind={block.id} />
+    </article>
   );
 }
 
 export function SiteBuilderSortable() {
   const [blocks, setBlocks] = useState(initialBlocks);
-  const [activeId, setActiveId] = useState<string | null>(null);
+  const [activeId, setActiveId] = useState<BlockKind | null>(null);
   const [announcement, setAnnouncement] = useState("");
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
   const activeBlock = blocks.find((block) => block.id === activeId);
+
+  const move = (id: string, offset: number) => {
+    setBlocks((current) => {
+      const from = current.findIndex((block) => block.id === id);
+      const to = Math.max(0, Math.min(current.length - 1, from + offset));
+      if (from === to) return current;
+      const next = arrayMove(current, from, to);
+      setAnnouncement(`${current[from].label}: позиция ${to + 1} из ${current.length}`);
+      return next;
+    });
+  };
 
   const handleDragEnd = ({ active, over }: DragEndEvent) => {
     setActiveId(null);
@@ -94,47 +166,30 @@ export function SiteBuilderSortable() {
     });
   };
 
-  const moveWithKeyboard = (id: string, offset: number) => {
-    setBlocks((current) => {
-      const from = current.findIndex((block) => block.id === id);
-      const to = Math.max(0, Math.min(current.length - 1, from + offset));
-      if (from === to) return current;
-      const next = arrayMove(current, from, to);
-      setAnnouncement(`${current[from].title}: позиция ${to + 1} из ${current.length}`);
-      return next;
-    });
-  };
-
   return (
     <div className={styles.shell}>
-      <div className={styles.toolbar}>
-        <span>Структура главной</span>
-        <span>{blocks.length} блоков</span>
+      <div className={styles.browserBar}>
+        <strong>Форма</strong>
+        <nav aria-label="Пример навигации сайта"><span>Услуги</span><span>Команда</span><span>Работы</span></nav>
+        <b>Записаться</b>
       </div>
       <DndContext
         id="landing-site-builder"
         sensors={sensors}
         collisionDetection={closestCenter}
-        onDragStart={({ active }: DragStartEvent) => setActiveId(String(active.id))}
+        onDragStart={({ active }: DragStartEvent) => setActiveId(active.id as BlockKind)}
         onDragCancel={() => setActiveId(null)}
         onDragEnd={handleDragEnd}
       >
-        <SortableContext items={blocks.map((block) => block.id)} strategy={rectSortingStrategy}>
+        <SortableContext items={blocks.map((block) => block.id)} strategy={verticalListSortingStrategy}>
           <div className={styles.grid}>
-            {blocks.map((block) => <SortableBlock block={block} key={block.id} onKeyboardMove={moveWithKeyboard} />)}
+            {blocks.map((block) => <SortableBlock block={block} key={block.id} onKeyboardMove={move} />)}
           </div>
         </SortableContext>
-        <DragOverlay dropAnimation={{ duration: 260, easing: "cubic-bezier(.16, 1, .3, 1)" }}>
-          {activeBlock ? (
-            <div className={`${styles.block} ${styles[activeBlock.tone]} ${styles[activeBlock.size]} ${styles.overlay}`}>
-              <span className={styles.blockTop}><Move aria-hidden="true" /><Grip aria-hidden="true" /></span>
-              <strong>{activeBlock.title}</strong>
-              <span>{activeBlock.description}</span>
-            </div>
-          ) : null}
+        <DragOverlay dropAnimation={{ duration: 240, easing: "cubic-bezier(.16, 1, .3, 1)" }}>
+          {activeBlock ? <article className={`${styles.block} ${styles.overlay}`} data-kind={activeBlock.id}><BlockContent kind={activeBlock.id} /></article> : null}
         </DragOverlay>
       </DndContext>
-      <p className={styles.hint}>Перетаскивайте мышью. С клавиатуры используйте Shift и стрелки.</p>
       <p className={styles.srOnly} aria-live="polite">{announcement}</p>
     </div>
   );

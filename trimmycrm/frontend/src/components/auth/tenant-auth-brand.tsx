@@ -34,7 +34,7 @@ export function TenantAuthBrand({ compact = false }: TenantAuthBrandProps) {
     <Link
       className={`tenant-auth-brand${compact ? " tenant-auth-brand--compact" : ""}`}
       href="/"
-      aria-label={`${name} — на главную`}
+      aria-label={`${name}, на главную`}
     >
       <span className="tenant-auth-brand__logo" aria-hidden="true">
         {site?.logoUrl ? (

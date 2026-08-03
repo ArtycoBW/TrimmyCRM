@@ -10,24 +10,27 @@ export function LandingMotion() {
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     for (const element of elements) {
-      if (reducedMotion || element.getBoundingClientRect().top < window.innerHeight * .92) {
-        element.dataset.revealState = "visible";
-      }
+      const bounds = element.getBoundingClientRect();
+      element.dataset.revealState = reducedMotion || (bounds.top < window.innerHeight * .92 && bounds.bottom > 0)
+        ? "visible"
+        : "hidden";
     }
     root.dataset.motionReady = "true";
     if (reducedMotion) return;
 
     const observer = new IntersectionObserver((entries) => {
       for (const entry of entries) {
-        if (!entry.isIntersecting) continue;
-        (entry.target as HTMLElement).dataset.revealState = "visible";
-        observer.unobserve(entry.target);
+        const element = entry.target as HTMLElement;
+        if (entry.isIntersecting) {
+          element.dataset.revealState = "visible";
+          continue;
+        }
+        element.dataset.revealOrigin = entry.boundingClientRect.top < (entry.rootBounds?.top ?? 0) ? "above" : "below";
+        element.dataset.revealState = "hidden";
       }
-    }, { rootMargin: "0px 0px -8%", threshold: .12 });
+    }, { rootMargin: "-5% 0px -5%", threshold: .12 });
 
-    for (const element of elements) {
-      if (element.dataset.revealState !== "visible") observer.observe(element);
-    }
+    for (const element of elements) observer.observe(element);
     return () => observer.disconnect();
   }, []);
 

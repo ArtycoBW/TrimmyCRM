@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { ArrowUpRight, Building2, CheckCircle2, Rocket, UserRound } from "lucide-react";
 
 import {
   fallbackPlans,
   normalizePlans,
   type MarketingPlan,
 } from "@/content/landing";
-import { Icon } from "@/components/ui/icons";
 import { useLandingSession } from "@/components/landing/landing-session";
 
 const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || "/api/v1";
@@ -43,15 +43,24 @@ export function PlansSection() {
 
   return (
     <div className="plans-grid" aria-live="polite">
-      {plans.map((plan) => (
-        <article
-          className={`plan-card${plan.featured ? " plan-card--featured" : ""}`}
-          key={plan.code}
-        >
+      {plans.map((plan, index) => {
+        const PlanIcon = index === 0 ? UserRound : index === 1 ? Rocket : Building2;
+        return (
+          <article
+            className={`plan-card${plan.featured ? " plan-card--featured" : ""}`}
+            key={plan.code}
+            data-reveal
+            data-reveal-delay={index + 1}
+          >
           {plan.featured && <span className="plan-card__badge">Чаще выбирают</span>}
           <div className="plan-card__top">
-            <p className="plan-card__name">{plan.name}</p>
-            <p className="plan-card__description">{plan.description}</p>
+            <div className="plan-card__heading">
+              <span className="plan-card__icon" aria-hidden="true"><PlanIcon /></span>
+              <div>
+                <p className="plan-card__name">{plan.name}</p>
+                <p className="plan-card__description">{plan.description}</p>
+              </div>
+            </div>
           </div>
           <p className="plan-card__price">
             <strong>{formatPrice(plan.price)} ₽</strong>
@@ -61,18 +70,19 @@ export function PlansSection() {
             className={`button ${plan.featured ? "button--ink" : "button--outline"} plan-card__button`}
             href={session === "authenticated" ? "/app" : `/register?plan=${plan.code}`}
           >
-            {session === "authenticated" ? "Управлять тарифом" : "Начать бесплатно"} <Icon name="arrow" />
+            {session === "authenticated" ? "Управлять тарифом" : "Начать бесплатно"} <ArrowUpRight aria-hidden="true" />
           </a>
           <ul className="plan-card__features">
             {plan.features.map((feature) => (
               <li key={feature}>
-                <span className="plan-card__check"><Icon name="check" /></span>
+                <span className="plan-card__check"><CheckCircle2 aria-hidden="true" /></span>
                 {feature}
               </li>
             ))}
           </ul>
-        </article>
-      ))}
+          </article>
+        );
+      })}
     </div>
   );
 }

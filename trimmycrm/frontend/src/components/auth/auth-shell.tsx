@@ -30,7 +30,7 @@ export async function AuthShell({ eyebrow, title, description, children }: AuthS
         {isTenant ? (
           <TenantAuthBrand />
         ) : (
-          <Link className="auth-story__brand" href="/" aria-label="TrimmyCRM — на главную">
+          <Link className="auth-story__brand" href="/" aria-label="TrimmyCRM, на главную">
             <BrandMark />
           </Link>
         )}
@@ -39,19 +39,16 @@ export async function AuthShell({ eyebrow, title, description, children }: AuthS
           <h1>{title}</h1>
           <p>{description}</p>
         </div>
-        <figure className="auth-story__photo polaroid">
+        <figure className="auth-story__photo">
           <Image
-            src="/images/landing/color-studio.svg"
-            alt="Абстрактный образ студии волос"
-            width={760}
-            height={900}
-            sizes="(max-width: 860px) 180px, 250px"
+            src="/images/editorial/salon-cut-session.webp"
+            alt="Мастер создаёт современную стрижку в салоне"
+            width={1024}
+            height={1536}
+            sizes="(max-width: 1100px) 52vw, 620px"
             priority
           />
-          <figcaption>всё в одном ритме</figcaption>
         </figure>
-        <div className="auth-story__note" aria-hidden="true">меньше рутины<br />больше заботы ↗</div>
-        <p className="auth-story__legal">Персональные данные защищены и изолированы для каждого салона.</p>
       </section>
       <section className="auth-panel" id="auth-form">
         <div className="auth-panel__mobile-brand">

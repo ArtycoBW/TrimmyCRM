@@ -35,6 +35,16 @@
       "path": "/images/editorial/salon-copper-consultation.webp",
       "subject": "fictional adult colorist and client during a consultation",
       "sha256": "38f88552358a467518c879e503c2ebf63ec1443e5e959286f986e7542e0d95ed"
+    },
+    {
+      "path": "/images/editorial/head-turntable.webp",
+      "subject": "eight-angle turntable of one fictional adult with a layered haircut",
+      "sha256": "68c5aca211165423fde904f381c30aad782f2732e331f982003e5b75febbc6af"
+    },
+    {
+      "path": "/brand/trimmy-symbol-editorial.webp",
+      "subject": "original text-free TrimmyCRM hair profile symbol",
+      "sha256": "f73df8b099886d89ea0b52bb848803add17acfdb4a31980e9adf538c822ff68f"
     }
   ]
 }

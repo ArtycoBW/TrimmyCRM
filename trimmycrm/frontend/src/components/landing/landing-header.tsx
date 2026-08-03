@@ -2,6 +2,7 @@
 
 import * as Dialog from "@radix-ui/react-dialog";
 import { ArrowUpRight, X } from "lucide-react";
+import Image from "next/image";
 import { useState } from "react";
 
 import { LandingHeaderActions } from "@/components/landing/landing-session";
@@ -18,7 +19,8 @@ export function LandingHeader() {
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <header className={styles.header}>
         <a className={styles.logo} href="#top" aria-label="TrimmyCRM, на главную">
-          <span>Trimmy</span>CRM
+          <span className={styles.logoSymbol}><Image src="/brand/trimmy-symbol-editorial.webp" alt="" width={44} height={44} priority /></span>
+          <b><span>Trimmy</span>CRM</b>
         </a>
 
         <nav className={styles.desktopNav} aria-label="Основная навигация">
