@@ -1,3 +1,5 @@
+import { TrimmyLoader } from "@/components/ui/trimmy-loader";
+
 export function RouteSkeleton({ variant = "page" }: { variant?: "page" | "document" | "form" }) {
   return (
     <main
@@ -6,11 +8,7 @@ export function RouteSkeleton({ variant = "page" }: { variant?: "page" | "docume
       aria-live="polite"
       aria-label="Загружаем страницу"
     >
-      <div className="route-preloader__cut" aria-hidden="true">
-        <span /><span /><span /><span /><span /><span /><span />
-      </div>
-      <p>TrimmyCRM</p>
-      <small>Собираем образ</small>
+      <TrimmyLoader size="xl" label="Загружаем страницу" />
     </main>
   );
 }

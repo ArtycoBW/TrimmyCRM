@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { authErrorMessage } from "@/components/auth/auth-utils";
+import { TrimmyLoader } from "@/components/ui/trimmy-loader";
 import { authRequest } from "@/lib/api/client";
 import { currentAuthRealm } from "@/lib/auth/realm";
 import type { AuthRealm } from "@/lib/api/types";
@@ -50,9 +51,11 @@ export function VerifyEmailCard({ token }: { token: string }) {
 
   return (
     <div className={`auth-success${state === "error" ? " auth-success--error" : ""}`} aria-live="polite">
-      <span className={`auth-success__icon${state === "loading" ? " is-loading" : ""}`} aria-hidden="true">
-        {state === "loading" ? "↻" : state === "success" ? "✓" : "!"}
-      </span>
+      {state === "loading" ? (
+        <TrimmyLoader className="auth-success__loader" size="lg" label="Подтверждаем адрес" />
+      ) : (
+        <span className="auth-success__icon" aria-hidden="true">{state === "success" ? "✓" : "!"}</span>
+      )}
       <p className="auth-kicker">Подтверждение email</p>
       <h2>{state === "loading" ? "Одну секунду" : state === "success" ? "Всё готово" : "Ссылка не сработала"}</h2>
       <p>{message}</p>

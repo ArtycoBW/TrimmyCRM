@@ -33,30 +33,7 @@
   font-weight: 700;
 }
 
-.crm-gate__loader {
-  display: flex;
-  gap: 7px;
-  margin-top: 20px;
-}
-
-.crm-gate__loader span {
-  width: 11px;
-  height: 11px;
-  border: 1px solid var(--ink);
-  border-radius: 50%;
-  background: var(--lime);
-  animation: crm-bounce 900ms ease-in-out infinite alternate;
-}
-
-.crm-gate__loader span:nth-child(2) {
-  background: var(--magenta);
-  animation-delay: 150ms;
-}
-
-.crm-gate__loader span:nth-child(3) {
-  background: var(--lavender);
-  animation-delay: 300ms;
-}
+.crm-gate > .trimmy-loader { margin-top: 20px; }
 
 .crm-gate--error {
   max-width: none;
@@ -2326,7 +2303,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .crm-gate__loader span,
   .crm-skeleton {
     animation: none;
   }

@@ -13,6 +13,7 @@ import {
 } from "react";
 
 import { BrandMark } from "@/components/ui/brand-mark";
+import { TrimmyLoader } from "@/components/ui/trimmy-loader";
 import { apiRequest, ApiError, logout } from "@/lib/api/client";
 import type { MeResponse, SiteView } from "@/lib/api/types";
 
@@ -34,11 +35,7 @@ function AppLoading({ label = "Собираем рабочий день…" }: {
   return (
     <main className="crm-gate" aria-busy="true">
       <BrandMark />
-      <div className="crm-gate__loader" aria-hidden="true">
-        <span />
-        <span />
-        <span />
-      </div>
+      <TrimmyLoader size="lg" label={label} />
       <p>{label}</p>
     </main>
   );

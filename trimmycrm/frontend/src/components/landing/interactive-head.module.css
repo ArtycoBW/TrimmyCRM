@@ -55,12 +55,9 @@
   z-index: 4;
   top: 50%;
   left: 50%;
-  display: flex;
-  width: 130px;
-  height: 126px;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 6px;
+  display: grid;
+  justify-items: center;
+  gap: 16px;
   opacity: 1;
   transform: translate(-50%, -50%);
   transition: opacity 620ms cubic-bezier(.22, 1, .36, 1), visibility 620ms;
@@ -68,30 +65,12 @@
 
 .stage[data-status="ready"] .loader { visibility: hidden; opacity: 0; }
 
-.loader span {
-  width: 12px;
-  height: 76px;
-  border-radius: 100% 12% 80% 20%;
-  background: var(--color-pure-black);
-  transform: scaleY(.3);
-  transform-origin: top;
-  animation: hair-build 1.25s cubic-bezier(.16, 1, .3, 1) infinite alternate;
-}
-
-.loader span:nth-child(2) { height: 92px; animation-delay: -1s; }
-.loader span:nth-child(3) { height: 104px; animation-delay: -.8s; }
-.loader span:nth-child(4) { height: 92px; animation-delay: -.6s; }
-.loader span:nth-child(5) { height: 76px; animation-delay: -.4s; }
 .loader small {
-  position: absolute;
-  bottom: 0;
-  left: 50%;
   width: max-content;
   font-size: 10px;
   font-weight: 800;
   letter-spacing: .08em;
   text-transform: uppercase;
-  transform: translateX(-50%);
 }
 
 .control {
@@ -123,10 +102,6 @@
   opacity: .92;
 }
 
-@keyframes hair-build {
-  to { transform: scaleY(1); }
-}
-
 @media (max-width: 780px) {
   .stage { min-height: 420px; border-radius: 18px; }
   .viewport { inset: 12px; border-radius: 13px; }
@@ -136,5 +111,4 @@
 @media (prefers-reduced-motion: reduce) {
   .canvas,
   .loader { transition: none; }
-  .loader span { animation: none; transform: scaleY(1); }
 }

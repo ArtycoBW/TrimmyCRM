@@ -87,6 +87,25 @@ test("recovery and client-facing screens have no horizontal overflow", async ({ 
   }
 });
 
+test("email verification uses the compact branded loader", async ({ page }) => {
+  await page.addInitScript(() => {
+    window.sessionStorage.setItem("trimmycrm:first-visit-intro:v1", "1");
+  });
+  await mockAnonymous(page);
+  await page.route("**/api/v1/**/verify-email", async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 900));
+    await route.fulfill({ status: 204 });
+  });
+
+  await page.goto("/verify-email?token=test-token");
+  const loader = page.getByRole("status", { name: "Подтверждаем адрес" });
+  await expect(loader).toBeVisible();
+  await expect(loader.locator(".trimmy-loader__orbit").evaluate((element) =>
+    getComputedStyle(element).animationName,
+  )).resolves.toBe("trimmy-loader-orbit");
+  await expect(page.getByRole("heading", { name: "Всё готово" })).toBeVisible();
+});
+
 test("platform login continues to authenticated entry", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop-chrome", "Single integration pass is enough");
   let loggedIn = false;

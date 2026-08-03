@@ -3,6 +3,8 @@
 import { Rotate3D } from "lucide-react";
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 
+import { TrimmyLoader } from "@/components/ui/trimmy-loader";
+
 import styles from "./interactive-head.module.css";
 
 type SceneStatus = "loading" | "ready" | "error";
@@ -186,7 +188,7 @@ export function InteractiveHead() {
         onKeyDown={handleKeyDown}
       >
         <div className={styles.loader} aria-hidden={status === "ready"}>
-          <span /><span /><span /><span /><span />
+          <TrimmyLoader size="lg" label={status === "error" ? "3D недоступно" : "Загружаем 3D-модель"} />
           <small>{status === "error" ? "3D недоступно" : "Собираем образ"}</small>
         </div>
       </div>
