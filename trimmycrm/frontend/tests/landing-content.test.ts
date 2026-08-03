@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 import { fallbackPlans, normalizePlans } from "../src/content/landing";
+import { ASCII_RENDER_MODES } from "../src/components/landing/ascii-hair-portrait";
 
 describe("landing pricing contract", () => {
   it("matches prices seeded by the backend migration", () => {
@@ -45,5 +46,15 @@ describe("editorial portrait provenance", () => {
       const bytes = readFileSync(new URL(`../public${asset.path}`, import.meta.url));
       expect(createHash("sha256").update(bytes).digest("hex")).toBe(asset.sha256);
     }
+  });
+});
+
+describe("landing Canvas2D effect", () => {
+  it("keeps every supported raster render mode available", () => {
+    expect(ASCII_RENDER_MODES).toHaveLength(25);
+    expect(new Set(ASCII_RENDER_MODES).size).toBe(ASCII_RENDER_MODES.length);
+    expect(ASCII_RENDER_MODES).toContain("hatch");
+    expect(ASCII_RENDER_MODES).toContain("matrix");
+    expect(ASCII_RENDER_MODES).toContain("halfblocks");
   });
 });

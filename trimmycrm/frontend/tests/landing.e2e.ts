@@ -59,3 +59,26 @@ test("pricing anchor and cards are reachable", async ({ page }) => {
   await expect(page.locator(".plan-card")).toHaveCount(3);
   await expect(page.locator(".plan-card--featured")).toContainText("Бизнес");
 });
+
+test("site builder reorders blocks and Canvas2D switches modes", async ({ page }, testInfo) => {
+  await page.goto("/");
+
+  const builder = page.locator("section").filter({ has: page.getByRole("heading", { name: "Сайт в вашем порядке." }) });
+  await builder.scrollIntoViewIfNeeded();
+  const blocks = builder.getByRole("button");
+  await expect(blocks).toHaveCount(6);
+  if (testInfo.project.name === "desktop-chrome") {
+    await blocks.first().focus();
+    await page.keyboard.press("Shift+ArrowRight");
+    await expect(blocks.nth(1)).toContainText("Обложка");
+    await expect(builder.locator("[aria-live='polite']")).toContainText("позиция 2 из 6");
+  }
+
+  const tryOn = page.locator("section").filter({ has: page.getByRole("heading", { name: "Примерка работает локально." }) });
+  await tryOn.scrollIntoViewIfNeeded();
+  const canvas = tryOn.getByRole("img", { name: /Canvas2D-портрет/i });
+  await expect(canvas).toBeVisible();
+  await expect.poll(() => canvas.evaluate((element: HTMLCanvasElement) => element.width > 0 && element.height > 0)).toBe(true);
+  await tryOn.getByRole("button", { name: "Точки" }).click();
+  await expect(tryOn.getByRole("button", { name: "Точки" })).toHaveAttribute("aria-pressed", "true");
+});

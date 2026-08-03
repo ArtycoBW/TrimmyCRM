@@ -1,6 +1,6 @@
-import Image from "next/image";
 import { ArrowUpRight, MoveHorizontal, ShieldCheck } from "lucide-react";
 
+import { AsciiHairPortrait } from "@/components/landing/ascii-hair-portrait";
 import { InfiniteDragGallery, HeroPhotoLoop, type EditorialPhoto } from "@/components/landing/infinite-gallery";
 import { LandingChat } from "@/components/landing/landing-chat";
 import { LandingContactSection } from "@/components/landing/landing-contact-section";
@@ -11,6 +11,7 @@ import {
   LandingSessionProvider,
 } from "@/components/landing/landing-session";
 import { PlansSection } from "@/components/landing/plans-section";
+import { SiteBuilderSortable } from "@/components/landing/site-builder-sortable";
 import { legalConfig } from "@/components/legal/legal-config";
 import { faqs, productFeatures } from "@/content/landing";
 
@@ -102,18 +103,25 @@ export function LandingPage() {
             <InfiniteDragGallery photos={portraits} />
           </section>
 
+          <section className={styles.builder} aria-labelledby="builder-title">
+            <div className={styles.builderIntro}>
+              <p className={styles.eyebrow}>Конструктор сайта</p>
+              <h2 id="builder-title">Сайт в вашем порядке.</h2>
+              <p>Блоки можно менять местами без разработчика. Попробуйте прямо здесь.</p>
+            </div>
+            <SiteBuilderSortable />
+          </section>
+
           <section className={styles.tryOn} aria-labelledby="tryon-title">
-            <div className={styles.tryOnImage}>
-              <Image
+            <div className={styles.tryOnVisual}>
+              <AsciiHairPortrait
                 src="/images/editorial/woman-copper-bob.webp"
-                alt="Пример визуального подбора медного боба"
-                fill
-                sizes="(max-width: 780px) 100vw, 46vw"
+                alt="Анимированный Canvas2D-портрет с эффектом штриховки"
               />
             </div>
             <div className={styles.tryOnCopy}>
               <ShieldCheck aria-hidden="true" />
-              <h2 id="tryon-title">Примерка причёски остаётся на устройстве клиента.</h2>
+              <h2 id="tryon-title">Примерка работает локально.</h2>
               <p>Фото обрабатывается локально в браузере. Без загрузки в облако, распознавания лица и стороннего AI API.</p>
               <a className={styles.secondaryAction} href="/try-on">Открыть примерку <ArrowUpRight aria-hidden="true" /></a>
             </div>
