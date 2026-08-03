@@ -3,12 +3,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type KeyboardEvent, type PointerEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { CalendarDays, Check, Download, Plus, Trash2, Upload } from "lucide-react";
 
+import { BrandMark } from "@/components/ui/brand-mark";
 import { clampTransform, drawComposition, initialTransform, moveTransform } from "./canvas-engine";
 import { TryOnControls } from "./controls";
 import { exportLocalResult } from "./export-image";
 import { decodeLocalPhoto, loadTemplateImage, type DecodedPhoto } from "./image-loader";
-import { consultationHref, LOCAL_TRYON_DISCLAIMER, LOCAL_TRYON_PRIVACY_NOTICE } from "./privacy-boundary";
+import { consultationHref } from "./privacy-boundary";
 import { loadHairstyleManifest } from "./template-manifest";
 import type { HairstyleTemplate, TryOnTransform } from "./template-types";
 
@@ -38,7 +40,7 @@ export function LocalTryOn() {
   const [history, setHistory] = useState<TryOnTransform[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [status, setStatus] = useState("Каталог загружается локально…");
+  const [status, setStatus] = useState("Открываем коллекцию...");
 
   const selectedTemplate = useMemo(
     () => templates.find((template) => template.id === selectedId) || null,
@@ -199,10 +201,10 @@ export function LocalTryOn() {
     if (!canvas || !photo) return;
     setBusy(true);
     setError(null);
-    setStatus("Готовим локальный файл…");
+    setStatus("Готовим файл...");
     try {
       await exportLocalResult(canvas);
-      setStatus("Файл создан локально и передан браузеру для скачивания");
+      setStatus("Файл готов к скачиванию");
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Не удалось скачать результат");
       setStatus("Экспорт не выполнен");
@@ -215,31 +217,29 @@ export function LocalTryOn() {
     <main className="tryon-shell">
       <a className="tryon-skip" href="#tryon-editor">К редактору</a>
       <header className="tryon-header">
-        <Link href="/" className="tryon-brand" aria-label="TrimmyCRM — вернуться на сайт">T — CRM</Link>
+        <Link href="/" className="tryon-brand" aria-label="TrimmyCRM, вернуться на сайт"><BrandMark compact /></Link>
         <a href="/client?booking=1" className="tryon-header__booking">Записаться без примерки</a>
       </header>
 
       <section className="tryon-intro" aria-labelledby="tryon-title">
-        <p className="tryon-kicker">Локальная 2D-примерка · прототип</p>
-        <h1 id="tryon-title">Примерьте форму <span>до консультации</span></h1>
-        <figure className="tryon-intro__portrait" aria-hidden="true">
-          <Image src="/images/editorial/woman-graphic-pixie.webp" alt="" fill priority sizes="(max-width: 760px) 50vw, 28vw" />
-          <figcaption>PIXIE / EDGE</figcaption>
+        <p className="tryon-kicker">Виртуальная примерка</p>
+        <h1 id="tryon-title">Примерьте форму до встречи.</h1>
+        <figure className="tryon-intro__portrait">
+          <Image src="/images/editorial/woman-graphic-pixie.webp" alt="Женщина с современной короткой стрижкой" fill priority sizes="(max-width: 820px) 92vw, 43vw" />
         </figure>
         <div className="tryon-intro__copy">
-          <p>{LOCAL_TRYON_PRIVACY_NOTICE}</p>
-          <p>{LOCAL_TRYON_DISCLAIMER}</p>
+          <p>Выберите причёску, добавьте фронтальное фото и подготовьте образ для консультации.</p>
         </div>
       </section>
 
       <section className="tryon-steps" aria-label="Как работает примерка">
-        <span>01 Выберите шаблон</span><span>02 Откройте фото</span><span>03 Совместите и скачайте</span>
+        <span>Выберите форму</span><span>Добавьте фото</span><span>Сохраните образ</span>
       </section>
 
       <div className="tryon-layout" id="tryon-editor">
         <aside className="tryon-catalog" aria-labelledby="tryon-catalog-title">
           <div>
-            <p>01 / Каталог</p>
+            <p>Коллекция</p>
             <h2 id="tryon-catalog-title">Форма причёски</h2>
           </div>
           <div className="tryon-template-list" aria-busy={templates.length === 0}>
@@ -255,17 +255,17 @@ export function LocalTryOn() {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={template.preview} alt="" />
                 <span><strong>{template.label}</strong><small>{template.audience.includes("men") ? "Короткая форма" : "Средняя длина"}</small></span>
-                <i aria-hidden="true">{selectedId === template.id ? "✓" : "+"}</i>
+                <i aria-hidden="true">{selectedId === template.id ? <Check /> : <Plus />}</i>
               </button>
             ))}
           </div>
-          {templates.length === 0 && !error && <p className="tryon-catalog__loading">Проверяем локальный manifest…</p>}
+          {templates.length === 0 && !error && <p className="tryon-catalog__loading">Открываем коллекцию...</p>}
         </aside>
 
         <section className="tryon-stage" aria-labelledby="tryon-stage-title">
           <div className="tryon-stage__heading">
-            <div><p>Фото остаётся у вас</p><h2 id="tryon-stage-title">Холст</h2></div>
-            {photo && <button type="button" onClick={() => clearPhoto()} disabled={busy}>Удалить фото</button>}
+            <div><p>Ваш образ</p><h2 id="tryon-stage-title">Примерка</h2></div>
+            {photo && <button type="button" onClick={() => clearPhoto()} disabled={busy}><Trash2 aria-hidden="true" />Удалить</button>}
           </div>
           <div className={`tryon-canvas-wrap${photo ? " has-photo" : ""}`}>
             <canvas
@@ -282,9 +282,9 @@ export function LocalTryOn() {
               onKeyDown={canvasKeyDown}
             />
             {!photo && <div className="tryon-empty">
-              <span aria-hidden="true">↥</span>
-              <h3>Откройте фронтальное фото</h3>
-              <p>Ровный свет и видимая линия головы помогут точнее совместить 2D-шаблон.</p>
+              <Upload aria-hidden="true" />
+              <h3>Добавьте фронтальное фото</h3>
+              <p>Ровный свет и видимая линия волос помогут точнее подобрать форму.</p>
               <label className="tryon-file-button">
                 <input ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={choosePhoto} disabled={busy || templates.length === 0} />
                 <span>{busy ? "Читаем фото…" : "Выбрать фото"}</span>
@@ -310,17 +310,17 @@ export function LocalTryOn() {
       </div>
 
       <section className="tryon-actions" aria-labelledby="tryon-actions-title">
-        <div><p>03 / Результат</p><h2 id="tryon-actions-title">Сохраните или обсудите</h2></div>
-        <p>{LOCAL_TRYON_DISCLAIMER} Шаблон показывает только общую форму и не оценивает достижимость длины, густоты или цвета.</p>
+        <div><p>Готовый образ</p><h2 id="tryon-actions-title">Сохраните или обсудите</h2></div>
+        <p>Возьмите изображение на консультацию, чтобы быстрее договориться о форме и деталях.</p>
         <div>
-          <button type="button" onClick={download} disabled={!photo || busy}>Скачать локально</button>
-          <a href={selectedTemplate ? consultationHref(selectedTemplate.id) : "/client?booking=1"}>Обсудить с мастером</a>
+          <button type="button" onClick={download} disabled={!photo || busy}><Download aria-hidden="true" />Скачать</button>
+          <a href={selectedTemplate ? consultationHref(selectedTemplate.id) : "/client?booking=1"}><CalendarDays aria-hidden="true" />Обсудить с мастером</a>
         </div>
       </section>
 
       <footer className="tryon-footer">
         <strong>TrimmyCRM</strong>
-        <p>Без распознавания лица, внешнего AI API, загрузки на сервер и хранения результата.</p>
+        <p>Подберите образ и сохраните его для консультации.</p>
         <a href="/privacy">Политика конфиденциальности</a>
       </footer>
     </main>

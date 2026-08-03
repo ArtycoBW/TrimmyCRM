@@ -52,8 +52,7 @@ test("tenant site opens an isolated local try-on without transferring the photo"
   expect(csp).toContain("frame-ancestors 'none'");
   expect((await response.allHeaders())["permissions-policy"]).toContain("camera=()");
 
-  await expect(page.getByText("Фото обрабатывается только на вашем устройстве.")).toBeVisible();
-  await expect(page.getByText("Примерная визуализация. Реальный результат может отличаться.").first()).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Примерьте форму до встречи." })).toBeVisible();
   await expect(page.getByRole("button", { name: "Графичный боб" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Текстурный кроп" })).toBeVisible();
   const overflowing = await page.evaluate(() => [...document.querySelectorAll<HTMLElement>("body *")]
@@ -84,7 +83,7 @@ test("tenant site opens an isolated local try-on without transferring the photo"
   await expect(page.getByRole("button", { name: "Отразить" })).toHaveAttribute("aria-pressed", "true");
 
   const downloadPromise = page.waitForEvent("download");
-  await page.getByRole("button", { name: "Скачать локально" }).click();
+  await page.getByRole("button", { name: "Скачать" }).click();
   const download = await downloadPromise;
   expect(download.suggestedFilename()).toBe("trimmycrm-tryon-result.png");
 
@@ -92,7 +91,7 @@ test("tenant site opens an isolated local try-on without transferring the photo"
   expect([...bookingUrl.searchParams.keys()].sort()).toEqual(["booking", "hairstyleTemplateId"]);
   expect(bookingUrl.searchParams.get("hairstyleTemplateId")).toBe("women-blunt-bob-01");
 
-  await page.getByRole("button", { name: "Удалить фото" }).click();
+  await page.getByRole("button", { name: "Удалить" }).click();
   await expect(page.locator(".tryon-canvas-wrap")).not.toHaveClass(/has-photo/);
   const browserStorage = await page.evaluate(async () => ({
     local: Object.keys(localStorage),

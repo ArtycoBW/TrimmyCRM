@@ -69,6 +69,6 @@ export async function loadHairstyleManifest(signal?: AbortSignal): Promise<Hairs
     credentials: "omit",
     signal,
   });
-  if (!response.ok) throw new Error("Не удалось открыть локальный каталог причёсок");
+  if (!response.ok) throw new Error("Не удалось открыть каталог причёсок");
   return parseHairstyleManifest(await response.json());
 }

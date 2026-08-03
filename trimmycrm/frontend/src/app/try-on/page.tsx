@@ -6,8 +6,8 @@ import { LocalTryOn } from "@/features/local-tryon/local-tryon";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Локальная примерка причёски",
-  description: "Примерная 2D-визуализация причёски прямо в браузере без отправки фото на сервер.",
+  title: "Примерка причёски",
+  description: "Подберите форму причёски и подготовьте образ для консультации с мастером.",
   robots: { index: false, follow: false, noarchive: true, noimageindex: true },
 };
 

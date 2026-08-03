@@ -1,3 +1,5 @@
+import { Undo2 } from "lucide-react";
+
 import type { TryOnTransform } from "./template-types";
 
 type TryOnControlsProps = {
@@ -15,10 +17,10 @@ export function TryOnControls({ transform, disabled, canUndo, onChange, onMirror
     <section className="tryon-controls" aria-labelledby="tryon-controls-title">
       <div className="tryon-controls__heading">
         <div>
-          <p>02 / Совмещение</p>
+          <p>Настройки</p>
           <h2 id="tryon-controls-title">Настройте слой</h2>
         </div>
-        <button type="button" onClick={onUndo} disabled={disabled || !canUndo}>Отменить</button>
+        <button type="button" onClick={onUndo} disabled={disabled || !canUndo}><Undo2 aria-hidden="true" />Отменить</button>
       </div>
 
       <label>
@@ -65,7 +67,7 @@ export function TryOnControls({ transform, disabled, canUndo, onChange, onMirror
         <button type="button" onClick={onMirror} disabled={disabled} aria-pressed={transform.mirrored}>Отразить</button>
         <button type="button" onClick={onReset} disabled={disabled}>Сбросить слой</button>
       </div>
-      <p className="tryon-controls__hint">На холсте: стрелки — двигать, +/− — размер, [ ] — поворот, M — отразить.</p>
+      <p className="tryon-controls__hint">Причёску можно перемещать прямо на фотографии.</p>
     </section>
   );
 }
