@@ -123,7 +123,7 @@ test("editing a client uses PATCH and keeps loaded profile", async ({ page }, te
 
   await page.goto("/app/clients");
   await page.locator(".client-row").first().click();
-  await page.getByRole("button", { name: "Изменить" }).click();
+  await page.locator(".client-drawer__hero").getByRole("button", { name: "Изменить" }).click();
   await page.getByLabel("Имя и фамилия").fill("Анна Смирнова");
   await page.getByRole("button", { name: "Сохранить изменения →" }).click();
 
