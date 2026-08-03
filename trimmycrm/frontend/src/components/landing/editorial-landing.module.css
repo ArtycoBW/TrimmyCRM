@@ -18,6 +18,23 @@
 .root :where(a, button, summary, input, textarea) { font-family: inherit; }
 .root :where(a, button) { -webkit-tap-highlight-color: transparent; }
 
+@media (prefers-reduced-motion: no-preference) {
+  .root[data-motion-ready="true"] [data-reveal] {
+    opacity: 0;
+    transform: translate3d(0, 26px, 0);
+    transition: opacity 720ms cubic-bezier(.16, 1, .3, 1), transform 720ms cubic-bezier(.16, 1, .3, 1);
+  }
+  .root[data-motion-ready="true"] [data-reveal][data-reveal-delay="1"],
+  .root[data-motion-ready="true"] [data-reveal][data-reveal-delay="02"] { transition-delay: 70ms; }
+  .root[data-motion-ready="true"] [data-reveal][data-reveal-delay="2"],
+  .root[data-motion-ready="true"] [data-reveal][data-reveal-delay="03"] { transition-delay: 120ms; }
+  .root[data-motion-ready="true"] [data-reveal][data-reveal-delay="04"] { transition-delay: 170ms; }
+  .root[data-motion-ready="true"] [data-reveal][data-reveal-state="visible"] {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
 .root :global(.skip-link) {
   border: 1px solid var(--black);
   border-radius: 999px;
@@ -226,6 +243,7 @@
   letter-spacing: var(--tracking-display);
 }
 .builderIntro > p:last-child { max-width: 420px; margin: 30px 0 0; font-weight: 600; line-height: 1.45; }
+.builder > div:last-child { min-width: 0; }
 
 .tryOn {
   display: grid;
@@ -338,6 +356,10 @@
 .faqList summary::after { position: absolute; top: 24px; right: 4px; content: "+"; font-size: 30px; font-weight: 500; }
 .faqList details[open] summary::after { content: "−"; }
 .faqList details p { max-width: 750px; margin: 0; padding: 0 55px 30px 0; line-height: 1.55; }
+@supports selector(details::details-content) {
+  .faqList details::details-content { block-size: 0; overflow: clip; opacity: 0; transition: block-size 380ms cubic-bezier(.16, 1, .3, 1), opacity 260ms ease, content-visibility 380ms allow-discrete; }
+  .faqList details[open]::details-content { block-size: auto; opacity: 1; }
+}
 
 .root :global(.landing-contact) {
   padding: 120px var(--spacing-20);
@@ -371,30 +393,18 @@
 .root :global(.landing-contact__form > button) { min-height: 52px; margin: 0 18px 18px; border: 1px solid var(--black); border-radius: 999px; background: var(--vermillion); color: var(--white); font-weight: 800; transition: transform 260ms cubic-bezier(.16, 1, .3, 1); }
 .root :global(.landing-contact__form > button:hover) { transform: translateY(-2px); }
 
-.footer {
-  display: grid;
-  padding: 70px var(--spacing-20) 28px;
-  border-top: 1px solid var(--black);
-  background: var(--mint);
-  color: var(--black);
-  grid-template-columns: 1.4fr 1fr .7fr;
-  gap: 28px;
-}
-.footer > strong { grid-column: 1 / -1; font-family: var(--font-helvetica-now-display-condensed); font-size: clamp(56px, 7vw, 110px); line-height: .8; letter-spacing: -.03em; text-transform: uppercase; }
-.footer > strong span { color: var(--vermillion); }
-.footer > p { max-width: 420px; margin: 0; font-weight: 700; line-height: 1.4; }
-.footer nav,
-.footer > div { display: flex; flex-direction: column; align-items: flex-start; }
-.footer a { color: inherit; font-weight: 700; text-decoration: underline; text-underline-offset: 4px; }
-.footer small { grid-column: 1 / -1; margin-top: 38px; font-size: var(--text-caption); font-weight: 700; }
-
 .root :global(.landing-chat__trigger) { min-height: 50px; padding: 8px 10px 8px 16px; border: 1px solid var(--black); border-radius: 999px; background: var(--mint); color: var(--black); box-shadow: none; font-weight: 800; transition: transform 260ms cubic-bezier(.16, 1, .3, 1); }
 .root :global(.landing-chat__trigger:hover) { transform: translateY(-3px); }
 .root :global(.landing-chat__trigger i) { background: var(--black); color: var(--mint); }
-.root :global(.landing-chat__panel) { border: 1px solid var(--black); border-radius: 18px; background: var(--white); box-shadow: 0 20px 60px rgb(0 0 0 / .16); }
+.root :global(.landing-chat__panel) { border: 1px solid var(--black); border-radius: 18px; background: var(--white); box-shadow: 0 20px 60px rgb(0 0 0 / .16); transform-origin: right bottom; animation: chat-panel-in 360ms cubic-bezier(.16, 1, .3, 1) both; }
 .root :global(.landing-chat__panel > header) { background: var(--vermillion); color: var(--white); }
 .root :global(.landing-chat__messages p.is-bot) { background: var(--mint); }
 .root :global(.landing-chat__messages p.is-user) { background: rgb(209 80 34 / .12); }
+
+@keyframes chat-panel-in {
+  from { opacity: 0; transform: translateY(14px) scale(.97); }
+  to { opacity: 1; transform: none; }
+}
 
 @media (max-width: 1080px) {
   .hero { grid-template-columns: minmax(360px, .9fr) minmax(0, 1.1fr); }

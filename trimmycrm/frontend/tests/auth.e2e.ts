@@ -155,10 +155,12 @@ test("authenticated platform session sees cabinet links and cannot reopen auth f
   await mockDashboardApis(page);
 
   await page.goto("/");
-  const header = page.locator(".site-header");
-  await header.getByRole("button", { name: "Открыть меню" }).click();
-  await expect(header.getByRole("link", { name: "Личный кабинет" })).toBeVisible();
-  await expect(header.getByRole("link", { name: "Войти" })).toHaveCount(0);
+  const header = page.getByRole("banner");
+  await header.getByRole("button", { name: "Меню" }).click();
+  const navigationDialog = page.getByRole("dialog");
+  await expect(navigationDialog.getByRole("link", { name: "Личный кабинет" })).toBeVisible();
+  await expect(navigationDialog.getByRole("link", { name: "Войти" })).toHaveCount(0);
+  await navigationDialog.getByRole("button", { name: "Закрыть" }).click();
   await expect(page.getByRole("link", { name: "Перейти в кабинет" }).first()).toHaveAttribute("href", "/app");
 
   await page.goto("/login");

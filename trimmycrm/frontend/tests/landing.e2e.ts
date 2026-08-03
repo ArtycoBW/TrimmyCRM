@@ -82,3 +82,20 @@ test("site builder reorders blocks and Canvas2D switches modes", async ({ page }
   await tryOn.getByRole("button", { name: "Точки" }).click();
   await expect(tryOn.getByRole("button", { name: "Точки" })).toHaveAttribute("aria-pressed", "true");
 });
+
+test("reduced motion stays static and the editorial footer is complete", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+
+  await expect.poll(() => page.locator("[data-reveal]").evaluateAll((elements) =>
+    elements.every((element) => element.getAttribute("data-reveal-state") === "visible"),
+  )).toBe(true);
+  const heroTrack = page.getByLabel("Работы мужских и женских мастеров").locator(":scope > div");
+  await expect.poll(() => heroTrack.evaluate((element) => getComputedStyle(element).animationName)).toBe("none");
+
+  const footer = page.locator("footer");
+  await footer.scrollIntoViewIfNeeded();
+  await expect(footer.getByRole("heading", { name: /Соберите сайт/i })).toBeVisible();
+  await expect(footer.getByRole("navigation", { name: "Документы и поддержка" })).toBeVisible();
+  await expect(footer.getByRole("link", { name: /Попробовать TrimmyCRM/i })).toBeVisible();
+});

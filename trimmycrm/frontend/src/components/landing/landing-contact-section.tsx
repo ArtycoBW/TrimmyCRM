@@ -39,13 +39,13 @@ export function LandingContactSection() {
   return (
     <section className="landing-contact section" id="contact" aria-labelledby="contact-title" data-hydrated={hydrated}>
       <div className="page-container landing-contact__layout">
-        <div className="landing-contact__copy">
+        <div className="landing-contact__copy" data-reveal>
           <p className="eyebrow">Можно просто спросить</p>
           <h2 id="contact-title">Обсудим ваш<br /><span>салон.</span></h2>
           <p>Расскажите, что хотите настроить. Или оставьте время, перезвоним без навязчивых продаж.</p>
           <span className="landing-contact__note">Ответим в рабочее время · не продаём данные и не используем их для сторонней рекламы</span>
         </div>
-        <form className="landing-contact__form" onSubmit={submit}>
+        <form className="landing-contact__form" onSubmit={submit} data-reveal data-reveal-delay="1">
           <div className="landing-contact__tabs" role="tablist" aria-label="Тип обращения">
             <button className={kind === "question" ? "is-active" : ""} type="button" role="tab" aria-selected={kind === "question"} onClick={() => setKind("question")}>Задать вопрос</button>
             <button className={kind === "callback" ? "is-active" : ""} type="button" role="tab" aria-selected={kind === "callback"} onClick={() => setKind("callback")}>Заказать звонок</button>

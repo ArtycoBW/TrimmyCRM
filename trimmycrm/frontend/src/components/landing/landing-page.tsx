@@ -1,18 +1,18 @@
 import { ArrowUpRight, MoveHorizontal, ShieldCheck } from "lucide-react";
 
 import { AsciiHairPortrait } from "@/components/landing/ascii-hair-portrait";
+import { EditorialFooter } from "@/components/landing/editorial-footer";
 import { InfiniteDragGallery, HeroPhotoLoop, type EditorialPhoto } from "@/components/landing/infinite-gallery";
 import { LandingChat } from "@/components/landing/landing-chat";
 import { LandingContactSection } from "@/components/landing/landing-contact-section";
 import { LandingHeader } from "@/components/landing/landing-header";
+import { LandingMotion } from "@/components/landing/landing-motion";
 import {
-  LandingFooterAccountLink,
   LandingPrimaryAction,
   LandingSessionProvider,
 } from "@/components/landing/landing-session";
 import { PlansSection } from "@/components/landing/plans-section";
 import { SiteBuilderSortable } from "@/components/landing/site-builder-sortable";
-import { legalConfig } from "@/components/legal/legal-config";
 import { faqs, productFeatures } from "@/content/landing";
 
 import styles from "./editorial-landing.module.css";
@@ -56,10 +56,11 @@ export function LandingPage() {
       <div className={`${styles.root} editorial-landing landing-shell`} id="top">
         <a className="skip-link" href="#main-content">К содержанию</a>
         <LandingHeader />
+        <LandingMotion />
 
         <main id="main-content">
           <section className={styles.hero} aria-labelledby="hero-title">
-            <div className={styles.heroCopy}>
+            <div className={styles.heroCopy} data-reveal>
               <p className={styles.eyebrow}>CRM для hair-индустрии</p>
               <h1 id="hero-title">
                 <span>Салон в ритме.</span>
@@ -72,20 +73,19 @@ export function LandingPage() {
               </div>
             </div>
 
-            <div className={styles.heroMedia}>
+            <div className={styles.heroMedia} data-reveal data-reveal-delay="1">
               <HeroPhotoLoop photos={portraits} />
             </div>
           </section>
 
           <section className={styles.product} id="product" aria-labelledby="product-title">
-            <div className={styles.sectionHeading}>
-              <p className={styles.eyebrow}>Возможности</p>
+            <div className={styles.sectionHeading} data-reveal>
               <h2 id="product-title">Один ритм работы вместо набора разрозненных сервисов.</h2>
               <p>С первого визита на сайт до формулы окрашивания в карточке постоянного клиента.</p>
             </div>
             <div className={styles.featureGrid}>
               {productFeatures.map((feature) => (
-                <article key={feature.title}>
+                <article key={feature.title} data-reveal data-reveal-delay={feature.number}>
                   <h3>{feature.title}</h3>
                   <p>{feature.text}</p>
                   <span aria-hidden="true">{feature.number}</span>
@@ -95,31 +95,30 @@ export function LandingPage() {
           </section>
 
           <section className={styles.formats} id="examples" aria-labelledby="formats-title">
-            <div className={styles.formatIntro}>
+            <div className={styles.formatIntro} data-reveal>
               <h2 id="formats-title">Разные салоны. Своя логика у каждого.</h2>
               <p>При регистрации владелец выбирает женский салон, барбершоп или унисекс. TrimmyCRM подстраивает каталог услуг, лексику и стартовые блоки сайта.</p>
               <span><MoveHorizontal aria-hidden="true" /> Галерею можно перетаскивать</span>
             </div>
-            <InfiniteDragGallery photos={portraits} />
+            <div data-reveal data-reveal-delay="1"><InfiniteDragGallery photos={portraits} /></div>
           </section>
 
           <section className={styles.builder} aria-labelledby="builder-title">
-            <div className={styles.builderIntro}>
-              <p className={styles.eyebrow}>Конструктор сайта</p>
+            <div className={styles.builderIntro} data-reveal>
               <h2 id="builder-title">Сайт в вашем порядке.</h2>
               <p>Блоки можно менять местами без разработчика. Попробуйте прямо здесь.</p>
             </div>
-            <SiteBuilderSortable />
+            <div data-reveal data-reveal-delay="1"><SiteBuilderSortable /></div>
           </section>
 
           <section className={styles.tryOn} aria-labelledby="tryon-title">
-            <div className={styles.tryOnVisual}>
+            <div className={styles.tryOnVisual} data-reveal>
               <AsciiHairPortrait
                 src="/images/editorial/woman-copper-bob.webp"
                 alt="Анимированный Canvas2D-портрет с эффектом штриховки"
               />
             </div>
-            <div className={styles.tryOnCopy}>
+            <div className={styles.tryOnCopy} data-reveal data-reveal-delay="1">
               <ShieldCheck aria-hidden="true" />
               <h2 id="tryon-title">Примерка работает локально.</h2>
               <p>Фото обрабатывается локально в браузере. Без загрузки в облако, распознавания лица и стороннего AI API.</p>
@@ -128,20 +127,19 @@ export function LandingPage() {
           </section>
 
           <section className={styles.pricing} id="plans" aria-labelledby="plans-title">
-            <div className={styles.sectionHeading}>
-              <p className={styles.eyebrow}>Тарифы</p>
+            <div className={styles.sectionHeading} data-reveal>
               <h2 id="plans-title">Начните с малого. Масштабируйтесь в том же кабинете.</h2>
               <p>14 дней бесплатно. Карта для старта не нужна.</p>
             </div>
-            <PlansSection />
+            <div data-reveal data-reveal-delay="1"><PlansSection /></div>
           </section>
 
           <section className={styles.faq} id="faq" aria-labelledby="faq-title">
-            <div className={styles.faqIntro}>
+            <div className={styles.faqIntro} data-reveal>
               <h2 id="faq-title">Прямые ответы на частые вопросы.</h2>
               <p>Если вашего вопроса нет в списке, напишите нам в форме ниже.</p>
             </div>
-            <div className={styles.faqList}>
+            <div className={styles.faqList} data-reveal data-reveal-delay="1">
               {faqs.map((item, index) => (
                 <details key={item.question} open={index === 0}>
                   <summary>{item.question}</summary>
@@ -154,17 +152,7 @@ export function LandingPage() {
           <LandingContactSection />
         </main>
 
-        <footer className={styles.footer}>
-          <strong><span>Trimmy</span>CRM</strong>
-          <p>Сайт, запись и управление салоном в одном продукте.</p>
-          <nav aria-label="Документы">
-            <a href="/privacy">Политика</a>
-            <a href="/terms">Условия</a>
-            <a href="/consent">Согласие</a>
-          </nav>
-          <div><LandingFooterAccountLink /><a href={`mailto:${legalConfig.email}`}>{legalConfig.email}</a></div>
-          <small>© {new Date().getFullYear()} TrimmyCRM</small>
-        </footer>
+        <EditorialFooter />
 
         <LandingChat />
       </div>
