@@ -52,6 +52,9 @@ test("login and registration layouts fit both viewports", async ({ page }) => {
   await page.getByRole("button", { name: /Продолжить/i }).click();
   await page.getByLabel("Название салона").fill("ФОРМА");
   await page.getByLabel(/Женский салон/).check();
+  await page.getByLabel("Часовой пояс").click();
+  await page.getByRole("option", { name: "Екатеринбург · UTC+5" }).click();
+  await expect(page.getByLabel("Часовой пояс")).toContainText("Екатеринбург · UTC+5");
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollHeight <= innerHeight + 1)).toBe(true);
   await page.getByRole("button", { name: /Продолжить/i }).click();
   await expect(page.getByLabel("Шаги регистрации").locator("li[data-state='active']")).toContainText("Защита");
@@ -173,6 +176,8 @@ test("registration shows privacy-safe email confirmation", async ({ page }, test
   await page.getByLabel("Название салона").fill("ФОРМА");
   await page.getByLabel(/Женский салон/).check();
   await page.getByLabel("Город").fill("Москва");
+  await page.getByLabel("Часовой пояс").click();
+  await page.getByRole("option", { name: "Екатеринбург · UTC+5" }).click();
   await page.getByRole("button", { name: /Продолжить/i }).click();
   await expect(page.getByLabel("Шаги регистрации").locator("li[data-state='active']")).toContainText("Защита");
   await expect(page.getByText("Минимум 10 символов")).toHaveCount(0);
@@ -191,7 +196,7 @@ test("registration shows privacy-safe email confirmation", async ({ page }, test
     salonName: "ФОРМА",
     salonType: "women_hair_salon",
     city: "Москва",
-    timezone: "Europe/Moscow",
+    timezone: "Asia/Yekaterinburg",
     termsAccepted: true,
     consent: true,
     dataProcessingInstructionAccepted: true,

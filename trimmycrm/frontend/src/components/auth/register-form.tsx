@@ -1,9 +1,9 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { useState } from "react";
-import { useForm, useWatch, type FieldPath } from "react-hook-form";
+import { Controller, useForm, useWatch, type FieldPath } from "react-hook-form";
 
 import { CheckEmailCard } from "@/components/auth/check-email-card";
 import {
@@ -14,6 +14,7 @@ import {
 import { authErrorMessage, passwordChecks } from "@/components/auth/auth-utils";
 import { PasswordField } from "@/components/auth/password-field";
 import { useAuthRealm } from "@/components/auth/use-auth-realm";
+import { AppSelect } from "@/components/ui/select";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { formatRussianPhone, normalizeRussianPhone } from "@/lib/app/phone";
 import { salonTypeOptions } from "@/lib/app/salon-profile";
@@ -21,6 +22,20 @@ import { authRequest } from "@/lib/api/client";
 
 const platformSteps = ["Контакты", "Салон", "Защита"] as const;
 const tenantSteps = ["Контакты", "Защита", "Согласие"] as const;
+
+const timezoneOptions = [
+  { value: "Europe/Kaliningrad", label: "Калининград · UTC+2" },
+  { value: "Europe/Moscow", label: "Москва · UTC+3" },
+  { value: "Europe/Samara", label: "Самара · UTC+4" },
+  { value: "Asia/Yekaterinburg", label: "Екатеринбург · UTC+5" },
+  { value: "Asia/Omsk", label: "Омск · UTC+6" },
+  { value: "Asia/Krasnoyarsk", label: "Красноярск · UTC+7" },
+  { value: "Asia/Irkutsk", label: "Иркутск · UTC+8" },
+  { value: "Asia/Yakutsk", label: "Якутск · UTC+9" },
+  { value: "Asia/Vladivostok", label: "Владивосток · UTC+10" },
+  { value: "Asia/Magadan", label: "Магадан · UTC+11" },
+  { value: "Asia/Kamchatka", label: "Камчатка · UTC+12" },
+];
 
 export function RegisterForm() {
   const realm = useAuthRealm();
@@ -195,21 +210,19 @@ export function RegisterForm() {
         </div>
         <div className="auth-field">
           <label htmlFor="register-timezone">Часовой пояс</label>
-          <div className={`auth-input-wrap${visibleErrors.timezone ? " auth-input-wrap--error" : ""}`}>
-            <select id="register-timezone" {...register("timezone")}>
-              <option value="Europe/Kaliningrad">Калининград · UTC+2</option>
-              <option value="Europe/Moscow">Москва · UTC+3</option>
-              <option value="Europe/Samara">Самара · UTC+4</option>
-              <option value="Asia/Yekaterinburg">Екатеринбург · UTC+5</option>
-              <option value="Asia/Omsk">Омск · UTC+6</option>
-              <option value="Asia/Krasnoyarsk">Красноярск · UTC+7</option>
-              <option value="Asia/Irkutsk">Иркутск · UTC+8</option>
-              <option value="Asia/Yakutsk">Якутск · UTC+9</option>
-              <option value="Asia/Vladivostok">Владивосток · UTC+10</option>
-              <option value="Asia/Magadan">Магадан · UTC+11</option>
-              <option value="Asia/Kamchatka">Камчатка · UTC+12</option>
-            </select>
-          </div>
+          <Controller
+            control={control}
+            name="timezone"
+            render={({ field }) => (
+              <AppSelect
+                id="register-timezone"
+                value={field.value || undefined}
+                onValueChange={field.onChange}
+                options={timezoneOptions}
+                triggerClassName={`auth-select-trigger${visibleErrors.timezone ? " auth-select-trigger--error" : ""}`}
+              />
+            )}
+          />
           {visibleErrors.timezone && <p className="auth-field__error">{visibleErrors.timezone.message}</p>}
         </div>
       </div>
@@ -228,7 +241,7 @@ export function RegisterForm() {
           <ul className="password-checks" aria-label="Требования к паролю">
             {passwordChecks(password || "").map((check) => (
               <li className={check.met ? "is-met" : ""} key={check.label}>
-                <span aria-hidden="true">{check.met ? "✓" : "·"}</span>{check.label}
+                <span aria-hidden="true">{check.met && <Check />}</span>{check.label}
               </li>
             ))}
           </ul>
