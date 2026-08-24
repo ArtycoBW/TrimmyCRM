@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
+import { IBM_Plex_Mono, Manrope, Source_Serif_4 } from "next/font/google";
 
 import { FirstVisitPreloader, firstVisitPreloaderScript } from "@/components/ui/first-visit-preloader";
 import { PwaRegister } from "@/components/pwa-register";
@@ -8,6 +9,25 @@ import { fetchTenantPublicSite } from "@/lib/site/server-public-site";
 
 import "./theme.css";
 import "./globals.css";
+
+const landingSans = Manrope({
+  subsets: ["cyrillic", "latin"],
+  variable: "--font-landing-sans",
+  display: "swap",
+});
+
+const landingSerif = Source_Serif_4({
+  subsets: ["cyrillic", "latin"],
+  variable: "--font-landing-serif",
+  display: "swap",
+});
+
+const landingMono = IBM_Plex_Mono({
+  subsets: ["cyrillic", "latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-landing-mono",
+  display: "swap",
+});
 
 const platformMetadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://trimmycrm.ru"),
@@ -91,7 +111,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <head>
         <script dangerouslySetInnerHTML={{ __html: firstVisitPreloaderScript }} />
       </head>
-      <body>
+      <body className={`${landingSans.variable} ${landingSerif.variable} ${landingMono.variable}`}>
         <FirstVisitPreloader />
         <PwaRegister />
         {children}

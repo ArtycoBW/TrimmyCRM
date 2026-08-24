@@ -23,7 +23,7 @@ test("login and registration layouts fit both viewports", async ({ page }) => {
   await mockAnonymous(page);
   await page.goto("/login");
   await expect(page.getByRole("heading", { name: /Войти в TrimmyCRM/i })).toBeVisible();
-  await expect(page.locator(".brand-mark__image").first()).toHaveAttribute("src", "/brand/trimmy-symbol.svg");
+  await expect(page.locator(".brand-mark__image").first()).toHaveAttribute("src", "/brand/trimmy-symbol.png");
   if (await page.locator(".auth-story").isVisible()) {
     await expect(page.getByAltText("Стилист работает над короткой стрижкой в современной студии")).toHaveAttribute("src", /auth-salon-studio\.webp/);
   }
@@ -89,7 +89,7 @@ test("recovery and client-facing screens have no horizontal overflow", async ({ 
 
 test("email verification uses the compact branded loader", async ({ page }) => {
   await page.addInitScript(() => {
-    window.sessionStorage.setItem("trimmycrm:first-visit-intro:v1", "1");
+    window.sessionStorage.setItem("trimmycrm:first-visit-intro:v2", "1");
   });
   await mockAnonymous(page);
   await page.route("**/api/v1/**/verify-email", async (route) => {
