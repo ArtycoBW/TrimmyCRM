@@ -14,15 +14,27 @@ const defaultPlatformHosts = new Set([
   "admin.trimmycrm.ru",
 ]);
 
-export function platformHosts() {
-  const configured = process.env.NEXT_PUBLIC_PLATFORM_HOSTS;
-  if (!configured) return defaultPlatformHosts;
+function normalizeHosts(values: unknown[]): Set<string> {
   return new Set(
-    configured
-      .split(",")
-      .map((host) => host.trim().toLowerCase())
+    values
+      .filter((host): host is string => typeof host === "string")
+      .map((host) => host.trim().toLowerCase().replace(/\.$/, ""))
       .filter(Boolean),
   );
+}
+
+export function platformHosts() {
+  const configured = process.env.NEXT_PUBLIC_PLATFORM_HOSTS?.trim();
+  if (!configured) return defaultPlatformHosts;
+
+  try {
+    const parsed = JSON.parse(configured);
+    if (Array.isArray(parsed)) return normalizeHosts(parsed);
+  } catch {
+    // Local .env files also support a comma-separated host list.
+  }
+
+  return normalizeHosts(configured.split(","));
 }
 
 export function realmForHostname(hostname: string): AuthRealm {

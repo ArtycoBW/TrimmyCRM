@@ -1,15 +1,25 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { platformRegisterSchema, registerSchema } from "../src/components/auth/auth-schemas";
 import { passwordChecks } from "../src/components/auth/auth-utils";
 import { realmForHostname, safeNextPath } from "../src/lib/auth/realm";
 
 describe("auth frontend contract", () => {
+  afterEach(() => vi.unstubAllEnvs());
+
   it("distinguishes platform and tenant hosts", () => {
     expect(realmForHostname("trimmycrm.localhost")).toBe("platform");
     expect(realmForHostname("admin.trimmycrm.ru")).toBe("platform");
     expect(realmForHostname("lapushka.trimmycrm.localhost")).toBe("tenant");
     expect(realmForHostname("salon.example.ru")).toBe("tenant");
+  });
+
+  it("accepts Compose JSON host lists for the platform realm", () => {
+    vi.stubEnv("NEXT_PUBLIC_PLATFORM_HOSTS", '["localhost", "trimmycrm.localhost"]');
+
+    expect(realmForHostname("localhost")).toBe("platform");
+    expect(realmForHostname("trimmycrm.localhost")).toBe("platform");
+    expect(realmForHostname("forma.trimmycrm.localhost")).toBe("tenant");
   });
 
   it("accepts only same-origin relative next paths", () => {
