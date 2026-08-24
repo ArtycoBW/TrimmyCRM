@@ -20,6 +20,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import Image from "next/image";
+import { GripVertical, Move } from "lucide-react";
 import { useState, type KeyboardEvent } from "react";
 
 import styles from "./site-builder-sortable.module.css";
@@ -37,16 +38,16 @@ const initialBlocks: SiteBlock[] = [
 ];
 
 const workImages = [
-  "/images/editorial/woman-copper-bob.webp",
-  "/images/editorial/man-textured-crop.webp",
-  "/images/editorial/woman-graphic-pixie.webp",
+  "/images/editorial/v2/copper-bob.webp",
+  "/images/editorial/v2/taper-fade.webp",
+  "/images/editorial/v2/layered-cut.webp",
 ] as const;
 
 function BlockContent({ kind }: { kind: BlockKind }) {
   if (kind === "cover") {
     return (
       <div className={styles.cover}>
-        <Image src="/images/editorial/salon-copper-consultation.webp" alt="Мастер и клиентка в салоне" fill sizes="(max-width: 780px) 90vw, 46vw" />
+        <Image src="/images/editorial/v2/salon-consultation.webp" alt="Мастер обсуждает форму стрижки с клиенткой" fill quality={94} sizes="(max-width: 780px) 90vw, 46vw" />
         <div><span>Студия Форма</span><strong>Стрижки, окрашивание и уход в центре Москвы.</strong><b>Записаться</b></div>
       </div>
     );
@@ -71,7 +72,7 @@ function BlockContent({ kind }: { kind: BlockKind }) {
         <div><h3>Наши мастера</h3><span>Посмотрите работы и выберите специалиста.</span></div>
         <div className={styles.teamFaces}>
           {workImages.slice(0, 2).map((src, index) => (
-            <figure key={src}><Image src={src} alt={index === 0 ? "Женский мастер" : "Мужской мастер"} fill sizes="110px" /></figure>
+            <figure key={src}><Image src={src} alt={index === 0 ? "Женский мастер" : "Мужской мастер"} fill quality={94} sizes="110px" /></figure>
           ))}
         </div>
       </div>
@@ -82,7 +83,7 @@ function BlockContent({ kind }: { kind: BlockKind }) {
     return (
       <div className={styles.works}>
         {workImages.map((src, index) => (
-          <figure key={src}><Image src={src} alt={`Работа мастера ${index + 1}`} fill sizes="(max-width: 780px) 28vw, 15vw" /></figure>
+          <figure key={src}><Image src={src} alt={`Работа мастера ${index + 1}`} fill quality={94} sizes="(max-width: 780px) 28vw, 15vw" /></figure>
         ))}
       </div>
     );
@@ -106,7 +107,7 @@ function BlockContent({ kind }: { kind: BlockKind }) {
   );
 }
 
-function SortableBlock({ block, onKeyboardMove }: { block: SiteBlock; onKeyboardMove: (id: string, offset: number) => void }) {
+function SortableBlock({ block, inviting, onKeyboardMove }: { block: SiteBlock; inviting: boolean; onKeyboardMove: (id: string, offset: number) => void }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: block.id });
 
   const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
@@ -128,8 +129,10 @@ function SortableBlock({ block, onKeyboardMove }: { block: SiteBlock; onKeyboard
       {...attributes}
       {...listeners}
       onKeyDown={handleKeyDown}
+      data-inviting={inviting || undefined}
       style={{ transform: CSS.Transform.toString(transform), transition }}
     >
+      <span className={styles.dragHandle} aria-hidden="true"><GripVertical /><b>{block.label}</b></span>
       <BlockContent kind={block.id} />
     </article>
   );
@@ -138,6 +141,7 @@ function SortableBlock({ block, onKeyboardMove }: { block: SiteBlock; onKeyboard
 export function SiteBuilderSortable() {
   const [blocks, setBlocks] = useState(initialBlocks);
   const [activeId, setActiveId] = useState<BlockKind | null>(null);
+  const [hasInteracted, setHasInteracted] = useState(false);
   const [announcement, setAnnouncement] = useState("");
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -146,6 +150,7 @@ export function SiteBuilderSortable() {
   const activeBlock = blocks.find((block) => block.id === activeId);
 
   const move = (id: string, offset: number) => {
+    setHasInteracted(true);
     setBlocks((current) => {
       const from = current.findIndex((block) => block.id === id);
       const to = Math.max(0, Math.min(current.length - 1, from + offset));
@@ -167,7 +172,11 @@ export function SiteBuilderSortable() {
   };
 
   return (
-    <div className={styles.shell}>
+    <div className={styles.shell} data-inviting={!hasInteracted || undefined}>
+      <div className={styles.builderHint}>
+        <span aria-hidden="true"><Move /></span>
+        <p><strong>Попробуйте сами.</strong> Зажмите любой блок и поменяйте порядок.</p>
+      </div>
       <div className={styles.browserBar}>
         <strong>Форма</strong>
         <nav aria-label="Пример навигации сайта"><span>Услуги</span><span>Команда</span><span>Работы</span></nav>
@@ -177,13 +186,16 @@ export function SiteBuilderSortable() {
         id="landing-site-builder"
         sensors={sensors}
         collisionDetection={closestCenter}
-        onDragStart={({ active }: DragStartEvent) => setActiveId(active.id as BlockKind)}
+        onDragStart={({ active }: DragStartEvent) => {
+          setHasInteracted(true);
+          setActiveId(active.id as BlockKind);
+        }}
         onDragCancel={() => setActiveId(null)}
         onDragEnd={handleDragEnd}
       >
         <SortableContext items={blocks.map((block) => block.id)} strategy={verticalListSortingStrategy}>
           <div className={styles.grid}>
-            {blocks.map((block) => <SortableBlock block={block} key={block.id} onKeyboardMove={move} />)}
+            {blocks.map((block, index) => <SortableBlock block={block} inviting={!hasInteracted && index === 0} key={block.id} onKeyboardMove={move} />)}
           </div>
         </SortableContext>
         <DragOverlay dropAnimation={{ duration: 520, easing: "cubic-bezier(.22, 1, .36, 1)" }}>

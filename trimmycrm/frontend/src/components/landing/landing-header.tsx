@@ -19,8 +19,8 @@ export function LandingHeader() {
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <header className={styles.header}>
         <a className={styles.logo} href="#top" aria-label="TrimmyCRM, на главную">
-          <span className={styles.logoSymbol}><Image src="/brand/trimmy-symbol.svg" alt="" width={44} height={44} priority /></span>
-          <b><span>Trimmy</span><em>CRM</em></b>
+          <span className={styles.logoSymbol}><Image src="/brand/trimmy-symbol.png" alt="" width={40} height={40} priority /></span>
+          <b>Trimmy<span>CRM</span></b>
         </a>
 
         <nav className={styles.desktopNav} aria-label="Основная навигация">
@@ -42,7 +42,7 @@ export function LandingHeader() {
         <Dialog.Content className={styles.drawer} aria-describedby={undefined}>
           <div className={styles.drawerBar}>
             <Dialog.Title className={styles.drawerTitle}>Навигация TrimmyCRM</Dialog.Title>
-            <span className={styles.drawerLogo} aria-hidden="true"><b>Trimmy</b><em>CRM</em></span>
+            <span className={styles.drawerLogo} aria-hidden="true"><b>Trimmy</b><span>CRM</span></span>
             <Dialog.Close className={styles.closeButton}>
               Закрыть <X aria-hidden="true" />
             </Dialog.Close>
@@ -61,7 +61,7 @@ export function LandingHeader() {
             </nav>
 
             <div className={styles.drawerAside}>
-              <p>CRM и сайт для парикмахерских и барбершопов.</p>
+              <p>Начните с бесплатного периода и настройте салон в своём темпе.</p>
               <div className={styles.drawerActions}><LandingHeaderActions /></div>
             </div>
           </div>

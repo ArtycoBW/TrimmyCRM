@@ -20,6 +20,9 @@ const nextConfig: NextConfig = {
   output: "standalone",
   poweredByHeader: false,
   typedRoutes: true,
+  images: {
+    qualities: [75, 94],
+  },
   allowedDevOrigins: ["*.trimmycrm.localhost"],
   async headers() {
     return [{

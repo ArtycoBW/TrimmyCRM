@@ -41,20 +41,18 @@ export function LandingContactSection() {
   return (
     <section className="landing-contact section" id="contact" aria-labelledby="contact-title" data-hydrated={hydrated}>
       <div className="page-container landing-contact__layout">
-        <div className="landing-contact__visual" data-reveal>
-          <Image
-            alt="Стилист обсуждает новую форму стрижки с клиенткой"
-            fill
-            sizes="(max-width: 1080px) 100vw, 46vw"
-            src="/images/editorial/salon-copper-consultation.webp"
-          />
-          <div className="landing-contact__copy">
-            <p className="eyebrow">Есть вопрос?</p>
-            <h2 id="contact-title">Расскажите, что<br /><span>нужно настроить.</span></h2>
-            <p>Опишите, как сейчас работает салон и что хотите перенести в TrimmyCRM. Мы подскажем, с чего начать.</p>
+        <h2 className="sr-only" id="contact-title">Обсудим ваш салон</h2>
+        <div className="landing-contact__content">
+          <div className="landing-contact__visual" data-reveal>
+            <Image
+                alt="Барбер обсуждает будущую стрижку с клиентом"
+                fill
+                quality={94}
+                sizes="(max-width: 1080px) 100vw, 48vw"
+              src="/images/editorial/v2/barber-consultation.webp"
+            />
           </div>
-        </div>
-        <form className="landing-contact__form" onSubmit={submit} data-reveal data-reveal-delay="1">
+          <form className="landing-contact__form" onSubmit={submit} data-reveal data-reveal-delay="1">
           <div className="landing-contact__tabs" role="tablist" aria-label="Тип обращения">
             <button className={kind === "question" ? "is-active" : ""} type="button" role="tab" aria-selected={kind === "question"} onClick={() => setKind("question")}>Задать вопрос</button>
             <button className={kind === "callback" ? "is-active" : ""} type="button" role="tab" aria-selected={kind === "callback"} onClick={() => setKind("callback")}>Заказать звонок</button>
@@ -68,7 +66,8 @@ export function LandingContactSection() {
             <span>{sending ? "Отправляем…" : kind === "callback" ? "Заказать звонок" : "Отправить вопрос"}</span>
             <ArrowUpRight aria-hidden="true" />
           </button>
-        </form>
+          </form>
+        </div>
       </div>
     </section>
   );

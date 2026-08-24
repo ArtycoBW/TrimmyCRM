@@ -1,68 +1,105 @@
+"use client";
+
 import { ArrowUpRight } from "lucide-react";
-import Image from "next/image";
+import { useEffect, useRef } from "react";
 
 import { FooterToTop } from "@/components/landing/footer-to-top";
-import { LandingFooterAccountLink } from "@/components/landing/landing-session";
+import { LandingFooterAccountLink, LandingPrimaryAction } from "@/components/landing/landing-session";
 import { legalConfig } from "@/components/legal/legal-config";
 
 import styles from "./editorial-footer.module.css";
 
-const footerImages = [
-  {
-    src: "/images/editorial/salon-cut-session.webp",
-    alt: "Рабочая стрижка в современном барбершопе",
-    caption: "Рабочий день",
-  },
-  {
-    src: "/images/editorial/woman-copper-bob.webp",
-    alt: "Женщина с медным бобом",
-    caption: "Женский салон",
-  },
-  {
-    src: "/images/editorial/man-textured-crop.webp",
-    alt: "Мужчина с текстурным кропом",
-    caption: "Барбершоп",
-  },
-] as const;
+const marqueeItems = ["Онлайн-запись", "Расписание команды", "Карточки клиентов", "Сайт салона", "Напоминания"] as const;
 
 export function EditorialFooter() {
+  const footerRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const footer = footerRef.current;
+    if (!footer) return;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reducedMotion) {
+      footer.style.setProperty("--footer-clip", "0%");
+      footer.style.setProperty("--footer-shift", "0px");
+      return;
+    }
+
+    let frame: number | null = null;
+    const update = () => {
+      frame = null;
+      const rect = footer.getBoundingClientRect();
+      const progress = Math.min(1, Math.max(0, (window.innerHeight - rect.top) / Math.max(window.innerHeight * .9, 1)));
+      footer.style.setProperty("--footer-clip", `${((1 - progress) * 9).toFixed(3)}%`);
+      footer.style.setProperty("--footer-shift", `${((1 - progress) * 56).toFixed(2)}px`);
+      footer.style.setProperty("--footer-progress", progress.toFixed(4));
+      footer.style.setProperty("--footer-word-y", `${((1 - progress) * 24).toFixed(2)}px`);
+      footer.style.setProperty("--footer-glow-opacity", String(.72 + progress * .28));
+    };
+    const schedule = () => {
+      if (frame === null) frame = requestAnimationFrame(update);
+    };
+    const pointerMove = (event: PointerEvent) => {
+      const rect = footer.getBoundingClientRect();
+      const x = ((event.clientX - rect.left) / Math.max(rect.width, 1)) - .5;
+      const y = ((event.clientY - rect.top) / Math.max(rect.height, 1)) - .5;
+      footer.style.setProperty("--footer-glow-x", `${(x * 22).toFixed(2)}px`);
+      footer.style.setProperty("--footer-glow-y", `${(y * 14).toFixed(2)}px`);
+      footer.style.setProperty("--footer-word-x", `${(x * -12).toFixed(2)}px`);
+    };
+
+    update();
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    footer.addEventListener("pointermove", pointerMove, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+      footer.removeEventListener("pointermove", pointerMove);
+      if (frame !== null) cancelAnimationFrame(frame);
+    };
+  }, []);
+
   return (
-    <footer className={styles.footer}>
-      <div className={styles.cta} data-reveal>
-        <div>
-          <h2>Попробуйте TrimmyCRM в работе.</h2>
-        </div>
-        <div className={styles.ctaAside}><p>Первые 14 дней бесплатны. Банковская карта не нужна.</p></div>
-      </div>
+    <footer ref={footerRef} className={styles.footer}>
+      <div className={styles.curtain}>
+        <div className={styles.grid} aria-hidden="true" />
+        <div className={styles.glow} aria-hidden="true" />
 
-      <div className={styles.gallery} data-reveal data-reveal-delay="1" data-parallax>
-        {footerImages.map((image, index) => (
-          <figure key={image.src} data-size={index === 0 ? "wide" : "portrait"}>
-            <div>
-              <Image src={image.src} alt={image.alt} fill sizes={index === 0 ? "(max-width: 780px) 100vw, 50vw" : "(max-width: 780px) 50vw, 24vw"} />
-            </div>
-            <figcaption>{image.caption}</figcaption>
-          </figure>
-        ))}
-      </div>
-
-      <div className={styles.wordmark} aria-hidden="true"><span>Trimmy</span>CRM</div>
-
-      <div className={styles.bottom}>
-        <div className={styles.brand}>
-          <strong><span>Trimmy</span>CRM</strong>
-          <p>CRM и сайт для парикмахерских и барбершопов.</p>
+        <div className={styles.marquee} aria-hidden="true">
+          <div>
+            {[0, 1].map((group) => (
+              <span key={group}>
+                {marqueeItems.map((item) => <b key={`${group}-${item}`}>{item}<i>✦</i></b>)}
+              </span>
+            ))}
+          </div>
         </div>
-        <nav aria-label="Документы и поддержка">
-          <a href="/privacy">Политика</a>
-          <a href="/terms">Условия</a>
-          <a href="/consent">Согласие</a>
-          <a href={`mailto:${legalConfig.email}`}>Поддержка <ArrowUpRight aria-hidden="true" /></a>
-        </nav>
-        <div className={styles.account}>
-          <LandingFooterAccountLink />
+
+        <div className={styles.sideNote} data-side="left"><span>Сайт</span><span>Запись</span><span>Команда</span></div>
+        <div className={styles.sideNote} data-side="right"><span>Клиенты</span><span>История</span><span>Возврат</span></div>
+
+        <div className={styles.cta}>
+          <p className={styles.eyebrow}><span /> Следующий шаг</p>
+          <h2>Салон работает.<br />Вы управляете.</h2>
+          <p className={styles.lead}>Запустите TrimmyCRM на 14 дней и соберите запись, команду, клиентов и сайт в одном месте.</p>
+          <div className={styles.actions}>
+            <LandingPrimaryAction className={styles.primaryAction} anonymousLabel="Начать бесплатно" />
+            <span className={styles.accountAction}><LandingFooterAccountLink /></span>
+          </div>
         </div>
-        <small>© {new Date().getFullYear()} TrimmyCRM</small>
+
+        <div className={styles.giantWord} aria-hidden="true">TRIMMY</div>
+
+        <div className={styles.bottom}>
+          <small>© {new Date().getFullYear()} TrimmyCRM</small>
+          <nav aria-label="Документы и поддержка">
+            <a href="/privacy">Политика</a>
+            <a href="/terms">Условия</a>
+            <a href="/consent">Согласие</a>
+            <a href={`mailto:${legalConfig.email}`}>Поддержка <ArrowUpRight aria-hidden="true" /></a>
+          </nav>
+          <p>Сделано для тех, кто работает руками и сердцем.</p>
+        </div>
       </div>
       <FooterToTop />
     </footer>

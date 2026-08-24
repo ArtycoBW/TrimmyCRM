@@ -8,27 +8,15 @@ export type EditorialPhoto = {
   label: string;
 };
 
-function EditorialCanvas({
-  photos,
-  row,
-  decorative = false,
-}: {
-  photos: readonly EditorialPhoto[];
-  row: number;
-  decorative?: boolean;
-}) {
+function PhotoGroup({ photos, decorative = false }: { photos: readonly EditorialPhoto[]; decorative?: boolean }) {
   return (
-    <div className={styles.canvas} data-row={row} aria-hidden={decorative || undefined}>
-      <span className={styles.word} aria-hidden="true">TRIMMY</span>
-      <span className={styles.geometry} aria-hidden="true"><i /><i /><i /></span>
+    <div className={styles.group} aria-hidden={decorative || undefined}>
       {photos.map((photo, index) => (
-        <figure className={styles.frame} data-index={index} key={`${row}-${photo.src}-${index}`}>
-          <Image
-            src={photo.src}
-            alt={decorative ? "" : photo.alt}
-            fill
-            sizes="(max-width: 780px) 34vw, 18vw"
-          />
+        <figure className={styles.frame} data-size={index % 3 === 1 ? "wide" : "portrait"} key={`${decorative ? "copy" : "source"}-${photo.src}`}>
+          <div className={styles.image}>
+            <Image src={photo.src} alt={decorative ? "" : photo.alt} fill quality={94} sizes="(max-width: 780px) 72vw, 320px" />
+          </div>
+          <figcaption>{photo.label}</figcaption>
         </figure>
       ))}
     </div>
@@ -36,18 +24,12 @@ function EditorialCanvas({
 }
 
 export function PhotoMarquee({ photos }: { photos: readonly EditorialPhoto[] }) {
-  const rows = [photos, [...photos.slice(3), ...photos.slice(0, 3)]] as const;
-
   return (
-    <div className={styles.marquee} aria-label="Фотогалерея мужских и женских работ">
-      {rows.map((row, rowIndex) => (
-        <div className={styles.marqueeRow} data-row={rowIndex + 1} key={rowIndex}>
-          <div className={styles.track}>
-            <EditorialCanvas photos={row} row={rowIndex + 1} />
-            <EditorialCanvas photos={row} row={rowIndex + 1} decorative />
-          </div>
-        </div>
-      ))}
+    <div className={styles.marquee} aria-label="Работы салонов и барбершопов">
+      <div className={styles.track}>
+        <PhotoGroup photos={photos} />
+        <PhotoGroup photos={photos} decorative />
+      </div>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 {
   "version": 1,
   "createdAt": "2026-08-03",
+  "updatedAt": "2026-08-24",
   "source": "OpenAI built-in image generation",
   "rightsBasis": "original-ai-assisted-marketing-asset",
   "containsSyntheticPeopleOnly": true,
@@ -47,9 +48,100 @@
       "sha256": "500e71c42045e0a018ae8838215e7ed4fb2a06d7f4653deb874cbc303b316576"
     },
     {
-      "path": "/brand/trimmy-symbol.svg",
-      "subject": "original text-free TrimmyCRM precision-cut T monogram",
-      "sha256": "67b4ea664c642bdfb49b5481fbb5678a29d3ab06d0738cf2757de44d8bb398df"
+      "path": "/brand/trimmy-symbol.png",
+      "subject": "user-provided text-free TrimmyCRM comb and razor symbol",
+      "sha256": "2a56a44eb0c272eb747698f5dd95f4224e29228a6afce2aefe410fbd976324ee"
+    },
+    {
+      "path": "/images/editorial/v2/salon-consultation.webp",
+      "subject": "fictional adult colorist and client in a premium contemporary salon",
+      "use": "site builder hero",
+      "prompt": "High-detail photorealistic editorial salon consultation, composed adult client and stylist, premium contemporary interior, natural window light, individually resolved hair, natural skin and crisp fabric, no text, no logos, no beauty filter",
+      "sha256": "f0f0d6aec16118590495e5176b0b2d7110c841e8d44d82c41428981929c9f39c"
+    },
+    {
+      "path": "/images/editorial/v2/copper-bob.webp",
+      "subject": "fictional adult woman with a precise copper bob",
+      "use": "portfolio gallery and site builder",
+      "prompt": "Photorealistic editorial portrait of an adult woman with a precise copper bob, natural pores and flyaway hair, understated wardrobe, soft daylight, calm neutral background, no text, no logos, no beauty filter",
+      "sha256": "cb84f1085e166d0ab8464838ea4196c748d876aadf3a111d5681eeee20478172"
+    },
+    {
+      "path": "/images/editorial/v2/taper-fade.webp",
+      "subject": "fictional adult Black man with a clean taper fade",
+      "use": "portfolio gallery and site builder",
+      "prompt": "Photorealistic editorial portrait of an adult Black man with a clean taper fade and natural beard texture, premium barbershop lighting, realistic skin, restrained wardrobe, no text, no logos, no beauty filter",
+      "sha256": "d212e7a747dae907919309a904f207cb1af8a509bcf95b91125298d5c4a8fd57"
+    },
+    {
+      "path": "/images/editorial/v2/icy-bob.webp",
+      "subject": "fictional adult Mediterranean woman with a cool espresso bob and an icy face-framing streak",
+      "use": "portfolio gallery",
+      "prompt": "Premium ultra-sharp editorial salon portrait of a synthetic Mediterranean woman aged 30–36 with a glossy cool espresso blunt bob and one subtle icy face-framing streak, ivory salon cape, deep teal and warm-stone salon, natural skin and hair texture, no text, no logos, no beauty filter",
+      "sha256": "c390d6dec3f14f8595595ec509d76b8e7b59fcf9105ca7ca71a2bc40ec494f0f"
+    },
+    {
+      "path": "/images/editorial/v2/layered-cut.webp",
+      "subject": "fictional adult East Asian woman with a layered haircut",
+      "use": "portfolio gallery and local try-on illustration",
+      "prompt": "Photorealistic editorial portrait of an adult East Asian woman with a natural layered haircut, authentic hair movement, realistic skin, quiet studio daylight, contemporary minimal wardrobe, no text, no logos, no beauty filter",
+      "sha256": "debb1e1afea30ee2c3301f0a7730d323d2c7cc43c1d2d5138fbf4992068134b6"
+    },
+    {
+      "path": "/images/editorial/v2/wavy-cut.webp",
+      "subject": "fictional adult Mediterranean man with a textured wavy haircut",
+      "use": "portfolio gallery",
+      "prompt": "Photorealistic editorial portrait of an adult Mediterranean man with a textured wavy haircut, natural facial hair and skin texture, elegant low-key salon light, no text, no logos, no beauty filter",
+      "sha256": "7826419650a23fcafa3887c10f29b32b16bee0834c48ff15452e32aeadd99a2f"
+    },
+    {
+      "path": "/images/editorial/v2/barber-consultation.webp",
+      "subject": "fictional adult barber and client during a premium barbershop consultation",
+      "use": "contact section",
+      "prompt": "Photorealistic documentary editorial frame of an adult barber consulting with an adult client in a premium contemporary barbershop, confident candid interaction, natural materials and daylight, realistic skin and hair, no text, no logos",
+      "sha256": "3a6297ca38a3c688edd30c32d3ae3887de7d0aacc650382422dbe0dd87614836"
+    },
+    {
+      "path": "/images/editorial/journey/booking-owner.webp",
+      "subject": "fictional South Asian salon owner confirming an online booking",
+      "use": "scroll journey chapter 01",
+      "prompt": "Ultra-photorealistic editorial photograph of a fictional South Asian woman salon owner confirming a booking on a smartphone at reception, premium contemporary salon, realistic skin and hair, crisp detail, no text, no logos",
+      "sha256": "3bb45a53ac75775c5ca5430913b9431a47f110ff8385d2b9a8bac122f9650d60"
+    },
+    {
+      "path": "/images/editorial/journey/team-schedule.webp",
+      "subject": "fictional East Asian stylist and Black salon manager reviewing a schedule",
+      "use": "scroll journey chapter 02",
+      "prompt": "Ultra-photorealistic editorial photograph of a fictional East Asian male stylist and Black female salon manager reviewing the team schedule on a tablet, modern salon, crisp documentary detail, no text, no logos",
+      "sha256": "25ef9cfe680871e05a137d5ada93ff982c8771dfb0e94d381e5660e8ba879401"
+    },
+    {
+      "path": "/images/editorial/journey/returning-client.webp",
+      "subject": "fictional Japanese client with a silver pixie and her stylist",
+      "use": "scroll journey chapter 03",
+      "prompt": "Ultra-photorealistic editorial photograph of a fictional Japanese woman client with a silver pixie haircut welcomed by her male stylist, premium salon, realistic mature skin and hair, crisp detail, no text, no logos",
+      "sha256": "50f85e60c032002357e13ff922fcb9e869c3a91b27b64d25af0613457e0580a1"
+    },
+    {
+      "path": "/images/editorial/journey/color-formula.webp",
+      "subject": "fictional Black colorist applying a chestnut formula to a client",
+      "use": "scroll journey chapter 04",
+      "prompt": "Ultra-photorealistic editorial photograph of a fictional Black woman colorist applying a chestnut glaze to a fictional white woman client in a premium color bar, accurate salon technique, crisp detail, no text, no logos",
+      "sha256": "1b8d6fdd14edeb50f32899b405f394195ca0c601f786625525e8c0e5c75fae3c"
+    },
+    {
+      "path": "/images/editorial/journey/site-owner.webp",
+      "subject": "fictional barbershop owner building his salon website",
+      "use": "scroll journey chapter 05",
+      "prompt": "Ultra-photorealistic editorial photograph of a fictional white male barbershop owner with salt-and-pepper hair working on a laptop inside a contemporary barbershop, realistic materials and skin, no text, no logos",
+      "sha256": "89fc9c517a46d0a5c4d801b30a76ff3ec56b067e8dbbba97c81a41d48f416a25"
+    },
+    {
+      "path": "/images/editorial/journey/appointment-reminder.webp",
+      "subject": "fictional Latina client receiving an appointment reminder",
+      "use": "scroll journey chapter 06",
+      "prompt": "Ultra-photorealistic editorial photograph of a fictional Latina woman with a fresh haircut reading a reminder on her phone while her older stylist waves goodbye, bright premium urban salon, crisp detail, no text, no logos",
+      "sha256": "584904c9e25fec796fa382ca5a00a16e262c51da25fb4901cac233544af047d6"
     }
   ]
 }

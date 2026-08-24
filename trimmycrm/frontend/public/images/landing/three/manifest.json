@@ -1,0 +1,65 @@
+{
+  "generatedBy": "OpenAI built-in image generation",
+  "containsSyntheticPeopleOnly": true,
+  "productionApproved": false,
+  "purpose": "Generated references for local image-to-3D reconstruction plus fallback environment plates for the Three.js scroll scene.",
+  "assets": [
+    {
+      "path": "/images/landing/three/salon-chair-reference.png",
+      "sha256": "8bdd8b850323fb6c1b4d753b541cdfb960927ae6a9f91ee04cd8f9d4e19dd31e",
+      "useCase": "stylized-concept",
+      "prompt": "One contemporary professional salon chair on a pure paper-white cyclorama, clear three-quarter front view, matte black upholstery and structure, vermillion inset, one acid-mint mechanical accent, brushed chrome hydraulic hardware, no people, text, logos or environment props.",
+      "reconstruction": {
+        "workflow": "img2threejs 1.5.1",
+        "mode": "code-only procedural Three.js",
+        "fidelity": "stylized approximation from one visible view",
+        "hiddenGeometry": "inferred, not claimed exact"
+      }
+    },
+    {
+      "path": "/images/landing/three/salon-world-reference.png",
+      "sha256": "f4975cc57c1238364056e32920cd3ff1175b85adf7c4e52a86b3703574f36f0f",
+      "useCase": "stylized-concept",
+      "prompt": "A complete contemporary hair salon and barbershop interior in a long one-point perspective, no people, text or logos, with entrance, reception, styling floor, color laboratory, wash stations, consultation mirror and terminal portal in the TrimmyCRM palette.",
+      "reconstruction": {
+        "workflow": "img2threejs 1.5.1 quality-contract guided manual procedural build",
+        "mode": "code-only procedural Three.js environment",
+        "fidelity": "stylized approximation from one generated perspective",
+        "hiddenGeometry": "inferred, not claimed exact"
+      }
+    },
+    {
+      "path": "/images/landing/three/salon-journey-entrance-v2.webp",
+      "sha256": "798e2b5c116d9c5966a853c0b9068f31e516509911e2af4302a71a9301cb0649",
+      "useCase": "rendered-scene-plate",
+      "prompt": "Photoreal premium salon entrance and reception in wide editorial one-point perspective, walnut millwork, pale limestone, tailored black leather seating, warm architectural lighting, restrained vermillion and acid-mint brand details, no people, words or logos.",
+      "rendering": {
+        "engine": "Three.js local texture shader",
+        "motion": "cover crop, subtle pointer parallax, scroll-controlled dolly and crossfade",
+        "fidelity": "photoreal generated environment plate"
+      }
+    },
+    {
+      "path": "/images/landing/three/salon-journey-floor-v2.webp",
+      "sha256": "5f855470250ee2879247f79fe89129a113ae2a5515fe0371bf2cd3ad754d39fc",
+      "useCase": "rendered-scene-plate",
+      "prompt": "Photoreal continuation into a premium salon styling floor and color laboratory, walnut workstations, limestone surfaces, realistic mirrors, tools, bottles, black leather chairs, warm hospitality lighting, tiny vermillion and acid-mint details, no people, words or logos.",
+      "rendering": {
+        "engine": "Three.js local texture shader",
+        "motion": "cover crop, subtle pointer parallax, scroll-controlled dolly and crossfade",
+        "fidelity": "photoreal generated environment plate"
+      }
+    },
+    {
+      "path": "/images/landing/three/salon-journey-lounge-v2.webp",
+      "sha256": "ddb8360620be8eec2603a4f1cf6a993dab08fcecad50364eda976c7cacb5bfce",
+      "useCase": "rendered-scene-plate",
+      "prompt": "Photoreal final zone of the same premium salon with wash stations, consultation mirrors and a refined private lounge, walnut, limestone, black leather and warm practical lighting, restrained vermillion and acid-mint accents, no people, words or logos.",
+      "rendering": {
+        "engine": "Three.js local texture shader",
+        "motion": "cover crop, subtle pointer parallax, scroll-controlled dolly and crossfade",
+        "fidelity": "photoreal generated environment plate"
+      }
+    }
+  ]
+}

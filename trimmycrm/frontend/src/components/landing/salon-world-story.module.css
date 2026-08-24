@@ -1,0 +1,292 @@
+.story {
+  position: relative;
+  min-height: 620svh;
+  background: #162321;
+  color: #f2f8f7;
+  isolation: isolate;
+}
+
+.stage {
+  position: sticky;
+  z-index: 0;
+  top: 0;
+  height: 100svh;
+  overflow: hidden;
+}
+
+.viewport {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #162321 url("/images/landing/three/salon-journey-entrance-v2.webp") center / cover no-repeat;
+}
+
+.viewport::after {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgb(8 25 23 / .25) 0%, transparent 45%, rgb(8 25 23 / .08) 100%),
+    linear-gradient(0deg, rgb(8 25 23 / .25), transparent 36%);
+  content: "";
+  pointer-events: none;
+}
+
+.viewport canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: default;
+}
+
+.viewport[data-model-hover="true"] canvas { cursor: pointer; }
+
+.loader {
+  position: absolute;
+  z-index: 5;
+  inset: 0;
+  display: grid;
+  background: #162321;
+  color: #f2f8f7;
+  place-content: center;
+  justify-items: center;
+  gap: 16px;
+  transition: opacity 600ms cubic-bezier(.22, 1, .36, 1), visibility 600ms;
+}
+
+.viewport[data-status="ready"] .loader { opacity: 0; visibility: hidden; }
+
+.loader span {
+  position: relative;
+  display: block;
+  width: 54px;
+  height: 54px;
+  border: 1px solid rgb(242 248 247 / .24);
+  border-radius: 50%;
+}
+
+.loader span::after {
+  position: absolute;
+  inset: 5px;
+  border: 2px solid transparent;
+  border-top-color: #75dfb5;
+  border-right-color: #75dfb5;
+  border-radius: 50%;
+  content: "";
+  opacity: calc(.25 + var(--load-progress, 0) * .75);
+  transform: rotate(calc(var(--load-progress, 0) * 300deg));
+  transition: transform 280ms ease, opacity 280ms ease;
+}
+
+.loader p { margin: 0; font-size: 12px; font-weight: 650; letter-spacing: .02em; }
+
+.modelHint {
+  position: absolute;
+  z-index: 4;
+  right: 24px;
+  bottom: 24px;
+  display: flex;
+  margin: 0;
+  padding: 10px 14px;
+  border: 1px solid rgb(242 248 247 / .32);
+  border-radius: 999px;
+  background: rgb(13 39 36 / .52);
+  color: #f2f8f7;
+  align-items: center;
+  gap: 9px;
+  font-size: 11px;
+  font-weight: 650;
+  backdrop-filter: blur(12px);
+  pointer-events: none;
+}
+
+.modelHint span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #75dfb5;
+  box-shadow: 0 0 0 0 rgb(117 223 181 / .5);
+  animation: model-hint 2s ease-out infinite;
+}
+
+.chapters { position: relative; z-index: 3; margin-top: -100svh; pointer-events: none; }
+
+.chapter {
+  display: flex;
+  min-height: 124svh;
+  padding: 108px clamp(28px, 4.3vw, 82px) 56px;
+  align-items: center;
+}
+
+.heroChapter { position: relative; min-height: 100svh; align-items: center; }
+.finalChapter { min-height: 148svh; align-items: flex-start; padding-top: 29svh; }
+
+.copy {
+  width: min(540px, 100%);
+  padding: clamp(30px, 3.7vw, 50px);
+  border: 1px solid rgb(202 225 226 / .72);
+  border-radius: 18px;
+  background: rgb(242 248 247 / .93);
+  color: #203232;
+  box-shadow: 0 26px 90px rgb(5 26 24 / .2);
+  backdrop-filter: blur(20px) saturate(115%);
+  -webkit-backdrop-filter: blur(20px) saturate(115%);
+  pointer-events: auto;
+}
+
+.heroCopy {
+  width: min(650px, 40vw);
+  min-width: 560px;
+  padding: clamp(36px, 4.2vw, 60px);
+}
+
+.copyRight { margin-left: auto; }
+
+.kicker {
+  display: flex;
+  margin: 0 0 26px;
+  color: #174f50;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-landing-mono), monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .055em;
+  text-transform: uppercase;
+}
+
+.kicker span { width: 7px; height: 7px; border-radius: 50%; background: #75dfb5; }
+
+.copy h1,
+.copy h2 {
+  margin: 0;
+  font-family: var(--font-landing-serif), Georgia, serif;
+  font-weight: 520;
+  line-height: .96;
+  letter-spacing: -.055em;
+  text-wrap: balance;
+}
+
+.copy h1 { max-width: 580px; font-size: clamp(66px, 6.2vw, 108px); }
+.copy h1 em { color: #15595b; font-style: normal; }
+.copy h2 { font-size: clamp(46px, 4.5vw, 70px); }
+
+.copy > p:not(.kicker, .chapterNumber) {
+  max-width: 520px;
+  margin: 25px 0 0;
+  color: rgb(32 50 50 / .76);
+  font-size: clamp(16px, 1.3vw, 19px);
+  line-height: 1.5;
+}
+
+.chapterNumber {
+  margin: 0 0 26px;
+  color: #1c5d5f;
+  font-family: var(--font-landing-mono), monospace;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.lead { max-width: 520px !important; }
+.actions { display: flex; margin-top: 30px; flex-wrap: wrap; gap: 10px; }
+
+.primaryAction,
+.secondaryAction,
+.finalAction {
+  display: inline-flex;
+  min-height: 48px;
+  padding: 0 18px;
+  border-radius: 999px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  transition: transform 260ms cubic-bezier(.22, 1, .36, 1), background 240ms ease, color 240ms ease;
+}
+
+.primaryAction { border: 1px solid #15595b; background: #15595b; color: #f2f8f7; }
+.secondaryAction { border: 1px solid #15595b; color: #173f3e; }
+.finalAction { margin-top: 28px; background: #15595b; color: #f2f8f7; }
+.primaryAction svg,
+.secondaryAction svg,
+.finalAction svg { width: 16px; height: 16px; }
+
+.primaryAction:hover,
+.primaryAction:focus-visible,
+.secondaryAction:hover,
+.secondaryAction:focus-visible,
+.finalAction:hover,
+.finalAction:focus-visible { transform: translateY(-3px); }
+.primaryAction:hover,
+.primaryAction:focus-visible,
+.finalAction:hover,
+.finalAction:focus-visible { background: #0d4647; }
+.secondaryAction:hover,
+.secondaryAction:focus-visible { background: #dbeceb; }
+
+.scrollCue {
+  position: absolute;
+  right: clamp(28px, 4.3vw, 82px);
+  bottom: 38px;
+  display: flex;
+  color: #f2f8f7;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  font-weight: 650;
+  pointer-events: auto;
+}
+.scrollCue svg { width: 17px; height: 17px; animation: scroll-cue 1.8s ease-in-out infinite; }
+
+@keyframes model-hint {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(117 223 181 / .5); }
+  60% { box-shadow: 0 0 0 9px rgb(117 223 181 / 0); }
+}
+@keyframes scroll-cue { 50% { transform: translateY(5px); } }
+
+@media (max-width: 980px) {
+  .heroCopy { width: min(620px, 78vw); min-width: 0; }
+}
+
+@media (max-width: 780px) {
+  .story { min-height: 580svh; }
+  .viewport::after { background: linear-gradient(0deg, rgb(8 25 23 / .62), transparent 72%); }
+  .modelHint { display: none; }
+  .chapter { min-height: 116svh; padding: 92px 14px 28px; align-items: flex-end; }
+  .heroChapter { min-height: 100svh; align-items: flex-end; }
+  .finalChapter { min-height: 128svh; padding-top: 92px; }
+  .copy,
+  .heroCopy { width: 100%; min-width: 0; padding: 27px; border-radius: 16px; }
+  .copy h1 { font-size: clamp(58px, 18.2vw, 82px); }
+  .copy h2 { font-size: clamp(42px, 12vw, 59px); }
+  .copy > p:not(.kicker, .chapterNumber) { margin-top: 19px; font-size: 16px; }
+  .kicker { margin-bottom: 20px; font-size: 9px; }
+  .chapterNumber { margin-bottom: 18px; }
+  .actions { align-items: stretch; flex-direction: column; }
+  .primaryAction,
+  .secondaryAction { width: 100%; }
+  .scrollCue { display: none; }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .copy { background: #f2f8f7; backdrop-filter: none; }
+  .modelHint { background: #173f3e; backdrop-filter: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .story { min-height: auto; background: #162321 url("/images/landing/three/salon-journey-entrance-v2.webp") center / cover fixed; }
+  .stage { position: absolute; inset: 0; height: 100%; }
+  .chapters { margin-top: 0; }
+  .chapter,
+  .heroChapter,
+  .finalChapter { min-height: 100svh; }
+  .modelHint span,
+  .scrollCue svg { animation: none; }
+  .primaryAction,
+  .secondaryAction,
+  .finalAction { transition: none; }
+}

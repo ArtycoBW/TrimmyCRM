@@ -30,7 +30,7 @@ export function LandingFaq({ items }: LandingFaqProps) {
                 aria-controls={panelId}
                 aria-expanded={isOpen}
                 className={styles.faqButton}
-                onClick={() => setOpenIndex(isOpen ? null : index)}
+                onClick={() => setOpenIndex(index)}
                 type="button"
               >
                 <span>{item.question}</span>

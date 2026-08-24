@@ -1,0 +1,23 @@
+{
+  "license": "CC0 1.0",
+  "licenseUrl": "https://polyhaven.com/license",
+  "source": "https://polyhaven.com/",
+  "conversion": "Poly Haven glTF 1K packaged locally as GLB with @gltf-transform/cli 4.3.0",
+  "assets": [
+    {
+      "file": "modern_ceiling_lamp_01.glb",
+      "sourceUrl": "https://polyhaven.com/a/modern_ceiling_lamp_01",
+      "sha256": "d05dfcdc038ac0080c553bba2e437265453f0be8258ba500f1e5895032971cda"
+    },
+    {
+      "file": "modern_coffee_table_01.glb",
+      "sourceUrl": "https://polyhaven.com/a/modern_coffee_table_01",
+      "sha256": "5653912d65733f5b28d683fa09e37d31a60ed3b4b95cdb0fdf9d36f78162c161"
+    },
+    {
+      "file": "modern_wooden_cabinet.glb",
+      "sourceUrl": "https://polyhaven.com/a/modern_wooden_cabinet",
+      "sha256": "4b9700d8419f6edd00c4c9d93dea448a21572d6ee4d1881626739ee61d44cf1e"
+    }
+  ]
+}
