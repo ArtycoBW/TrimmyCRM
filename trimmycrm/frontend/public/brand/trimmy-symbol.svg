@@ -1,5 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="trimmy-symbol-title" shape-rendering="geometricPrecision">
   <title id="trimmy-symbol-title">TrimmyCRM</title>
-  <path d="M5 10h54v12H38v32H26V22H5V10Z" fill="#050505"/>
-  <path d="M39 10h13l-6 12H33l6-12Z" fill="#d15022"/>
+  <path fill="#173f3e" fill-rule="evenodd" d="M32 5C17.09 5 7 15.77 7 30.16V56h50V30.16C57 15.77 46.91 5 32 5Zm0 9c-9.2 0-15 6.56-15 16.16V47h30V30.16C47 20.56 41.2 14 32 14Z"/>
+  <path d="M32 14v33" stroke="#65b8a2" stroke-width="5" stroke-linecap="round"/>
+  <path d="M17 47h30" stroke="#173f3e" stroke-width="4" stroke-linecap="round"/>
 </svg>

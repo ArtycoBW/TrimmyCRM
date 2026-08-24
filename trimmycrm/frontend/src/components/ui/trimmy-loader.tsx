@@ -24,7 +24,7 @@ export function TrimmyLoader({
       <span className="trimmy-loader__orbit" aria-hidden="true" />
       <span className="trimmy-loader__core" aria-hidden="true">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/brand/trimmy-symbol.svg" alt="" />
+        <img src="/brand/trimmy-symbol.png" alt="" />
       </span>
     </span>
   );
